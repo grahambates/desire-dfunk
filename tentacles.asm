@@ -155,7 +155,7 @@ Frame:
 
 		move.w	Scale,d2
 		lsr.w	#5,d2
-		move.w	d7,d3
+		move.w	d5,d3
 		and.w #3,d3
 		mulu #SCREEN_BPL,d3
 		jsr	BlitCircleUnsafe
