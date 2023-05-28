@@ -61,8 +61,9 @@ Frame:
 		and.w	d6,d0
 		not.w	d0
 		move.w	d0,Scroll
-		; lsl #4,d0
-		; or.w	d0,Scroll
+		move.w	d0,d1
+		lsl.w 	#4,d0
+		add.w	d1,d0
 		lea	CopScroll+2,a0
 		move.w	d0,(a0)
 
@@ -154,7 +155,9 @@ Frame:
 
 		move.w	Scale,d2
 		lsr.w	#5,d2
-		move.w	#0,d3
+		move.w	d7,d3
+		and.w #3,d3
+		mulu #SCREEN_BPL,d3
 		jsr	BlitCircleUnsafe
 		movem.w	(sp)+,d0-d6
 
