@@ -95,8 +95,8 @@ Frame:
 		move.l	#$1000000,bltcon0(a6)
 		move.w	#(SCREEN_H*BPLS)<<6!1,bltsize(a6)
 
-		; Offset a1 to center/right of screen:
-		add.w	#SCREEN_BW/2+SCREEN_H/2*SCREEN_BW,a1
+		; ; Offset a1 to center/right of screen:
+		add.w	#24+SCREEN_BW*128,a1
 
 		move.w	VBlank+2,d6
 		lsl.w	#4,d6
