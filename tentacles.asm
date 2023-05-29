@@ -1,10 +1,10 @@
 		include	_main.i
 		include	tentacles.i
 
-TENTACLES_END_FRAME = $7ff
+TENTACLES_END_FRAME = $fff
 
-OUTER_COUNT = 6
-INNER_COUNT = 10
+OUTER_COUNT = 11
+INNER_COUNT = 7
 INNER_SHIFT = 3
 
 ; Display window:
@@ -104,7 +104,7 @@ Frame:
 		move.w	#(SCREEN_H)<<6!1,bltsize(a6)
 
 		; Offset a1 to center/right of screen:
-		add.w	#32+SCREEN_BW*128,a1
+		add.w	#28+SCREEN_BW*128,a1
 
 ; Scale value from sum of sines:
 		move.w	VBlank+2,d6
@@ -121,8 +121,10 @@ Frame:
 		and.w	#$7fe,d4
 		add.w	(a3,d4.w),d0
 
-		asr.w	#8,d0
-		add.w	#$b0,d0					; min scale
+		; asr.w	#7,d0
+		ext.l d0
+		divs #150,d0
+		add.w	#$f0,d0					; min scale
 		move.w	d0,Scale
 
 ; d6 = outer start angle
@@ -179,7 +181,7 @@ Frame:
 		move.w	Scale,d2				; d2 = radius
 		lsr.w	#6,d2
 		move.w	d5,d3					; d3 = color
-		add.w d7,d3
+		; add.w d7,d3
 		addq	#1,d3
 		jsr	BlitCircleUnsafe
 		movem.w	(sp)+,d0-d7
@@ -189,7 +191,7 @@ Frame:
 		add.w	#($400/INNER_COUNT)*2,d4
 		dbf	d5,.l1
 
-		add.w	#($400/OUTER_COUNT)*2,d6
+		add.w	#($400/OUTER_COUNT)*2*3,d6
 		dbf	d7,.l0
 
 		cmp.l	#TENTACLES_END_FRAME,VBlank
