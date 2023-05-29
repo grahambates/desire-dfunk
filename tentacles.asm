@@ -55,52 +55,57 @@ Tentacles_Effect:
 		dbf	d7,.col
 
 Frame:
+; Horizontal scroll position frame frame count
 		move.l	VBlank,d6
 		add.w	d6,d6
-		moveq	#15,d0
+		moveq	#15,d0 ; last 4 bits go in bplcon1 and save later for adjustment
 		and.w	d6,d0
 		not.w	d0
 		move.w	d0,Scroll
+		; lower/upper bits for pf1/pf2 bplcon1
+		and.w	#15,d0
 		move.w	d0,d1
-		lsl.w 	#4,d0
+		lsl.w	#4,d0
 		add.w	d1,d0
-		lea	CopScroll+2,a0
-		move.w	d0,(a0)
-
+		move.w	d0,CopScroll+2 ; write to copper
+		; word value added to bpl address
 		lsr.w	#4,d6
 		add.w	d6,d6
 		lea	Screen,a1
 		lea	(a1,d6.w),a1
 
+; Wait for VBL before updating bpl pointers in copper
 		DebugStartIdle
 		jsr	WaitEOF
 		DebugStopIdle
 
 		lea	CopBplPt+2,a0
 		move.l	a1,a2
-		moveq #BPLS-1,d7
+		moveq	#BPLS-1,d7
 .l
 		move.w	a2,4(a0)
 		move.l	a2,d0
 		swap	d0
 		move.w	d0,(a0)
-		lea 	8(a0),a0
-		lea 	SCREEN_BPL(a2),a2
+		lea	8(a0),a0
+		lea	SCREEN_BPL(a2),a2
 		dbf	d7,.l
 
 ; Clear word on right of buffer to stop data looping back round:
 		lea	SCREEN_BW-2(a1),a2
 		WAIT_BLIT
+		move.l	#-1,bltafwm(a6)
 		move.w	#SCREEN_BW-2,bltdmod(a6)
 		move.l	a2,bltdpt(a6)
 		move.l	#$1000000,bltcon0(a6)
 		move.w	#(SCREEN_H*BPLS)<<6!1,bltsize(a6)
 
-		; ; Offset a1 to center/right of screen:
+		; Offset a1 to center/right of screen:
 		add.w	#24+SCREEN_BW*128,a1
 
+; Scale value from sum of sines:
 		move.w	VBlank+2,d6
-		lsl.w	#4,d6
+		lsl.w	#2,d6
 		lea	Sin,a3
 
 		move.w	d6,d4
@@ -108,58 +113,63 @@ Frame:
 		move.w	(a3,d4.w),d0
 
 		move.w	d6,d4
-		divs	#3,d4
+		add.w d6,d4
+		add.w d6,d4
 		and.w	#$7fe,d4
 		add.w	(a3,d4.w),d0
 
 		asr.w	#8,d0
-		add.w	#$b0,d0
+		add.w	#$b0,d0 ; min scale
 		move.w	d0,Scale
 
+; Outer rotation:
 		moveq	#OUTER_COUNT-1,d7
 .l0
+		; x = sin(a)
+		; initial angle is scroll position
 		move.w	d6,d4
 		and.w	#$7fe,d4
 		move.w	(a3,d4.w),d0
-		muls	Scale,d0
-		swap	d0
-		sub.w	Scroll,d0
 
+		; y = cos(a)
 		add.w	#$1fe,d4
 		and.w	#$7fe,d4
 		move.w	(a3,d4.w),d1
-		muls	Scale,d1
-		swap	d1
 
 		move.w	VBlank+2,d4
 		lsl.w	#5,d4
 
+; Inner rotation:
 		moveq	#INNER_COUNT-1,d5
 .l1
-		movem.w	d0-d6,-(sp)
+		movem.w	d0-d7,-(sp)
 
+		; x += sin(a1)
 		and.w	#$7fe,d4
 		move.w	(a3,d4.w),d2
-		muls	Scale,d2
-		swap	d2
 		asr.w	#2,d2
-		add.w	d2,d0
+		add.w	d2,d0 ; d0 = x
+		muls	Scale,d0
+		swap	d0
+		sub.w	Scroll,d0 ; adjust for hscroll in bplcon1
 
+		; y += cos(a1)
 		add.w	#$1fe,d4
 		and.w	#$7fe,d4
 		move.w	(a3,d4.w),d2
-		muls	Scale,d2
-		swap	d2
 		asr.w	#2,d2
-		add.w	d2,d1
+		add.w	d2,d1 ; d1 = y
+		muls	Scale,d1
+		swap	d1
 
-		move.w	Scale,d2
-		lsr.w	#5,d2
+		move.w	Scale,d2 ; d2 = radius
+		lsr.w	#6,d2
 		move.w	d5,d3
-		and.w #3,d3
-		mulu #SCREEN_BPL,d3
+		addq	#1,d3
 		jsr	BlitCircleUnsafe
-		movem.w	(sp)+,d0-d6
+		movem.w	(sp)+,d0-d7
+
+		; Increment angles 360 deg / count
 
 		add.w	#($400/INNER_COUNT)*2,d4
 		dbf	d5,.l1
@@ -207,23 +217,30 @@ BlitCircleUnsafe:
 		move.l	a1,d5					; d5 = dest pointer with offset
 		ext.l	d1
 		add.l	d1,d5
-		add.l	d3,d5					; add colour bpl offset to dest
 
-; Do blit:
 		WAIT_BLIT
 		move.l	d6,bltamod(a6)
 		move.w	d6,bltcmod(a6)
-		move.l	#-1,d6
-		lsl.l	d4,d6
-		move.l	d6,bltafwm(a6)
 		lsl.w	#2,d4					; d4 = offset into bltcon table
 		move.l	.bltcon(pc,d4),d4			; d4 = BLTCON0/1
-		move.l	d4,bltcon0(a6)
+
+; Fill/clear each bpl to create color (not interleaved)
+		moveq	#BPLS-1,d0
+.bpl
+		move.l	d4,d6					; d6 = BLTCON0/1
+; change bltcon0 to clear inside shape if bit not set in colour value
+		btst	d0,d3
+		bne	.fill
+		and.l	#$ff0fffff,d6
+.fill		WAIT_BLIT
+		move.l	d6,bltcon0(a6)
 		move.l	d5,bltcpt(a6)
 		move.l	a0,bltapt(a6)
 		move.l	d5,bltdpt(a6)
 		move.w	a4,bltsize(a6)
-.skip:		rts
+		add.l	#SCREEN_BPL,d5
+		dbf	d0,.bpl
+		rts
 
 ; Table for combined minterm and shifts for bltcon0/bltcon1
 .bltcon:	dc.l	$0bfa0000,$1bfa1000,$2bfa2000,$3bfa3000
