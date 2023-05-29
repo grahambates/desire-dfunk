@@ -3,8 +3,9 @@
 
 TENTACLES_END_FRAME = $7ff
 
-OUTER_COUNT = 8
-INNER_COUNT = 5
+OUTER_COUNT = 6
+INNER_COUNT = 10
+INNER_SHIFT = 3
 
 ; Display window:
 DIW_W = 320
@@ -58,7 +59,7 @@ Frame:
 ; Horizontal scroll position frame frame count
 		move.l	VBlank,d6
 		add.w	d6,d6
-		moveq	#15,d0 ; last 4 bits go in bplcon1 and save later for adjustment
+		moveq	#15,d0					; last 4 bits go in bplcon1 and save later for adjustment
 		and.w	d6,d0
 		not.w	d0
 		move.w	d0,Scroll
@@ -67,7 +68,7 @@ Frame:
 		move.w	d0,d1
 		lsl.w	#4,d0
 		add.w	d1,d0
-		move.w	d0,CopScroll+2 ; write to copper
+		move.w	d0,CopScroll+2				; write to copper
 		; word value added to bpl address
 		lsr.w	#4,d6
 		add.w	d6,d6
@@ -98,10 +99,12 @@ Frame:
 		move.w	#SCREEN_BW-2,bltdmod(a6)
 		move.l	a2,bltdpt(a6)
 		move.l	#$1000000,bltcon0(a6)
-		move.w	#(SCREEN_H*BPLS)<<6!1,bltsize(a6)
+		move.w	#(SCREEN_H*(BPLS-1))<<6!1,bltsize(a6)
+		WAIT_BLIT
+		move.w	#(SCREEN_H)<<6!1,bltsize(a6)
 
 		; Offset a1 to center/right of screen:
-		add.w	#24+SCREEN_BW*128,a1
+		add.w	#32+SCREEN_BW*128,a1
 
 ; Scale value from sum of sines:
 		move.w	VBlank+2,d6
@@ -113,31 +116,42 @@ Frame:
 		move.w	(a3,d4.w),d0
 
 		move.w	d6,d4
-		add.w d6,d4
-		add.w d6,d4
+		add.w	d6,d4
+		add.w	d6,d4
 		and.w	#$7fe,d4
 		add.w	(a3,d4.w),d0
 
 		asr.w	#8,d0
-		add.w	#$b0,d0 ; min scale
+		add.w	#$b0,d0					; min scale
 		move.w	d0,Scale
 
+; d6 = outer start angle
+		and.w	#$7fe,d6
+		move.w (a3,d6.w),d6
+		asr.w	#5,d6
+
 ; Outer rotation:
+		; move.w	VBlank+2,d7
+		; lsr.w	#7,d7
+		; cmp.w #OUTER_COUNT-1,d7
+		; ble .l0
+
 		moveq	#OUTER_COUNT-1,d7
 .l0
 		; x = sin(a)
-		; initial angle is scroll position
 		move.w	d6,d4
 		and.w	#$7fe,d4
 		move.w	(a3,d4.w),d0
+		asr d0 ; / 2 for pERsPECtIve
 
 		; y = cos(a)
 		add.w	#$1fe,d4
 		and.w	#$7fe,d4
 		move.w	(a3,d4.w),d1
 
+; d4 = inner start angle
 		move.w	VBlank+2,d4
-		lsl.w	#5,d4
+		lsl.w	#4,d4
 
 ; Inner rotation:
 		moveq	#INNER_COUNT-1,d5
@@ -147,24 +161,25 @@ Frame:
 		; x += sin(a1)
 		and.w	#$7fe,d4
 		move.w	(a3,d4.w),d2
-		asr.w	#2,d2
-		add.w	d2,d0 ; d0 = x
+		asr.w	#INNER_SHIFT,d2
+		add.w	d2,d0					; d0 = x
 		muls	Scale,d0
 		swap	d0
-		sub.w	Scroll,d0 ; adjust for hscroll in bplcon1
+		sub.w	Scroll,d0				; adjust for hscroll in bplcon1
 
 		; y += cos(a1)
 		add.w	#$1fe,d4
 		and.w	#$7fe,d4
 		move.w	(a3,d4.w),d2
-		asr.w	#2,d2
-		add.w	d2,d1 ; d1 = y
+		asr.w	#INNER_SHIFT,d2
+		add.w	d2,d1					; d1 = y
 		muls	Scale,d1
 		swap	d1
 
-		move.w	Scale,d2 ; d2 = radius
+		move.w	Scale,d2				; d2 = radius
 		lsr.w	#6,d2
-		move.w	d5,d3
+		move.w	d5,d3					; d3 = color
+		add.w d7,d3
 		addq	#1,d3
 		jsr	BlitCircleUnsafe
 		movem.w	(sp)+,d0-d7
@@ -206,7 +221,6 @@ BlitCircleUnsafe:
 		movem.w	Blit_Mod(a0),d6/a4
 		move.l	Blit_Adr(a0),a0
 
-; Prepare and store blit params:
 ; Lookup bltcon value for x shift
 		moveq	#15,d4
 		and.w	d0,d4
