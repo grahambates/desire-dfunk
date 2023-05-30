@@ -48,12 +48,36 @@ Frame:
 ; Get / update rotation angles
 		movem.w	Rot,d5-d7
 		add.w	#2,d5
-		add.w	#2,d6
-		add.w	#2,d7
+		add.w	#0,d6
+		add.w	#0,d7
 		and.w	#$1fe,d5
 		and.w	#$1fe,d6
 		and.w	#$1fe,d7
 		movem.w	d5-d7,Rot
+
+		; lea Sin,a0
+		; move.w VBlank+2,d0
+		; lsr #1,d0
+		; and.w #$7fe,d0
+		; move.w (a0,d0.w),d5
+		; lsr #6,d5
+		; add.w d5,d5
+		; ; and.w	#$1fe,d5
+
+		; move.w VBlank+2,d0
+		; and.w #$7fe,d0
+		; move.w (a0,d0.w),d6
+		; lsr #6,d6
+		; add.w d6,d6
+		; ; and.w	#$1fe,d6
+
+		; move.w VBlank+2,d0
+		; divu #3,d0
+		; and.w #$7fe,d0
+		; move.w (a0,d0.w),d7
+		; lsr #6,d7
+		; add.w d7,d7
+		; ; and.w	#$1fe,d7
 
 ********************************************************************************
 ; Calculate rotation matrix and apply values to self-modifying code loop

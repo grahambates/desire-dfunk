@@ -458,8 +458,7 @@ BlitCircle:
         lsl.l   d4,d6
         move.l  d6,bltafwm(a6)
         lsl.w   #2,d4                           ; d4 = offset into bltcon table
-        move.l  .bltcon(pc,d4),d4               ; d4 = BLTCON0/1
-        move.l  d4,bltcon0(a6)
+        move.l  .bltcon(pc,d4),bltcon0(a6)
         move.l  d5,bltcpt(a6)
         move.l  a0,bltapt(a6)
         move.l  d5,bltdpt(a6)
