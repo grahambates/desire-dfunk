@@ -19,7 +19,7 @@ BPLS = 5
 
 ; Screen buffer:
 SCREEN_W = DIW_W+16
-SCREEN_H = DIW_H
+SCREEN_H = DIW_H+16
 
 ;-------------------------------------------------------------------------------
 ; Derived
@@ -28,7 +28,7 @@ COLORS = 1<<BPLS
 
 SCREEN_BW = SCREEN_W/8						; byte-width of 1 bitplane line
 SCREEN_BPL = SCREEN_BW*SCREEN_H					; bitplane offset (non-interleaved)
-SCREEN_SIZE = SCREEN_BW*SCREEN_H*(BPLS-1)			; byte size of screen buffer
+SCREEN_SIZE = SCREEN_BW*SCREEN_H*BPLS			; byte size of screen buffer
 
 DIW_BW = DIW_W/8
 DIW_MOD = SCREEN_BW-DIW_BW-2
@@ -49,15 +49,6 @@ Interrupt:
         lea     VBlank(pc),a0
         addq.l  #1,(a0)
 
-; Set bpl pointers:
-        ; move.l  ViewBuffer(pc),a0
-        ; lea     bpl0pt+custom,a1
-        ; rept    BPLS-1
-        ; move.l  a0,(a1)+
-        ; lea     SCREEN_BPL(a0),a0
-        ; endr
-        ; move.l  #BlankBpl,(a1)+
-
         ; ifne    MUSIC_ENABLE
         ; jsr     Music_Play
         ; endc
@@ -77,11 +68,10 @@ Interrupt:
 PokeBpls:
         move.l  ViewBuffer(pc),a0
         lea     bpl0pt+custom,a1
-        rept    BPLS-1
+        rept    BPLS
         move.l  a0,(a1)+
         lea     SCREEN_BPL(a0),a0
         endr
-        move.l  #BlankBpl,(a1)+
         rts
 
 InstallInterrupt:
@@ -376,6 +366,9 @@ BlitCircle:
         movem.w Blit_Mod(a0),d6/a4
         move.l  Blit_Adr(a0),a0
 
+        cmp.w #8,d2
+        ble .noClip
+
 ; Clipping checks:
 ; Min Y:
         move.w  #-DIW_H/2,d4
@@ -438,6 +431,7 @@ BlitCircle:
         add.w   d4,d6
         swap    d6
 .maxXOk:
+.noClip
 
 ; Prepare and store blit params:
 ; Lookup bltcon value for x shift
