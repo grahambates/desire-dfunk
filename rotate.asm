@@ -7,7 +7,7 @@ SCREEN_H = 256+16
 SCREEN_BPL = SCREEN_BW*SCREEN_H
 
 DIST_SHIFT = 7
-MAX_PARTICLES = 70
+MAX_PARTICLES = 60
 
 FPMULS		macro
 		muls	\1,\2
@@ -83,8 +83,8 @@ Frame:
 		lsl	#2,d0
 		and.w	#$7fe,d0
 		move.w	(a0,d0.w),d5
-		asr	#7,d5
-		add.w	#300,d5
+		asr	#8,d5
+		add.w	#200,d5
 		move.w	d5,Zoom
 
 ; Rotation:
@@ -229,18 +229,15 @@ MatH		add.b	__SMC__(multbl,oy.w),tz
 MatI		add.b	__SMC__(multbl,oz.w),tz
 		ext.w	tz
 
-
-		move.l	a0,-(sp)
-
-		move.w	tz,d3
 		add.w	Zoom(pc),tz
 		ble	.next
 
+		move.l	a0,-(sp)
 ; Colour:
-		add.w	#128,d3
-		lsr	#3,d3
+		move.w	tz,d3
+		lsr	#4,d3
 		lea	Offsets,a0
-		and.w 	#$1c,d3
+		and.w 	#$3c,d3
 		move.l	(a0,d3.w),d3
 
 ; Apply perspective:
@@ -343,6 +340,8 @@ Offsets:
 		dc.l	SCREEN_BPL*3
 		dc.l	SCREEN_BPL*2
 		dc.l	SCREEN_BPL
+		dc.l	0
+		dc.l	0
 		dc.l	0
 		dc.l	0
 		dc.l	0
