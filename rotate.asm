@@ -89,9 +89,9 @@ Frame:
 
 ; Rotation:
 		movem.w	Rot,d5-d7
-		add.w	#1,d5
+		add.w	#2,d5
 		add.w	#2,d6
-		add.w	#1,d7
+		add.w	#2,d7
 		movem.w	d5-d7,Rot
 
 		and.w	#$1fe,d5
