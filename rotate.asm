@@ -7,7 +7,7 @@ SCREEN_H = 256+16
 
 DIST_SHIFT = 7
 ZOOM = 150
-MAX_PARTICLES = 70
+MAX_PARTICLES = 75
 
 FPMULS		macro
 		muls	\1,\2
@@ -47,13 +47,14 @@ Frame:
 
 ; Get / update rotation angles
 		movem.w	Rot,d5-d7
-		add.w	#2,d5
-		add.w	#0,d6
-		add.w	#0,d7
+		add.w	#1,d5
+		add.w	#2,d6
+		add.w	#3,d7
+		movem.w	d5-d7,Rot
+
 		and.w	#$1fe,d5
 		and.w	#$1fe,d6
 		and.w	#$1fe,d7
-		movem.w	d5-d7,Rot
 
 		; lea Sin,a0
 		; move.w VBlank+2,d0
@@ -235,11 +236,11 @@ MatI		add.b	__SMC__(multbl,oz.w),tz
 		move.l	#0,(a2)+				; End clear list
 
 ; EOF
-		; move.w #$f00,color(a6)
+		move.w #$f00,color(a6)
 		DebugStartIdle
 		jsr	WaitEOF
 		DebugStopIdle
-		; move.w #0,color(a6)
+		move.w #0,color(a6)
 
 		bra	Frame
 		rts
