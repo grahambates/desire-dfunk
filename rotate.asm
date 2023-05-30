@@ -4,10 +4,10 @@
 DIW_BW = 320/8
 SCREEN_BW = 336/8
 SCREEN_H = 256+16
+SCREEN_BPL = SCREEN_BW*SCREEN_H
 
 DIST_SHIFT = 7
-ZOOM = 150
-MAX_PARTICLES = 75
+MAX_PARTICLES = 70
 
 FPMULS		macro
 		muls	\1,\2
@@ -35,6 +35,38 @@ Rotate_Effect:
 
 		bsr	InitMulsTbl
 
+		move.w	#$222,color01(a6)
+		move.w	#$444,color02(a6)
+		move.w	#$444,color03(a6)
+		move.w	#$666,color04(a6)
+		move.w	#$666,color05(a6)
+		move.w	#$666,color06(a6)
+		move.w	#$666,color07(a6)
+		move.w	#$888,color08(a6)
+		move.w	#$888,color09(a6)
+		move.w	#$888,color10(a6)
+		move.w	#$888,color11(a6)
+		move.w	#$888,color12(a6)
+		move.w	#$888,color13(a6)
+		move.w	#$888,color14(a6)
+		move.w	#$888,color15(a6)
+		move.w	#$aaa,color16(a6)
+		move.w	#$aaa,color17(a6)
+		move.w	#$aaa,color18(a6)
+		move.w	#$aaa,color19(a6)
+		move.w	#$aaa,color20(a6)
+		move.w	#$aaa,color21(a6)
+		move.w	#$aaa,color22(a6)
+		move.w	#$aaa,color23(a6)
+		move.w	#$aaa,color24(a6)
+		move.w	#$aaa,color25(a6)
+		move.w	#$aaa,color26(a6)
+		move.w	#$aaa,color27(a6)
+		move.w	#$aaa,color28(a6)
+		move.w	#$aaa,color29(a6)
+		move.w	#$aaa,color30(a6)
+		move.w	#$aaa,color31(a6)
+
 ; Generate random particles
 		lea	Particles,a0
 		moveq	#MAX_PARTICLES-1,d7
@@ -45,40 +77,26 @@ Frame:
 		jsr	SwapBuffers
 		jsr	Clear
 
-; Get / update rotation angles
+; Zoom:
+		lea	Sin,a0
+		move.w	VBlank+2,d0
+		lsl	#2,d0
+		and.w	#$7fe,d0
+		move.w	(a0,d0.w),d5
+		asr	#7,d5
+		add.w	#300,d5
+		move.w	d5,Zoom
+
+; Rotation:
 		movem.w	Rot,d5-d7
 		add.w	#1,d5
 		add.w	#2,d6
-		add.w	#3,d7
+		add.w	#1,d7
 		movem.w	d5-d7,Rot
 
 		and.w	#$1fe,d5
 		and.w	#$1fe,d6
 		and.w	#$1fe,d7
-
-		; lea Sin,a0
-		; move.w VBlank+2,d0
-		; lsr #1,d0
-		; and.w #$7fe,d0
-		; move.w (a0,d0.w),d5
-		; lsr #6,d5
-		; add.w d5,d5
-		; ; and.w	#$1fe,d5
-
-		; move.w VBlank+2,d0
-		; and.w #$7fe,d0
-		; move.w (a0,d0.w),d6
-		; lsr #6,d6
-		; add.w d6,d6
-		; ; and.w	#$1fe,d6
-
-		; move.w VBlank+2,d0
-		; divu #3,d0
-		; and.w #$7fe,d0
-		; move.w (a0,d0.w),d7
-		; lsr #6,d7
-		; add.w d7,d7
-		; ; and.w	#$1fe,d7
 
 ********************************************************************************
 ; Calculate rotation matrix and apply values to self-modifying code loop
@@ -211,12 +229,24 @@ MatH		add.b	__SMC__(multbl,oy.w),tz
 MatI		add.b	__SMC__(multbl,oz.w),tz
 		ext.w	tz
 
-		add.w	#ZOOM,tz
+
+		move.l	a0,-(sp)
+
+		move.w	tz,d3
+		add.w	Zoom(pc),tz
+		ble	.next
+
+; Colour:
+		add.w	#128,d3
+		lsr	#3,d3
+		lea	Offsets,a0
+		and.w 	#$1c,d3
+		move.l	(a0,d3.w),d3
 
 ; Apply perspective:
 		add.w	tz,tz
 		move.w	(divtbl,tz),d5				; d5 = 1/z
-		move.w 	#15-DIST_SHIFT,d4
+		move.w	#15-DIST_SHIFT,d4
 		muls	d5,tx
 		asr.l	d4,tx
 		muls	d5,ty
@@ -224,10 +254,7 @@ MatI		add.b	__SMC__(multbl,oz.w),tz
 		muls	d5,r
 		asr.l	d4,r
 
-		move.l	a0,-(sp)
-
 		move.w	d6,d2
-		moveq	#0,d3
 		jsr	DrawCircle
 
 		move.l	(sp)+,a0
@@ -236,11 +263,11 @@ MatI		add.b	__SMC__(multbl,oz.w),tz
 		move.l	#0,(a2)+				; End clear list
 
 ; EOF
-		move.w #$f00,color(a6)
+		; move.w #$f00,color(a6)
 		DebugStartIdle
 		jsr	WaitEOF
 		DebugStopIdle
-		move.w #0,color(a6)
+		; move.w #0,color(a6)
 
 		bra	Frame
 		rts
@@ -273,32 +300,32 @@ InitMulsTbl:
 InitParticle:
 ; x
 		jsr	Random32
-		move.b d0,d1
+		move.b	d0,d1
 ; y
 		jsr	Random32
-		move.b d0,d2
+		move.b	d0,d2
 ; z
 		jsr	Random32
-		move.b d0,d3
+		move.b	d0,d3
 
 ; Check dist from origin:
-		move.b d1,d4
-		ext.w d4
+		move.b	d1,d4
+		ext.w	d4
 		muls	d4,d4
-		move.b d2,d5
-		ext.w d5
+		move.b	d2,d5
+		ext.w	d5
 		muls	d5,d5
-		move.b d3,d6
-		ext.w d6
+		move.b	d3,d6
+		ext.w	d6
 		muls	d6,d6
-		add.w d5,d4
-		add.w d6,d4
+		add.w	d5,d4
+		add.w	d6,d4
 ; Dist too great? Try again lol...
-		cmp.w #128*128,d4
-		bge InitParticle
+		cmp.w	#128*128,d4
+		bge	InitParticle
 
 		move.b	d1,(a0)+
-		clr.b	(a0)+ ; pre-shifted <<8 from muls offset
+		clr.b	(a0)+					; pre-shifted <<8 from muls offset
 		move.b	d2,(a0)+
 		clr.b	(a0)+
 		move.b	d3,(a0)+
@@ -310,6 +337,19 @@ InitParticle:
 		move.w	d0,(a0)+
 
 		rts
+
+Offsets:
+		dc.l	SCREEN_BPL*4
+		dc.l	SCREEN_BPL*3
+		dc.l	SCREEN_BPL*2
+		dc.l	SCREEN_BPL
+		dc.l	0
+		dc.l	0
+		dc.l	0
+		dc.l	0
+
+
+Zoom:		dc.w	300
 
 Sin1:
 		dc.w	0,804,1608,2410,3212,4011,4808,5602
