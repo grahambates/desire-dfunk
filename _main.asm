@@ -1,5 +1,6 @@
         include "_main.i"
         include "tentacles.i"
+        include "rotate.i"
 
 _start:
         include "PhotonsMiniWrapper1.04.i"
@@ -61,11 +62,34 @@ Interrupt:
         ; jsr     Music_Play
         ; endc
 
+        move.l InterruptRoutine,d0
+        beq .noInt
+        move.l d0,a0
+        jsr (a0)
+.noInt
+
         moveq   #INTF_VERTB,d0
         move.w  d0,intreq(a6)
         move.w  d0,intreq(a6)
 .notvb: movem.l (sp)+,d0-a6
         rte
+
+PokeBpls:
+        move.l  ViewBuffer(pc),a0
+        lea     bpl0pt+custom,a1
+        rept    BPLS-1
+        move.l  a0,(a1)+
+        lea     SCREEN_BPL(a0),a0
+        endr
+        move.l  #BlankBpl,(a1)+
+        rts
+
+InstallInterrupt:
+        move.l a0,InterruptRoutine
+        rts
+
+InterruptRoutine:
+        dc.l 0
 
 ********************************************************************************
 Demo:
@@ -164,7 +188,7 @@ InitSqrt:
 InitSin:
         lea     Sin,a0
         moveq   #0,d0
-        move.w  #16384,d1
+        move.w  #16383,d1
         moveq   #32,d2
 .loop:
         move.w  d0,d3
@@ -177,6 +201,13 @@ InitSin:
         add.w   d2,d0
         sub.w   d2,d1
         bgt.s   .loop
+; Copy extra 90 deg for cosine
+        lea Sin,a0
+        lea Sin+1024*2,a1
+        move.w #256/2,d0
+.copy
+        move.l (a0)+,(a1)+
+        dbf d0,.copy
 
 
 ********************************************************************************
@@ -247,11 +278,8 @@ InitValueNoise:
 
 ********************************************************************************
 Effects:
-        jsr     Tentacles_Effect
-        ; jsr     Vis_Effect
-        ; jsr     Particles_Effect
-        ; move.l  #$48b7cb3f,RandomSeed           ; Known good value with no glitches
-        ; jsr     Balls_Effect
+        ; jsr     Tentacles_Effect
+        jsr     Rotate_Effect
         rts                                     ; Exit demo
 
 
@@ -729,7 +757,11 @@ ClearList2: ds.b Blit_SIZEOF*MAX_CLEAR+4
 ; Precalced sqrt LUT data
 SqrtTab: ds.b   $100*$100
 
-Sin:    ds.w    1024
+; FP 2/14
+; +-16384
+; ($c000-$4000) over 1024 ($400) steps
+Sin:    ds.w    256
+Cos:    ds.w    1024
 
 Pal0:   ds.w    32
 Pal1:   ds.w    32

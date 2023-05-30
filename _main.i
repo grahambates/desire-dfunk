@@ -21,7 +21,11 @@
 		xref	DrawBuffer
 		xref	DrawClearList
 
+		xref	PokeBpls
+		xref	InstallInterrupt
+
 		xref	Sin
+		xref	Cos
 		xref	SqrtTab
 		xref	DivTab
 		xref	ValueNoise

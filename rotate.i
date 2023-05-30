@@ -1,0 +1,1 @@
+	xdef Rotate_Effect
