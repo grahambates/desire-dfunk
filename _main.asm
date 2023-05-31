@@ -17,8 +17,8 @@ DIW_H = 256
 BPLS = 5
 
 ; Screen buffer:
-SCREEN_W = DIW_W+16
-SCREEN_H = DIW_H+16
+SCREEN_W = DIW_W+64
+SCREEN_H = DIW_H+64
 
 ;-------------------------------------------------------------------------------
 ; Derived
@@ -365,7 +365,7 @@ BlitCircle:
         movem.w Blit_Mod(a0),d6/a4
         move.l  Blit_Adr(a0),a0
 
-        cmp.w #8,d2
+        cmp.w #32,d2
         ble .noClip
 
 ; Clipping checks:

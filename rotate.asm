@@ -1,9 +1,12 @@
 		include	_main.i
 		include	rotate.i
 
-DIW_BW = 320/8
-SCREEN_BW = 336/8
-SCREEN_H = 256+16
+DIW_W = 320
+DIW_H = 256
+DIW_BW = DIW_W/8
+SCREEN_W = DIW_W+64
+SCREEN_H = DIW_H+64
+SCREEN_BW = SCREEN_W/8
 SCREEN_BPL = SCREEN_BW*SCREEN_H
 
 DIST_SHIFT = 9
@@ -213,7 +216,8 @@ r		equr	d6
 SMCLoop:
 __SMC__ = $7f							; Values to be replaced in self-modifying code
 		movem.w	(particles)+,ox-oz/r				; d0 = x, d1 = y, d2 = z, d6 = r
-
+		move.l	a0,-(sp)				; out of registers :-(
+Martix:
 ; Get Z first - skip rest if <=0:
 ; z'=G*x+H*y+I*z
 MatG		move.b	__SMC__(multbl,ox.w),tz
@@ -221,7 +225,8 @@ MatH		add.b	__SMC__(multbl,oy.w),tz
 MatI		add.b	__SMC__(multbl,oz.w),tz
 		ext.w	tz
 
-		add.w	Zoom(pc),tz
+		move.w	Zoom(pc),a0
+		add.w	a0,tz
 		ble	SMCNext
 
 ; Finish the matrix:
@@ -234,17 +239,16 @@ MatD		move.b	__SMC__(multbl,ox.w),ty
 MatE		add.b	__SMC__(multbl,oy.w),ty
 MatF		add.b	__SMC__(multbl,oz.w),ty
 
-		move.l	a0,-(sp)				; out of registers :-(
-; Colour:
+Colour:
 		move.w	tz,d3
-		sub.w	Zoom(pc),d3				; TODO: this is dumb
+		sub.w	a0,d3				; TODO: this is dumb
 		add.w	#127,d3
 		lsr	#3,d3
 		lea	Offsets,a0
 		and.w	#$3c,d3
 		move.l	(a0,d3.w),d3
 
-; Apply perspective:
+Perspective:
 		ext.w	ty
 		ext.w	tx
 		add.w	tz,tz
@@ -256,7 +260,7 @@ MatF		add.b	__SMC__(multbl,oz.w),ty
 		asr.l	d4,ty
 		mulu	d5,r
 		asr.l	d4,r
-
+Draw:
 		move.w	d6,d2
 		jsr	DrawCircle
 
@@ -322,7 +326,7 @@ InitParticle:
 		add.l	d5,d4
 		add.l	d6,d4
 ; Dist too great? Try again lol...
-		cmp.l	#126*126,d4
+		cmp.l	#120*120,d4
 		bge	InitParticle
 
 		move.b	d1,(a0)+
