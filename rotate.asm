@@ -36,6 +36,53 @@ Rotate_Effect:
 
 		bsr	InitMulsTbl
 
+		lea	MulsTable+(256*127+128),a0		; start at middle of table (0x)
+
+		move.w #0<<8,d0
+		move.b 127(a0,d0),d0
+
+		move.w #63<<8,d0
+		move.b 127(a0,d0),d0 ;
+
+		move.w #-63<<8,d0
+		move.b 127(a0,d0),d0 ;
+
+
+		move.w #-1<<8,d0
+		move.b 127(a0,d0),d0 ;
+
+		move.w #-2<<8,d0
+		move.b 127(a0,d0),d0 ;
+
+		move.w #1<<8,d0
+		move.b 127(a0,d0),d0 ;
+
+		move.w #2<<8,d0
+		move.b 127(a0,d0),d0 ;
+
+		move.w #127<<8,d0
+		move.b 127(a0,d0),d0 ;
+
+		move.w #0<<8,d0
+		move.b 127(a0,d0),d0 ; 0
+
+		move.w #64<<8,d0
+		move.b 127(a0,d0),d0 ; $c0
+		; $3e
+
+		move.w #64<<8,d0
+		move.b -127(a0,d0),d0 ; $c1
+		; -$3f ($c1)
+
+		move.w #-64<<8,d0
+		move.b 127(a0,d0),d0 ; $40
+		; -$3f ($c1)
+
+		move.w #127<<8,d0
+		move.b 1(a0,d0),d0 ; $01
+		; $1
+
+
 		move.w	#$222,color01(a6)
 		move.w	#$444,color02(a6)
 		move.w	#$444,color03(a6)
@@ -201,7 +248,7 @@ oz		equr	d5
 r		equr	d6
 
 		lea	Particles,a0
-		lea	MulsTable+(256*127+127),multbl		; start at middle of table (0x)
+		lea	MulsTable+(256*127+128),multbl		; start at middle of table (0x)
 		lea	DivTab,divtbl
 
 		move.l	DrawBuffer,a1
@@ -218,22 +265,21 @@ SMCLoop:
 ; x'=A*x+B*y+C*z
 MatA		move.b	__SMC__(multbl,ox.w),tx
 MatB		add.b	__SMC__(multbl,oy.w),tx
+		; bvs SMCNext
 MatC		add.b	__SMC__(multbl,oz.w),tx
 		; bvs SMCNext
-		ext.w	tx
 ; y'=D*x+E*y+F*z
 MatD		move.b	__SMC__(multbl,ox.w),ty
 MatE		add.b	__SMC__(multbl,oy.w),ty
+		; bvs SMCNext
 MatF		add.b	__SMC__(multbl,oz.w),ty
 		; bvs SMCNext
-		ext.w	ty
 ; z'=G*x+H*y+I*z
 MatG		move.b	__SMC__(multbl,ox.w),tz
 MatH		add.b	__SMC__(multbl,oy.w),tz
+		; bvs SMCNext
 MatI		add.b	__SMC__(multbl,oz.w),tz
 		; bvs SMCNext
-		; move.w oz,tz
-		; asr #8,tz
 		ext.w	tz
 
 		move.w	tz,d3
@@ -249,6 +295,8 @@ MatI		add.b	__SMC__(multbl,oz.w),tz
 		move.l	(a0,d3.w),d3
 
 ; Apply perspective:
+		ext.w	ty
+		ext.w	tx
 		add.w	tz,tz
 		move.w	(divtbl,tz),d5				; d5 = 1/z
 		move.w	#15-DIST_SHIFT,d4
@@ -289,9 +337,7 @@ InitMulsTbl:
 .loop1		moveq	#-127,d1				; d1 = y = -127-127
 		move.w	#256-1,d6
 .loop2		move.w	d0,d2					; d2 = x
-		move.w	d1,d3					; d3 = y
-		ext.w	d3
-		muls.w	d3,d2					; d2 = x*y
+		muls.w	d1,d2					; d2 = x*y
 		asr.l	#7,d2					; d2 = (x*y)/128
 		move.b	d2,(a0)+				; write to table
 		addq	#1,d1
