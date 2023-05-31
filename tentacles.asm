@@ -16,7 +16,7 @@ INTERLEAVED = 0
 DPF = 0								; enable dual playfield?
 
 ; Screen buffer:
-SCREEN_W = DIW_W+16
+SCREEN_W = DIW_W+32
 SCREEN_H = DIW_H
 
 ;-------------------------------------------------------------------------------

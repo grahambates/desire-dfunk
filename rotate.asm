@@ -13,6 +13,8 @@ DIST_SHIFT = 8
 MAX_PARTICLES = 70
 FIXED_ZOOM=300
 
+PROFILE=1
+
 FPMULS		macro
 		muls	\1,\2
 		add.l	\2,\2
@@ -42,19 +44,19 @@ Rotate_Effect:
 
 		move.w	#$222,color01(a6)
 		move.w	#$444,color02(a6)
-		move.w	#$444,color03(a6)
+		move.w	#$555,color03(a6)
 		move.w	#$777,color04(a6)
-		move.w	#$777,color05(a6)
-		move.w	#$777,color06(a6)
-		move.w	#$777,color07(a6)
+		move.w	#$888,color05(a6)
+		move.w	#$888,color06(a6)
+		move.w	#$999,color07(a6)
 		move.w	#$aaa,color08(a6)
 		move.w	#$aaa,color09(a6)
-		move.w	#$aaa,color10(a6)
-		move.w	#$aaa,color11(a6)
-		move.w	#$aaa,color12(a6)
-		move.w	#$aaa,color13(a6)
-		move.w	#$aaa,color14(a6)
-		move.w	#$aaa,color15(a6)
+		move.w	#$bbb,color10(a6)
+		move.w	#$bbb,color11(a6)
+		move.w	#$ccc,color12(a6)
+		move.w	#$ccc,color13(a6)
+		move.w	#$ddd,color14(a6)
+		move.w	#$ddd,color15(a6)
 		move.w	#$eee,color16(a6)
 		move.w	#$eee,color17(a6)
 		move.w	#$eee,color18(a6)
@@ -62,15 +64,15 @@ Rotate_Effect:
 		move.w	#$eee,color20(a6)
 		move.w	#$eee,color21(a6)
 		move.w	#$eee,color22(a6)
-		move.w	#$eee,color23(a6)
-		move.w	#$eee,color24(a6)
-		move.w	#$eee,color25(a6)
-		move.w	#$eee,color26(a6)
-		move.w	#$eee,color27(a6)
-		move.w	#$eee,color28(a6)
-		move.w	#$eee,color29(a6)
-		move.w	#$eee,color30(a6)
-		move.w	#$eee,color31(a6)
+		move.w	#$fff,color23(a6)
+		move.w	#$fff,color24(a6)
+		move.w	#$fff,color25(a6)
+		move.w	#$fff,color26(a6)
+		move.w	#$fff,color27(a6)
+		move.w	#$fff,color28(a6)
+		move.w	#$fff,color29(a6)
+		move.w	#$fff,color30(a6)
+		move.w	#$fff,color31(a6)
 
 ; Generate random particles
 		lea	Particles,a0
@@ -79,24 +81,31 @@ Rotate_Effect:
 		dbf	d7,.l0
 
 Frame:
+		move.w	#$000,color00(a6)
 		jsr	SwapBuffers
 		jsr	Clear
+
+		lea	Particles,a0
+		moveq	#MAX_PARTICLES-1,d7
+.l0		add.w #$300,2(a0)
+		lea Particle_SIZEOF(a0),a0
+		dbf	d7,.l0
 
 ; Zoom:
 		lea	Sin,a0
 		move.w	VBlank+2,d0
-		lsl	#1,d0
+		lsl	#2,d0
 		and.w	#$7fe,d0
 		move.w	(a0,d0.w),d5
-		asr	#7,d5
-		add.w	#400,d5
+		asr	#8,d5
+		add.w	#180,d5
 		move.w	d5,Zoom
 		; move.w #FIXED_ZOOM,Zoom
 
 ; Rotation:
 		movem.w	Rot,d5-d7
 		add.w	#2,d5
-		add.w	#4,d6
+		add.w	#2,d6
 		add.w	#2,d7
 		movem.w	d5-d7,Rot
 
@@ -224,7 +233,9 @@ Martix:
 ; z'=G*x+H*y+I*z
 MatG		move.b	__SMC__(multbl,ox.w),tz
 MatH		add.b	__SMC__(multbl,oy.w),tz
+		bvs SMCNext
 MatI		add.b	__SMC__(multbl,oz.w),tz
+		bvs SMCNext
 		ext.w	tz
 
 		move.w	Zoom(pc),a0
@@ -235,11 +246,15 @@ MatI		add.b	__SMC__(multbl,oz.w),tz
 ; x'=A*x+B*y+C*z
 MatA		move.b	__SMC__(multbl,ox.w),tx
 MatB		add.b	__SMC__(multbl,oy.w),tx
+		bvs SMCNext
 MatC		add.b	__SMC__(multbl,oz.w),tx
+		bvs SMCNext
 ; y'=D*x+E*y+F*z
 MatD		move.b	__SMC__(multbl,ox.w),ty
 MatE		add.b	__SMC__(multbl,oy.w),ty
+		bvs SMCNext
 MatF		add.b	__SMC__(multbl,oz.w),ty
+		bvs SMCNext
 
 Colour:
 		move.w	tz,d3
@@ -266,17 +281,18 @@ Draw:
 		move.w	d6,d2
 		jsr	DrawCircle
 
-		move.l	(sp)+,a0
+SMCNext		move.l	(sp)+,a0
 
-SMCNext		dbf	d7,SMCLoop
+		dbf	d7,SMCLoop
 		move.l	#0,(clear)+				; End clear list
 
 ; EOF
-		; move.w	#$f00,color(a6)
+		ifne PROFILE
+		move.w	#$005,color(a6)
+		endc
 		DebugStartIdle
 		jsr	WaitEOF
 		DebugStopIdle
-		; move.w	#0,color(a6)
 
 		bra	Frame
 		rts
@@ -294,7 +310,7 @@ InitMulsTbl:
 		move.w	#256-1,d6
 .loop2		move.w	d0,d2					; d2 = x
 		muls.w	d1,d2					; d2 = x*y
-		asr.w	#7,d2					; d2 = (x*y)/128
+		asr.w	#8,d2					; d2 = (x*y)/128
 		move.b	d2,(a0)+				; write to table
 		addq	#1,d1
 		dbf	d6,.loop2
@@ -329,7 +345,7 @@ InitParticle:
 		add.l	d6,d4
 ; Dist too great? Try again lol...
 		cmp.l	#105*105,d4
-		bge	InitParticle
+		; bge	InitParticle
 
 		move.b	d1,(a0)+
 		clr.b	(a0)+					; pre-shifted <<8 from muls offset
@@ -340,7 +356,7 @@ InitParticle:
 ; r
 		jsr	Random32
 		and.w	#3,d0
-		addq	#3,d0
+		addq	#1,d0
 		move.w	d0,(a0)+
 
 		rts
@@ -358,7 +374,7 @@ Offsets:
 		dc.l	0
 
 
-Zoom:		dc.w	300
+Zoom:		dc.w	0
 
 Sin1:
 		dc.w	0,804,1608,2410,3212,4011,4808,5602
