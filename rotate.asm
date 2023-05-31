@@ -12,7 +12,7 @@ MAX_PARTICLES = 80
 FPMULS		macro
 		muls	\1,\2
 		add.l	\2,\2
-		add.l	#$7fff,\2
+		; add.l	#$7fff,\2
 		swap	\2
 		endm
 
@@ -35,53 +35,6 @@ Rotate_Effect:
 		jsr	InstallInterrupt
 
 		bsr	InitMulsTbl
-
-		lea	MulsTable+(256*127+128),a0		; start at middle of table (0x)
-
-		move.w #0<<8,d0
-		move.b 127(a0,d0),d0
-
-		move.w #63<<8,d0
-		move.b 127(a0,d0),d0 ;
-
-		move.w #-63<<8,d0
-		move.b 127(a0,d0),d0 ;
-
-
-		move.w #-1<<8,d0
-		move.b 127(a0,d0),d0 ;
-
-		move.w #-2<<8,d0
-		move.b 127(a0,d0),d0 ;
-
-		move.w #1<<8,d0
-		move.b 127(a0,d0),d0 ;
-
-		move.w #2<<8,d0
-		move.b 127(a0,d0),d0 ;
-
-		move.w #127<<8,d0
-		move.b 127(a0,d0),d0 ;
-
-		move.w #0<<8,d0
-		move.b 127(a0,d0),d0 ; 0
-
-		move.w #64<<8,d0
-		move.b 127(a0,d0),d0 ; $c0
-		; $3e
-
-		move.w #64<<8,d0
-		move.b -127(a0,d0),d0 ; $c1
-		; -$3f ($c1)
-
-		move.w #-64<<8,d0
-		move.b 127(a0,d0),d0 ; $40
-		; -$3f ($c1)
-
-		move.w #127<<8,d0
-		move.b 1(a0,d0),d0 ; $01
-		; $1
-
 
 		move.w	#$222,color01(a6)
 		move.w	#$444,color02(a6)
@@ -131,16 +84,15 @@ Frame:
 		lsl	#1,d0
 		and.w	#$7fe,d0
 		move.w	(a0,d0.w),d5
-		asr	#5,d5
+		asr	#6,d5
 		add.w	#800,d5
 		move.w	d5,Zoom
-		move.w	#800,Zoom
 
 ; Rotation:
 		movem.w	Rot,d5-d7
-		add.w	#2,d5
+		add.w	#1,d5
 		sub.w	#2,d6
-		add.w	#2,d7
+		add.w	#3,d7
 		movem.w	d5-d7,Rot
 
 		and.w	#$1fe,d5
@@ -237,6 +189,9 @@ z		equr	d7
 ;-------------------------------------------------------------------------------
 Transform:
 
+particles	equr	a0
+draw		equr	a1
+clear		equr	a2
 divtbl		equr	a3
 multbl		equr	a5
 tx		equr	d0					; transformed
@@ -247,47 +202,42 @@ oy		equr	d4
 oz		equr	d5
 r		equr	d6
 
-		lea	Particles,a0
-		lea	MulsTable+(256*127+128),multbl		; start at middle of table (0x)
+		lea	Particles,particles
+		move.l	DrawBuffer,draw
+		lea	DIW_BW/2+SCREEN_H/2*SCREEN_BW(draw),draw	; centered with top/left padding
+		move.l	DrawClearList,clear
 		lea	DivTab,divtbl
-
-		move.l	DrawBuffer,a1
-		lea	DIW_BW/2+SCREEN_H/2*SCREEN_BW(a1),a1	; centered with top/left padding
-		move.l	DrawClearList,a2
-
-__SMC__ = $7f							; Values to be replaced in self-modifying code
+		lea	MulsTable+(256*127+128),multbl		; start at middle of table (0x)
 
 		move.w	#MAX_PARTICLES-1,d7
-
 SMCLoop:
-		movem.w	(a0)+,ox-oz/r				; d0 = x, d1 = y, d2 = z, d6 = r
+__SMC__ = $7f							; Values to be replaced in self-modifying code
+		movem.w	(particles)+,ox-oz/r				; d0 = x, d1 = y, d2 = z, d6 = r
 
-; x'=A*x+B*y+C*z
-MatA		move.b	__SMC__(multbl,ox.w),tx
-MatB		add.b	__SMC__(multbl,oy.w),tx
-		; bvs SMCNext
-MatC		add.b	__SMC__(multbl,oz.w),tx
-		; bvs SMCNext
-; y'=D*x+E*y+F*z
-MatD		move.b	__SMC__(multbl,ox.w),ty
-MatE		add.b	__SMC__(multbl,oy.w),ty
-		; bvs SMCNext
-MatF		add.b	__SMC__(multbl,oz.w),ty
-		; bvs SMCNext
+; Get Z first - skip rest if <=0:
 ; z'=G*x+H*y+I*z
 MatG		move.b	__SMC__(multbl,ox.w),tz
 MatH		add.b	__SMC__(multbl,oy.w),tz
-		; bvs SMCNext
 MatI		add.b	__SMC__(multbl,oz.w),tz
-		; bvs SMCNext
 		ext.w	tz
 
-		move.w	tz,d3
 		add.w	Zoom(pc),tz
 		ble	SMCNext
 
-		move.l	a0,-(sp)
+; Finish the matrix:
+; x'=A*x+B*y+C*z
+MatA		move.b	__SMC__(multbl,ox.w),tx
+MatB		add.b	__SMC__(multbl,oy.w),tx
+MatC		add.b	__SMC__(multbl,oz.w),tx
+; y'=D*x+E*y+F*z
+MatD		move.b	__SMC__(multbl,ox.w),ty
+MatE		add.b	__SMC__(multbl,oy.w),ty
+MatF		add.b	__SMC__(multbl,oz.w),ty
+
+		move.l	a0,-(sp)				; out of registers :-(
 ; Colour:
+		move.w	tz,d3
+		sub.w	Zoom(pc),d3				; TODO: this is dumb
 		add.w	#127,d3
 		lsr	#3,d3
 		lea	Offsets,a0
@@ -304,7 +254,7 @@ MatI		add.b	__SMC__(multbl,oz.w),tz
 		asr.l	d4,tx
 		muls	d5,ty
 		asr.l	d4,ty
-		muls	d5,r
+		mulu	d5,r
 		asr.l	d4,r
 
 		move.w	d6,d2
@@ -313,7 +263,7 @@ MatI		add.b	__SMC__(multbl,oz.w),tz
 		move.l	(sp)+,a0
 
 SMCNext		dbf	d7,SMCLoop
-		move.l	#0,(a2)+				; End clear list
+		move.l	#0,(clear)+				; End clear list
 
 ; EOF
 		move.w	#$f00,color(a6)
@@ -338,7 +288,7 @@ InitMulsTbl:
 		move.w	#256-1,d6
 .loop2		move.w	d0,d2					; d2 = x
 		muls.w	d1,d2					; d2 = x*y
-		asr.l	#7,d2					; d2 = (x*y)/128
+		asr.w	#7,d2					; d2 = (x*y)/128
 		move.b	d2,(a0)+				; write to table
 		addq	#1,d1
 		dbf	d6,.loop2
@@ -369,10 +319,10 @@ InitParticle:
 		move.b	d3,d6
 		ext.w	d6
 		muls	d6,d6
-		add.w	d5,d4
-		add.w	d6,d4
+		add.l	d5,d4
+		add.l	d6,d4
 ; Dist too great? Try again lol...
-		cmp.w	#128*128,d4
+		cmp.l	#126*126,d4
 		bge	InitParticle
 
 		move.b	d1,(a0)+
