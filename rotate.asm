@@ -9,9 +9,11 @@ SCREEN_H = DIW_H+32
 SCREEN_BW = SCREEN_W/8
 SCREEN_BPL = SCREEN_BW*SCREEN_H
 
+SINMASK = $1fe
+
 DIST_SHIFT = 8
-MAX_PARTICLES = 70
-FIXED_ZOOM=300
+MAX_PARTICLES = 64
+FIXED_ZOOM=600
 
 PROFILE=0
 
@@ -91,6 +93,8 @@ Frame:
 		lea Particle_SIZEOF(a0),a0
 		dbf	d7,.l0
 
+		bsr Box
+
 ; Zoom:
 		lea	Sin,a0
 		move.w	VBlank+2,d0
@@ -100,18 +104,18 @@ Frame:
 		asr	#8,d5
 		add.w	#180,d5
 		move.w	d5,Zoom
-		; move.w #FIXED_ZOOM,Zoom
+		move.w #FIXED_ZOOM,Zoom
 
 ; Rotation:
 		movem.w	Rot,d5-d7
 		add.w	#2,d5
-		add.w	#4,d6
-		add.w	#2,d7
+		add.w	#0,d6
+		add.w	#0,d7
 		movem.w	d5-d7,Rot
 
-		and.w	#$1fe,d5
-		and.w	#$1fe,d6
-		and.w	#$1fe,d7
+		and.w	#SINMASK,d5
+		and.w	#SINMASK,d6
+		and.w	#SINMASK,d7
 
 ********************************************************************************
 ; Calculate rotation matrix and apply values to self-modifying code loop
@@ -279,6 +283,7 @@ Perspective:
 		asr.l	d4,r
 Draw:
 		move.w	d6,d2
+
 		jsr	DrawCircle
 
 SMCNext		move.l	(sp)+,a0
@@ -359,6 +364,33 @@ InitParticle:
 		addq	#1,d0
 		move.w	d0,(a0)+
 
+		rts
+
+Box:
+		lea Particles,a0
+
+		move.w #$8400,d0
+		moveq #4-1,d7
+.x
+		move.w #$8400,d1
+		moveq #4-1,d6
+.y
+		move.w #$8400,d2
+		moveq #4-1,d5
+.z
+		move.w d0,(a0)+
+		move.w d1,(a0)+
+		move.w d2,(a0)+
+		move.w #8,(a0)+
+
+		add.w #$5000,d2
+		dbf	d5,.z
+
+		add.w #$5000,d1
+		dbf	d6,.y
+
+		add.w #$5000,d0
+		dbf	d7,.x
 		rts
 
 Offsets:
