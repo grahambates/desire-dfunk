@@ -87,6 +87,7 @@ Frame:
 		lea	Particles,a0
 		moveq	#MAX_PARTICLES-1,d7
 .l0		add.w #$300,2(a0)
+		sub.w #$400,4(a0)
 		lea Particle_SIZEOF(a0),a0
 		dbf	d7,.l0
 
@@ -104,7 +105,7 @@ Frame:
 ; Rotation:
 		movem.w	Rot,d5-d7
 		add.w	#2,d5
-		add.w	#2,d6
+		add.w	#4,d6
 		add.w	#2,d7
 		movem.w	d5-d7,Rot
 
