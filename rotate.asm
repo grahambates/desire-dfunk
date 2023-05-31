@@ -9,7 +9,8 @@ SCREEN_H = DIW_H+32
 SCREEN_BW = SCREEN_W/8
 SCREEN_BPL = SCREEN_BW*SCREEN_H
 
-SINMASK = $1fe
+SIN_MASK = $7fe
+SIN_SHIFT = 7
 
 DIST_SHIFT = 8
 MAX_PARTICLES = 64
@@ -19,6 +20,7 @@ PROFILE=0
 
 FPMULS		macro
 		muls	\1,\2
+		add.l	\2,\2
 		add.l	\2,\2
 		swap	\2
 		endm
@@ -108,14 +110,14 @@ Frame:
 
 ; Rotation:
 		movem.w	Rot,d5-d7
-		add.w	#2,d5
+		add.w	#20,d5
 		add.w	#0,d6
 		add.w	#0,d7
 		movem.w	d5-d7,Rot
 
-		and.w	#SINMASK,d5
-		and.w	#SINMASK,d6
-		and.w	#SINMASK,d7
+		and.w	#SIN_MASK,d5
+		and.w	#SIN_MASK,d6
+		and.w	#SIN_MASK,d7
 
 ********************************************************************************
 ; Calculate rotation matrix and apply values to self-modifying code loop
@@ -135,8 +137,8 @@ y		equr	d6
 z		equr	d7
 
 		lea	SMCLoop+3(pc),smc
-		lea	Sin1,sin
-		lea	Cos1,cos
+		lea	Sin,sin
+		lea	Cos,cos
 
 		move.w	(sin,x),d2
 		FPMULS	(sin,y),d2				; d2 = sin(X)*sin(Y)
@@ -148,7 +150,7 @@ z		equr	d7
 ; A = cos(Y)*cos(Z)
 		move.w	(cos,y),d0
 		FPMULS	(cos,z),d0				; cos(Y)*cos(Z)
-		asr.w	#8,d0
+		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatA-SMCLoop(smc)
 ; B = sin(X)*sin(Y)*cos(Z)−cos(X)*sin(Z)
 		move.w	d2,d0					; sin(X)*sin(Y)
@@ -156,7 +158,7 @@ z		equr	d7
 		move.w	(cos,x),d1				; cos(X)
 		FPMULS	(sin,z),d1				; cos(X)*sin(Z)
 		sub.w	d1,d0					; sin(X)*sin(Y)*cos(Z)-cos(X)*sin(Z)
-		asr.w	#8,d0
+		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatB-SMCLoop(smc)
 ; C = cos(X)*sin(Y)*cos(Z)+sin(X)*sin(Z)
 		move.w	d4,d0					; cos(X)*cos(Z)
@@ -164,18 +166,18 @@ z		equr	d7
 		move.w	(sin,x),d1				; sin(X)
 		FPMULS	(sin,z),d1				; sin(X)*sin(Z)
 		add.w	d1,d0					; cos(X)*cos(Z)*sin(Y)+sin(X)*sin(Z)
-		asr.w	#8,d0
+		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatC-SMCLoop(smc)
 ; D = cos(Y)*sin(Z)
 		move.w	(cos,y),d0
 		FPMULS	(sin,z),d0				; cos(Y)*sin(Z)
-		asr.w	#8,d0
+		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatD-SMCLoop(smc)
 ; E = sin(X)*sin(Y)*sin(Z)+cos(X)*cos(Z)
 		move.w	d2,d0					; sin(X)*sin(Y)
 		FPMULS	(sin,z),d0				; sin(X)*sin(Y)*sin(Z)
 		add.w	d4,d0					; sin(X)*sin(Y)*sin(Z)+cos(X)*cos(Z)
-		asr.w	#8,d0
+		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatE-SMCLoop(smc)
 ; F = cos(X)*sin(Y)*sin(Z)−sin(X)*cos(Z)
 		move.w	d3,d0					; sin(Z)*cos(X)
@@ -183,21 +185,21 @@ z		equr	d7
 		move.w	(sin,x),d1				; sin(X)
 		FPMULS	(cos,z),d1				; sin(X)*cos(Z)
 		sub.w	d1,d0
-		asr.w	#8,d0
+		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatF-SMCLoop(smc)
 ; G = −sin(Y)
 		move.w	(sin,y),d0				; sin(Y)
 		neg.w	d0					; -sin(Y)
-		asr.w	#8,d0
+		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatG-SMCLoop(smc)
 ; H = sin(X)*cos(Y)
 		move.w	(sin,x),d0				; sin(X)
 		FPMULS	(cos,y),d0				; sin(X)*cos(Y)
-		asr.w	#8,d0
+		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatH-SMCLoop(smc)
 ; I = cos(X)*cos(Y)
 		move.w	d4,d0					; cos(X)*cos(Z)
-		asr.w	#8,d0
+		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatI-SMCLoop(smc)
 
 ********************************************************************************
