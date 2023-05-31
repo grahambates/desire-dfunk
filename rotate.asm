@@ -6,12 +6,13 @@ SCREEN_BW = 336/8
 SCREEN_H = 256+16
 SCREEN_BPL = SCREEN_BW*SCREEN_H
 
-DIST_SHIFT = 7
-MAX_PARTICLES = 60
+DIST_SHIFT = 9
+MAX_PARTICLES = 80
 
 FPMULS		macro
 		muls	\1,\2
 		add.l	\2,\2
+		add.l	#$7fff,\2
 		swap	\2
 		endm
 
@@ -80,17 +81,18 @@ Frame:
 ; Zoom:
 		lea	Sin,a0
 		move.w	VBlank+2,d0
-		lsl	#2,d0
+		lsl	#1,d0
 		and.w	#$7fe,d0
 		move.w	(a0,d0.w),d5
-		asr	#8,d5
-		add.w	#200,d5
+		asr	#5,d5
+		add.w	#800,d5
 		move.w	d5,Zoom
+		move.w	#800,Zoom
 
 ; Rotation:
 		movem.w	Rot,d5-d7
 		add.w	#2,d5
-		add.w	#2,d6
+		sub.w	#2,d6
 		add.w	#2,d7
 		movem.w	d5-d7,Rot
 
@@ -199,7 +201,7 @@ oz		equr	d5
 r		equr	d6
 
 		lea	Particles,a0
-		lea	MulsTable+(256*127),multbl		; start at middle of table (0x)
+		lea	MulsTable+(256*127+127),multbl		; start at middle of table (0x)
 		lea	DivTab,divtbl
 
 		move.l	DrawBuffer,a1
@@ -217,27 +219,33 @@ SMCLoop:
 MatA		move.b	__SMC__(multbl,ox.w),tx
 MatB		add.b	__SMC__(multbl,oy.w),tx
 MatC		add.b	__SMC__(multbl,oz.w),tx
+		; bvs SMCNext
 		ext.w	tx
 ; y'=D*x+E*y+F*z
 MatD		move.b	__SMC__(multbl,ox.w),ty
 MatE		add.b	__SMC__(multbl,oy.w),ty
 MatF		add.b	__SMC__(multbl,oz.w),ty
+		; bvs SMCNext
 		ext.w	ty
 ; z'=G*x+H*y+I*z
 MatG		move.b	__SMC__(multbl,ox.w),tz
 MatH		add.b	__SMC__(multbl,oy.w),tz
 MatI		add.b	__SMC__(multbl,oz.w),tz
+		; bvs SMCNext
+		; move.w oz,tz
+		; asr #8,tz
 		ext.w	tz
 
+		move.w	tz,d3
 		add.w	Zoom(pc),tz
-		ble	.next
+		ble	SMCNext
 
 		move.l	a0,-(sp)
 ; Colour:
-		move.w	tz,d3
-		lsr	#4,d3
+		add.w	#127,d3
+		lsr	#3,d3
 		lea	Offsets,a0
-		and.w 	#$3c,d3
+		and.w	#$3c,d3
 		move.l	(a0,d3.w),d3
 
 ; Apply perspective:
@@ -256,15 +264,15 @@ MatI		add.b	__SMC__(multbl,oz.w),tz
 
 		move.l	(sp)+,a0
 
-.next		dbf	d7,SMCLoop
+SMCNext		dbf	d7,SMCLoop
 		move.l	#0,(a2)+				; End clear list
 
 ; EOF
-		; move.w #$f00,color(a6)
+		move.w	#$f00,color(a6)
 		DebugStartIdle
 		jsr	WaitEOF
 		DebugStopIdle
-		; move.w #0,color(a6)
+		move.w	#0,color(a6)
 
 		bra	Frame
 		rts
@@ -272,13 +280,13 @@ MatI		add.b	__SMC__(multbl,oz.w),tz
 
 ********************************************************************************
 ; Populate multiplication lookup table
-; [-127 to 127] * [0 to 255] / 128
+; [-127 to 127] * [-127 to 127] / 128
 ;-------------------------------------------------------------------------------
 InitMulsTbl:
 		lea	MulsTable,a0
 		move.w	#-127,d0				; d0 = x = -127-127
 		move.w	#256-1,d7
-.loop1		moveq	#0,d1					; d1 = y = 0-255
+.loop1		moveq	#-127,d1				; d1 = y = -127-127
 		move.w	#256-1,d6
 .loop2		move.w	d0,d2					; d2 = x
 		move.w	d1,d3					; d3 = y
@@ -329,8 +337,8 @@ InitParticle:
 		clr.b	(a0)+
 ; r
 		jsr	Random32
-		and.w	#3,d0
-		addq	#5,d0
+		and.w	#7,d0
+		addq	#1,d0
 		move.w	d0,(a0)+
 
 		rts
