@@ -9,7 +9,7 @@ SCREEN_H = DIW_H+64
 SCREEN_BW = SCREEN_W/8
 SCREEN_BPL = SCREEN_BW*SCREEN_H
 
-DIST_SHIFT = 9
+DIST_SHIFT = 8
 MAX_PARTICLES = 80
 
 FPMULS		macro
@@ -87,15 +87,16 @@ Frame:
 		lsl	#1,d0
 		and.w	#$7fe,d0
 		move.w	(a0,d0.w),d5
-		asr	#6,d5
-		add.w	#800,d5
+		asr	#7,d5
+		add.w	#400,d5
 		move.w	d5,Zoom
+		move.w #300,Zoom
 
 ; Rotation:
 		movem.w	Rot,d5-d7
-		add.w	#1,d5
+		add.w	#2,d5
 		sub.w	#2,d6
-		add.w	#3,d7
+		add.w	#2,d7
 		movem.w	d5-d7,Rot
 
 		and.w	#$1fe,d5
