@@ -17,8 +17,8 @@ DIW_H = 256
 BPLS = 5
 
 ; Screen buffer:
-SCREEN_W = DIW_W+64
-SCREEN_H = DIW_H+64
+SCREEN_W = DIW_W+32
+SCREEN_H = DIW_H+32
 
 ;-------------------------------------------------------------------------------
 ; Derived
@@ -365,12 +365,12 @@ BlitCircle:
         movem.w Blit_Mod(a0),d6/a4
         move.l  Blit_Adr(a0),a0
 
-        cmp.w #32,d2
+        cmp.w #8,d2
         ble .noClip
 
 ; Clipping checks:
 ; Min Y:
-        move.w  #-DIW_H/2,d4
+        move.w  #-SCREEN_H/2,d4
         sub.w   d1,d4
         blt     .minYOk
         add.w   d4,d1                           ; offset y position
@@ -383,7 +383,7 @@ BlitCircle:
         bra     .checkX
 .minYOk:
 ; Max Y:
-        move.w  #DIW_H/2,d4
+        move.w  #SCREEN_H/2,d4
         sub.w   d2,d4
         sub.w   d2,d4
         sub.w   d1,d4
