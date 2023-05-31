@@ -13,7 +13,7 @@ DIST_SHIFT = 8
 MAX_PARTICLES = 70
 FIXED_ZOOM=300
 
-PROFILE=1
+PROFILE=0
 
 FPMULS		macro
 		muls	\1,\2
@@ -105,7 +105,7 @@ Frame:
 ; Rotation:
 		movem.w	Rot,d5-d7
 		add.w	#2,d5
-		add.w	#2,d6
+		add.w	#3,d6
 		add.w	#2,d7
 		movem.w	d5-d7,Rot
 
@@ -331,21 +331,21 @@ InitParticle:
 		jsr	Random32
 		move.b	d0,d3
 
-; Check dist from origin:
-		move.b	d1,d4
-		ext.w	d4
-		muls	d4,d4
-		move.b	d2,d5
-		ext.w	d5
-		muls	d5,d5
-		move.b	d3,d6
-		ext.w	d6
-		muls	d6,d6
-		add.l	d5,d4
-		add.l	d6,d4
-; Dist too great? Try again lol...
-		cmp.l	#105*105,d4
-		; bge	InitParticle
+; ; Check dist from origin:
+; 		move.b	d1,d4
+; 		ext.w	d4
+; 		muls	d4,d4
+; 		move.b	d2,d5
+; 		ext.w	d5
+; 		muls	d5,d5
+; 		move.b	d3,d6
+; 		ext.w	d6
+; 		muls	d6,d6
+; 		add.l	d5,d4
+; 		add.l	d6,d4
+; ; Dist too great? Try again lol...
+; 		cmp.l	#105*105,d4
+; 		bge	InitParticle
 
 		move.b	d1,(a0)+
 		clr.b	(a0)+					; pre-shifted <<8 from muls offset
