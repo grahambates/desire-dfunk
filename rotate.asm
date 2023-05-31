@@ -18,7 +18,6 @@ PROFILE=0
 FPMULS		macro
 		muls	\1,\2
 		add.l	\2,\2
-		; add.l	#$7fff,\2
 		swap	\2
 		endm
 
@@ -105,7 +104,7 @@ Frame:
 ; Rotation:
 		movem.w	Rot,d5-d7
 		add.w	#2,d5
-		add.w	#3,d6
+		add.w	#2,d6
 		add.w	#2,d7
 		movem.w	d5-d7,Rot
 
@@ -310,7 +309,7 @@ InitMulsTbl:
 		move.w	#256-1,d6
 .loop2		move.w	d0,d2					; d2 = x
 		muls.w	d1,d2					; d2 = x*y
-		asr.w	#8,d2					; d2 = (x*y)/256
+		asr.w	#8,d2					; d2 = (x*y)/128
 		move.b	d2,(a0)+				; write to table
 		addq	#1,d1
 		dbf	d6,.loop2
