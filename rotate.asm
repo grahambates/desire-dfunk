@@ -310,7 +310,7 @@ InitMulsTbl:
 		move.w	#256-1,d6
 .loop2		move.w	d0,d2					; d2 = x
 		muls.w	d1,d2					; d2 = x*y
-		asr.w	#8,d2					; d2 = (x*y)/128
+		asr.w	#8,d2					; d2 = (x*y)/256
 		move.b	d2,(a0)+				; write to table
 		addq	#1,d1
 		dbf	d6,.loop2
