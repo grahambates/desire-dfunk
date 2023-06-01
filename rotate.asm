@@ -38,7 +38,7 @@ Point_SIZEOF	rs.b	0
 ********************************************************************************
 Rotate_Vbl:
 ********************************************************************************
-		jsr PokeBpls
+		jsr	PokeBpls
 
 ; Scripting:
 		move.w	VBlank+2,d0
@@ -70,9 +70,9 @@ Rotate_Vbl:
 		bgt	.lerp2Done
 		bsr	LerpPointsStep
 		move.l	#LerpPointsOut,DrawPoints
-		bra .scr
+		bra	.scr
 .lerp2Done
-		move.w #120,ZoomBase
+		move.w	#120,ZoomBase
 ; Update particles:
 		lea	Particles,a0
 		move.l	a0,DrawPoints
@@ -84,7 +84,7 @@ Rotate_Vbl:
 		lea	Point_SIZEOF(a0),a0
 		dbf	d7,.l0
 .scr
-	rts
+		rts
 
 
 ********************************************************************************
@@ -102,55 +102,55 @@ Rotate_Effect:
 
 ;-------------------------------------------------------------------------------
 SetPalette:
-	lea	color16(a6),a1
-	move.w	#15-1,d6
+		lea	color16(a6),a1
+		move.w	#15-1,d6
 .col
-	lea	Pal+10,a2
-	moveq	#0,d0					; r
-	moveq	#0,d1					; g
-	moveq	#0,d2					; b
-	moveq	#4-1,d5					; iterate channels
+		lea	Pal+10,a2
+		moveq	#0,d0					; r
+		moveq	#0,d1					; g
+		moveq	#0,d2					; b
+		moveq	#4-1,d5					; iterate channels
 .chan1
-	move.w	-(a2),d4				; Channel color
-	move.w	d6,d3
-	addq	#1,d3
-	btst	d5,d3
-	beq	.nextChan
+		move.w	-(a2),d4				; Channel color
+		move.w	d6,d3
+		addq	#1,d3
+		btst	d5,d3
+		beq	.nextChan
 ; Add the colours:
-	; blue
-	move.w	d4,d3
-	and.w	#$f,d3
-	add.w	d3,d2
-	cmp.w	#$f,d2
-	ble	.blueOk
-	move.w	#$f,d2
+; blue
+		move.w	d4,d3
+		and.w	#$f,d3
+		add.w	d3,d2
+		cmp.w	#$f,d2
+		ble	.blueOk
+		move.w	#$f,d2
 .blueOk
-	; green
-	lsr	#4,d4
-	move.w	d4,d3
-	and.w	#$f,d3
-	add.w	d3,d1
-	cmp.w	#$f,d1
-	ble	.greenOk
-	move.w	#$f,d1
+; green
+		lsr	#4,d4
+		move.w	d4,d3
+		and.w	#$f,d3
+		add.w	d3,d1
+		cmp.w	#$f,d1
+		ble	.greenOk
+		move.w	#$f,d1
 .greenOk
-	; red
-	lsr	#4,d4
-	and.w	#$f,d4
-	add.w	d4,d0
-	cmp.w	#$f,d0
-	ble	.redOk
-	move.w	#$f,d0
+; red
+		lsr	#4,d4
+		and.w	#$f,d4
+		add.w	d4,d0
+		cmp.w	#$f,d0
+		ble	.redOk
+		move.w	#$f,d0
 .redOk
 .nextChan	dbf	d5,.chan1
-	lsl.w	#8,d0
-	lsl.w	#4,d1
-	add.w	d1,d0
-	add.w	d2,d0
-	move.w	d0,-(a1)
-	dbf	d6,.col
-	; Set bg
-	move.w	-(a2),color(a6)
+		lsl.w	#8,d0
+		lsl.w	#4,d1
+		add.w	d1,d0
+		add.w	d2,d0
+		move.w	d0,-(a1)
+		dbf	d6,.col
+; Set bg
+		move.w	-(a2),color(a6)
 
 ********************************************************************************
 Frame:
@@ -169,7 +169,7 @@ SetZoom:
 		asr	#8,d5
 		add.w	ZoomBase(pc),d5
 		move.w	d5,Zoom
-		ifd FIXED_ZOOM
+		ifd	FIXED_ZOOM
 		move.w	#FIXED_ZOOM,Zoom
 		endc
 
@@ -369,7 +369,7 @@ SMCNext		move.l	(sp)+,a0
 ;-------------------------------------------------------------------------------
 ; EOF
 		ifne	PROFILE
-		move.w	#$005,color(a6)
+		move.w	#$f00,color(a6)
 		endc
 		DebugStartIdle
 		jsr	WaitEOF
@@ -494,17 +494,17 @@ LerpPointsStep:
 		lea	LerpPointsIncs,a0
 		lea	LerpPointsTmp,a1
 		lea	LerpPointsOut,a2
-		moveq	#POINTS_COUNT-1,d7
+LERP_UNROLL = 4
+		moveq	#POINTS_COUNT/LERP_UNROLL-1,d7
 .l0
-; get increments
-		movem.w	(a0)+,d0-d2/a3
+		rept	LERP_UNROLL
 ; get tmp values
 		movem.w	(a1),d3-d6
 ; add increments
-		sub.w	d0,d3
-		sub.w	d1,d4
-		sub.w	d2,d5
-		sub.w	a3,d6
+		sub.w	(a0)+,d3
+		sub.w	(a0)+,d4
+		sub.w	(a0)+,d5
+		sub.w	(a0)+,d6
 ; update tmp
 		move.w	d3,(a1)+
 		move.w	d4,(a1)+
@@ -520,6 +520,7 @@ LerpPointsStep:
 		move.w	d4,(a2)+
 		move.w	d5,(a2)+
 		move.w	d6,(a2)+
+		endr
 		dbf	d7,.l0
 		rts
 
@@ -537,16 +538,16 @@ Data:
 ********************************************************************************
 
 ScreenOffsets:
-	dc.l	SCREEN_BPL*4
-	dc.l	SCREEN_BPL*3
-	dc.l	SCREEN_BPL*2
-	dc.l	SCREEN_BPL
-	dc.l	0
-	dc.l	0
-	dc.l	0
-	dc.l	0
-	dc.l	0
-	dc.l	0
+		dc.l	SCREEN_BPL*4
+		dc.l	SCREEN_BPL*3
+		dc.l	SCREEN_BPL*2
+		dc.l	SCREEN_BPL
+		dc.l	0
+		dc.l	0
+		dc.l	0
+		dc.l	0
+		dc.l	0
+		dc.l	0
 
 Pal:		dc.w	$114,$437,$869,$cbb,$ffd
 
