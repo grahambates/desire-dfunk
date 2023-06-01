@@ -9,18 +9,18 @@ SCREEN_H = DIW_H+32
 SCREEN_BW = SCREEN_W/8
 SCREEN_BPL = SCREEN_BW*SCREEN_H
 
-SIN_MASK = $7fe
+SIN_MASK = $1fe
 SIN_SHIFT = 8
 
 DIST_SHIFT = 8
-MAX_PARTICLES = 64
-FIXED_ZOOM=600
+MAX_PARTICLES = 80
+FIXED_ZOOM = 800
 
-PROFILE=1
+PROFILE = 1
 
 FPMULS		macro
 		muls	\1,\2
-		lsl.l	#2,\2
+		add.l	\2,\2
 		swap	\2
 		endm
 
@@ -89,12 +89,12 @@ Frame:
 
 		lea	Particles,a0
 		moveq	#MAX_PARTICLES-1,d7
-.l0		add.w #$300,2(a0)
-		sub.w #$400,4(a0)
-		lea Particle_SIZEOF(a0),a0
+.l0		add.w	#$700,2(a0)
+		; sub.w	#$400,4(a0)
+		lea	Particle_SIZEOF(a0),a0
 		dbf	d7,.l0
 
-		bsr Box
+		; bsr	Box
 
 ; Zoom:
 		lea	Sin,a0
@@ -103,15 +103,15 @@ Frame:
 		and.w	#$7fe,d0
 		move.w	(a0,d0.w),d5
 		asr	#8,d5
-		add.w	#180,d5
+		add.w	#240,d5
 		move.w	d5,Zoom
-		move.w #FIXED_ZOOM,Zoom
+		; move.w	#FIXED_ZOOM,Zoom
 
 ; Rotation:
 		movem.w	Rot,d5-d7
-		add.w	#10,d5
-		add.w	#10,d6
-		add.w	#10,d7
+		add.w	#1,d5
+		add.w	#2,d6
+		add.w	#1,d7
 		movem.w	d5-d7,Rot
 
 		and.w	#SIN_MASK,d5
@@ -136,8 +136,8 @@ y		equr	d6
 z		equr	d7
 
 		lea	SMCLoop+3(pc),smc
-		lea	Sin,sin
-		lea	Cos,cos
+		lea	Sin1,sin
+		lea	Cos1,cos
 
 		move.w	(sin,x),d2
 		FPMULS	(sin,y),d2				; d2 = sin(X)*sin(Y)
@@ -224,7 +224,7 @@ r		equr	d6
 
 		lea	Particles,particles
 		move.l	DrawBuffer,draw
-		lea	DIW_BW/2+SCREEN_H/2*SCREEN_BW(draw),draw	; centered with top/left padding
+		lea	DIW_BW/2+SCREEN_H/2*SCREEN_BW(draw),draw ; centered with top/left padding
 		move.l	DrawClearList,clear
 		lea	DivTab,divtbl
 		lea	MulsTable+(256*127+128),multbl		; start at middle of table (0x)
@@ -232,16 +232,16 @@ r		equr	d6
 		move.w	#MAX_PARTICLES-1,d7
 SMCLoop:
 __SMC__ = $7f							; Values to be replaced in self-modifying code
-		movem.w	(particles)+,ox-oz/r				; d0 = x, d1 = y, d2 = z, d6 = r
+		movem.w	(particles)+,ox-oz/r			; d0 = x, d1 = y, d2 = z, d6 = r
 		move.l	a0,-(sp)				; out of registers :-(
 Martix:
 ; Get Z first - skip rest if <=0:
 ; z'=G*x+H*y+I*z
 MatG		move.b	__SMC__(multbl,ox.w),tz
 MatH		add.b	__SMC__(multbl,oy.w),tz
-		bvs SMCNext
+		bvs	SMCNext
 MatI		add.b	__SMC__(multbl,oz.w),tz
-		bvs SMCNext
+		bvs	SMCNext
 		ext.w	tz
 
 		move.w	Zoom(pc),a0
@@ -252,19 +252,19 @@ MatI		add.b	__SMC__(multbl,oz.w),tz
 ; x'=A*x+B*y+C*z
 MatA		move.b	__SMC__(multbl,ox.w),tx
 MatB		add.b	__SMC__(multbl,oy.w),tx
-		bvs SMCNext
+		bvs	SMCNext
 MatC		add.b	__SMC__(multbl,oz.w),tx
-		bvs SMCNext
+		bvs	SMCNext
 ; y'=D*x+E*y+F*z
 MatD		move.b	__SMC__(multbl,ox.w),ty
 MatE		add.b	__SMC__(multbl,oy.w),ty
-		bvs SMCNext
+		bvs	SMCNext
 MatF		add.b	__SMC__(multbl,oz.w),ty
-		bvs SMCNext
+		bvs	SMCNext
 
 Colour:
 		move.w	tz,d3
-		sub.w	a0,d3				; TODO: this is dumb
+		sub.w	a0,d3					; TODO: this is dumb
 		add.w	#128,d3
 		lsr	#3,d3
 		lea	Offsets,a0
@@ -294,7 +294,7 @@ SMCNext		move.l	(sp)+,a0
 		move.l	#0,(clear)+				; End clear list
 
 ; EOF
-		ifne PROFILE
+		ifne	PROFILE
 		move.w	#$005,color(a6)
 		endc
 		DebugStartIdle
@@ -317,7 +317,7 @@ InitMulsTbl:
 		move.w	#256-1,d6
 .loop2		move.w	d0,d2					; d2 = x
 		muls.w	d1,d2					; d2 = x*y
-		asr.w	#7,d2					; d2 = (x*y)/128
+		asr.w	#8,d2					; d2 = (x*y)/128
 		move.b	d2,(a0)+				; write to table
 		addq	#1,d1
 		dbf	d6,.loop2
@@ -369,29 +369,29 @@ InitParticle:
 		rts
 
 Box:
-		lea Particles,a0
+		lea	Particles,a0
 
-		move.w #$8400,d0
-		moveq #4-1,d7
+		move.w	#$8400,d0
+		moveq	#4-1,d7
 .x
-		move.w #$8400,d1
-		moveq #4-1,d6
+		move.w	#$8400,d1
+		moveq	#4-1,d6
 .y
-		move.w #$8400,d2
-		moveq #4-1,d5
+		move.w	#$8400,d2
+		moveq	#4-1,d5
 .z
-		move.w d0,(a0)+
-		move.w d1,(a0)+
-		move.w d2,(a0)+
-		move.w #8,(a0)+
+		move.w	d0,(a0)+
+		move.w	d1,(a0)+
+		move.w	d2,(a0)+
+		move.w	#8,(a0)+
 
-		add.w #$5000,d2
+		add.w	#$5000,d2
 		dbf	d5,.z
 
-		add.w #$5000,d1
+		add.w	#$5000,d1
 		dbf	d6,.y
 
-		add.w #$5000,d0
+		add.w	#$5000,d0
 		dbf	d7,.x
 		rts
 
@@ -409,6 +409,50 @@ Offsets:
 
 
 Zoom:		dc.w	0
+
+
+Sin1:
+		dc.w	0,804,1608,2410,3212,4011,4808,5602
+		dc.w	6393,7179,7962,8739,9512,10278,11039,11793
+		dc.w	12539,13279,14010,14732,15446,16151,16846,17530
+		dc.w	18204,18868,19519,20159,20787,21403,22005,22594
+		dc.w	23170,23731,24279,24811,25329,25832,26319,26790
+		dc.w	27245,27683,28105,28510,28898,29268,29621,29956
+		dc.w	30273,30571,30852,31113,31356,31580,31785,31971
+		dc.w	32137,32285,32412,32521,32609,32678,32728,32757
+Cos1:
+		dc.w	32767,32757,32728,32678,32609,32521,32412,32285
+		dc.w	32137,31971,31785,31580,31356,31113,30852,30571
+		dc.w	30273,29956,29621,29268,28898,28510,28105,27683
+		dc.w	27245,26790,26319,25832,25329,24811,24279,23731
+		dc.w	23170,22594,22005,21403,20787,20159,19519,18868
+		dc.w	18204,17530,16846,16151,15446,14732,14010,13279
+		dc.w	12539,11793,11039,10278,9512,8739,7962,7179
+		dc.w	6393,5602,4808,4011,3212,2410,1608,804
+		dc.w	0,-804,-1608,-2410,-3212,-4011,-4808,-5602
+		dc.w	-6393,-7179,-7962,-8739,-9512,-10278,-11039,-11793
+		dc.w	-12539,-13279,-14010,-14732,-15446,-16151,-16846,-17530
+		dc.w	-18204,-18868,-19519,-20159,-20787,-21403,-22005,-22594
+		dc.w	-23170,-23731,-24279,-24811,-25329,-25832,-26319,-26790
+		dc.w	-27245,-27683,-28105,-28510,-28898,-29268,-29621,-29956
+		dc.w	-30273,-30571,-30852,-31113,-31356,-31580,-31785,-31971
+		dc.w	-32137,-32285,-32412,-32521,-32609,-32678,-32728,-32757
+		dc.w	-32767,-32757,-32728,-32678,-32609,-32521,-32412,-32285
+		dc.w	-32137,-31971,-31785,-31580,-31356,-31113,-30852,-30571
+		dc.w	-30273,-29956,-29621,-29268,-28898,-28510,-28105,-27683
+		dc.w	-27245,-26790,-26319,-25832,-25329,-24811,-24279,-23731
+		dc.w	-23170,-22594,-22005,-21403,-20787,-20159,-19519,-18868
+		dc.w	-18204,-17530,-16846,-16151,-15446,-14732,-14010,-13279
+		dc.w	-12539,-11793,-11039,-10278,-9512,-8739,-7962,-7179
+		dc.w	-6393,-5602,-4808,-4011,-3212,-2410,-1608,-804
+		dc.w	0,804,1608,2410,3212,4011,4808,5602
+		dc.w	6393,7179,7962,8739,9512,10278,11039,11793
+		dc.w	12539,13279,14010,14732,15446,16151,16846,17530
+		dc.w	18204,18868,19519,20159,20787,21403,22005,22594
+		dc.w	23170,23731,24279,24811,25329,25832,26319,26790
+		dc.w	27245,27683,28105,28510,28898,29268,29621,29956
+		dc.w	30273,30571,30852,31113,31356,31580,31785,31971
+		dc.w	32137,32285,32412,32521,32609,32678,32728,32757
 
 
 *******************************************************************************
