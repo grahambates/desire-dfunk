@@ -12,9 +12,12 @@ SCREEN_BPL = SCREEN_BW*SCREEN_H
 SIN_MASK = $1fe
 SIN_SHIFT = 8
 
-DIST_SHIFT = 8
-MAX_PARTICLES = 80
-FIXED_ZOOM = 800
+DIST_SHIFT = 7
+; FIXED_ZOOM = 300
+
+POINTS_COUNT = 64
+LERP_POINTS_SHIFT = 8
+LERP_POINTS_LENGTH = 1<<LERP_POINTS_SHIFT
 
 PROFILE = 1
 
@@ -25,107 +28,179 @@ FPMULS		macro
 		endm
 
 		rsreset
-Particle_X	rs.w	1
-Particle_Y	rs.w	1
-Particle_Z	rs.w	1
-Particle_R	rs.w	1
-Particle_SIZEOF	rs.b	0
-
-		rsreset
-Transformed_X	rs.w	1
-Transformed_Y	rs.w	1
-Transformed_R	rs.w	1
-Transformed_SIZEOF rs.b	0
+Point_X		rs.w	1
+Point_Y		rs.w	1
+Point_Z		rs.w	1
+Point_R		rs.w	1
+Point_SIZEOF	rs.b	0
 
 
+********************************************************************************
+Rotate_Vbl:
+********************************************************************************
+		jsr PokeBpls
+
+; Scripting:
+		move.w	VBlank+2,d0
+; lerp1
+		cmp.w	#$100,d0
+		blt	.lerp1Done
+		bne	.lerp1Step
+		lea	SpherePoints,a0
+		lea	BoxPoints,a1
+		bsr	LerpPointsStart
+		bra	.lerp1Done
+.lerp1Step
+		cmp.w	#$100+LERP_POINTS_LENGTH,d0
+		bgt	.lerp1Done
+		bsr	LerpPointsStep
+		move.l	#LerpPointsOut,DrawPoints
+.lerp1Done
+
+; lerp2
+		cmp.w	#$300,d0
+		blt	.scr
+		bne	.lerp2Step
+		lea	BoxPoints,a0
+		lea	Particles,a1
+		bsr	LerpPointsStart
+		bra	.scr
+.lerp2Step
+		cmp.w	#$300+LERP_POINTS_LENGTH,d0
+		bgt	.lerp2Done
+		bsr	LerpPointsStep
+		move.l	#LerpPointsOut,DrawPoints
+		bra .scr
+.lerp2Done
+		move.w #120,ZoomBase
+; Update particles:
+		lea	Particles,a0
+		move.l	a0,DrawPoints
+		moveq	#POINTS_COUNT-1,d7
+.l0
+		sub.w	#$100,(a0)
+		add.w	#$400,2(a0)
+		sub.w	#$200,4(a0)
+		lea	Point_SIZEOF(a0),a0
+		dbf	d7,.l0
+.scr
+	rts
+
+
+********************************************************************************
 Rotate_Effect:
-		lea	PokeBpls,a0
+********************************************************************************
+		lea	Rotate_Vbl(pc),a0
 		jsr	InstallInterrupt
 
 		bsr	InitMulsTbl
+		bsr	InitParticles
+		bsr	InitBox
 
-		move.w	#$222,color01(a6)
-		move.w	#$444,color02(a6)
-		move.w	#$555,color03(a6)
-		move.w	#$777,color04(a6)
-		move.w	#$888,color05(a6)
-		move.w	#$888,color06(a6)
-		move.w	#$999,color07(a6)
-		move.w	#$aaa,color08(a6)
-		move.w	#$aaa,color09(a6)
-		move.w	#$bbb,color10(a6)
-		move.w	#$bbb,color11(a6)
-		move.w	#$ccc,color12(a6)
-		move.w	#$ccc,color13(a6)
-		move.w	#$ddd,color14(a6)
-		move.w	#$ddd,color15(a6)
-		move.w	#$eee,color16(a6)
-		move.w	#$eee,color17(a6)
-		move.w	#$eee,color18(a6)
-		move.w	#$eee,color19(a6)
-		move.w	#$eee,color20(a6)
-		move.w	#$eee,color21(a6)
-		move.w	#$eee,color22(a6)
-		move.w	#$fff,color23(a6)
-		move.w	#$fff,color24(a6)
-		move.w	#$fff,color25(a6)
-		move.w	#$fff,color26(a6)
-		move.w	#$fff,color27(a6)
-		move.w	#$fff,color28(a6)
-		move.w	#$fff,color29(a6)
-		move.w	#$fff,color30(a6)
-		move.w	#$fff,color31(a6)
+		move.w	#200,ZoomBase
+		move.l	#SpherePoints,DrawPoints
 
-; Generate random particles
-		lea	Particles,a0
-		moveq	#MAX_PARTICLES-1,d7
-.l0		bsr	InitParticle
-		dbf	d7,.l0
+;-------------------------------------------------------------------------------
+SetPalette:
+	lea	color16(a6),a1
+	move.w	#15-1,d6
+.col
+	lea	Pal+10,a2
+	moveq	#0,d0					; r
+	moveq	#0,d1					; g
+	moveq	#0,d2					; b
+	moveq	#4-1,d5					; iterate channels
+.chan1
+	move.w	-(a2),d4				; Channel color
+	move.w	d6,d3
+	addq	#1,d3
+	btst	d5,d3
+	beq	.nextChan
+; Add the colours:
+	; blue
+	move.w	d4,d3
+	and.w	#$f,d3
+	add.w	d3,d2
+	cmp.w	#$f,d2
+	ble	.blueOk
+	move.w	#$f,d2
+.blueOk
+	; green
+	lsr	#4,d4
+	move.w	d4,d3
+	and.w	#$f,d3
+	add.w	d3,d1
+	cmp.w	#$f,d1
+	ble	.greenOk
+	move.w	#$f,d1
+.greenOk
+	; red
+	lsr	#4,d4
+	and.w	#$f,d4
+	add.w	d4,d0
+	cmp.w	#$f,d0
+	ble	.redOk
+	move.w	#$f,d0
+.redOk
+.nextChan	dbf	d5,.chan1
+	lsl.w	#8,d0
+	lsl.w	#4,d1
+	add.w	d1,d0
+	add.w	d2,d0
+	move.w	d0,-(a1)
+	dbf	d6,.col
+	; Set bg
+	move.w	-(a2),color(a6)
 
+********************************************************************************
 Frame:
-		move.w	#$000,color00(a6)
 		jsr	SwapBuffers
 		jsr	Clear
 
-		lea	Particles,a0
-		moveq	#MAX_PARTICLES-1,d7
-.l0		add.w	#$700,2(a0)
-		; sub.w	#$400,4(a0)
-		lea	Particle_SIZEOF(a0),a0
-		dbf	d7,.l0
+		move.w	Pal,color(a6)
 
-		; bsr	Box
-
-; Zoom:
+;-------------------------------------------------------------------------------
+SetZoom:
 		lea	Sin,a0
 		move.w	VBlank+2,d0
 		lsl	#2,d0
 		and.w	#$7fe,d0
 		move.w	(a0,d0.w),d5
 		asr	#8,d5
-		add.w	#240,d5
+		add.w	ZoomBase(pc),d5
 		move.w	d5,Zoom
-		; move.w	#FIXED_ZOOM,Zoom
+		ifd FIXED_ZOOM
+		move.w	#FIXED_ZOOM,Zoom
+		endc
 
-; Rotation:
-		movem.w	Rot,d5-d7
-		add.w	#1,d5
-		add.w	#2,d6
-		add.w	#1,d7
-		movem.w	d5-d7,Rot
-
+;-------------------------------------------------------------------------------
+SetRotation:
+		move.w	VBlank+2,d4
+		; x
+		move.w	d4,d5
+		lsl	#1,d5
+		add.w	#$200,d5
+		and.w	#$7fe,d5
+		move.w	(a0,d5.w),d5
+		lsr	#5,d5
 		and.w	#SIN_MASK,d5
+		; y
+		move.w	d4,d6
+		lsl	#1,d6
+		and.w	#$7fe,d6
+		move.w	(a0,d6.w),d6
+		lsr	#4,d6
 		and.w	#SIN_MASK,d6
+		; z
+		move.w	d4,d7
 		and.w	#SIN_MASK,d7
 
-********************************************************************************
+;-------------------------------------------------------------------------------
 ; Calculate rotation matrix and apply values to self-modifying code loop
 ;
 ; A = cos(Y)*cos(Z)    B = sin(X)*sin(Y)*cos(Z)−cos(X)*sin(Z)     C = cos(X)*sin(Y)*cos(Z)+sin(X)*sin(Z)
 ; D = cos(Y)*sin(Z)    E = sin(X)*sin(Y)*sin(Z)+cos(X)*cos(Z)     F = cos(X)*sin(Y)*sin(Z)−sin(X)*cos(Z)
 ; G = −sin(Y)          H = sin(X)*cos(Y)                          I = cos(X)*cos(Y)
-;-------------------------------------------------------------------------------
-; d5-d7 - x/y/z rotation
 ;-------------------------------------------------------------------------------
 BuildMatrix:
 smc		equr	a0
@@ -202,14 +277,10 @@ z		equr	d7
 		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatI-SMCLoop(smc)
 
-********************************************************************************
-; Combined operation to rotate, translate and apply perspective to all the
-; vertices in an object. The resulting 2d vertices are written back to the
-; temporary 'Transformed' buffer.
 ;-------------------------------------------------------------------------------
 Transform:
 
-particles	equr	a0
+points		equr	a0
 draw		equr	a1
 clear		equr	a2
 divtbl		equr	a3
@@ -222,17 +293,17 @@ oy		equr	d4
 oz		equr	d5
 r		equr	d6
 
-		lea	Particles,particles
+		move.l	DrawPoints,points
 		move.l	DrawBuffer,draw
 		lea	DIW_BW/2+SCREEN_H/2*SCREEN_BW(draw),draw ; centered with top/left padding
 		move.l	DrawClearList,clear
 		lea	DivTab,divtbl
 		lea	MulsTable+(256*127+128),multbl		; start at middle of table (0x)
 
-		move.w	#MAX_PARTICLES-1,d7
+		move.w	#POINTS_COUNT-1,d7
 SMCLoop:
 __SMC__ = $7f							; Values to be replaced in self-modifying code
-		movem.w	(particles)+,ox-oz/r			; d0 = x, d1 = y, d2 = z, d6 = r
+		movem.w	(points)+,ox-oz/r			; d0 = x, d1 = y, d2 = z, d6 = r
 		move.l	a0,-(sp)				; out of registers :-(
 Martix:
 ; Get Z first - skip rest if <=0:
@@ -262,15 +333,17 @@ MatE		add.b	__SMC__(multbl,oy.w),ty
 MatF		add.b	__SMC__(multbl,oz.w),ty
 		bvs	SMCNext
 
+;-------------------------------------------------------------------------------
 Colour:
 		move.w	tz,d3
 		sub.w	a0,d3					; TODO: this is dumb
 		add.w	#128,d3
 		lsr	#3,d3
-		lea	Offsets,a0
+		lea	ScreenOffsets,a0
 		and.w	#$3c,d3
 		move.l	(a0,d3.w),d3
 
+;-------------------------------------------------------------------------------
 Perspective:
 		ext.w	ty
 		ext.w	tx
@@ -283,16 +356,17 @@ Perspective:
 		asr.l	d4,ty
 		mulu	d5,r
 		asr.l	d4,r
+
+;-------------------------------------------------------------------------------
 Draw:
 		move.w	d6,d2
-
 		jsr	DrawCircle
 
 SMCNext		move.l	(sp)+,a0
-
 		dbf	d7,SMCLoop
 		move.l	#0,(clear)+				; End clear list
 
+;-------------------------------------------------------------------------------
 ; EOF
 		ifne	PROFILE
 		move.w	#$005,color(a6)
@@ -327,89 +401,154 @@ InitMulsTbl:
 
 
 ********************************************************************************
-InitParticle:
-; x
+InitParticles:
+		lea	Particles,a0
+		moveq	#POINTS_COUNT-1,d7
+.l0
+; x/y/z (-127-127)<<8 pre-shifted fom muls offset
 		jsr	Random32
-		move.b	d0,d1
-; y
-		jsr	Random32
-		move.b	d0,d2
-; z
-		jsr	Random32
-		move.b	d0,d3
-
-; ; Check dist from origin:
-; 		move.b	d1,d4
-; 		ext.w	d4
-; 		muls	d4,d4
-; 		move.b	d2,d5
-; 		ext.w	d5
-; 		muls	d5,d5
-; 		move.b	d3,d6
-; 		ext.w	d6
-; 		muls	d6,d6
-; 		add.l	d5,d4
-; 		add.l	d6,d4
-; ; Dist too great? Try again lol...
-; 		cmp.l	#105*105,d4
-; 		bge	InitParticle
-
-		move.b	d1,(a0)+
-		clr.b	(a0)+					; pre-shifted <<8 from muls offset
-		move.b	d2,(a0)+
+		move.b	d0,(a0)+
 		clr.b	(a0)+
-		move.b	d3,(a0)+
+		jsr	Random32
+		move.b	d0,(a0)+
 		clr.b	(a0)+
-; r
+		jsr	Random32
+		move.b	d0,(a0)+
+		clr.b	(a0)+
+; r (1-7)
 		jsr	Random32
 		and.w	#3,d0
-		addq	#1,d0
+		move.w	d0,d1
+		jsr	Random32
+		and.w	#3,d0
+		add.w	d1,d0
+		add.w	#1,d0
 		move.w	d0,(a0)+
 
+		dbf	d7,.l0
 		rts
 
-Box:
-		lea	Particles,a0
 
-		move.w	#$8400,d0
+********************************************************************************
+InitBox:
+		lea	BoxPoints,a0
+
+		move.w	#$9300,d0
 		moveq	#4-1,d7
 .x
-		move.w	#$8400,d1
+		move.w	#$9300,d1
 		moveq	#4-1,d6
 .y
-		move.w	#$8400,d2
+		move.w	#$9300,d2
 		moveq	#4-1,d5
 .z
 		move.w	d0,(a0)+
 		move.w	d1,(a0)+
 		move.w	d2,(a0)+
-		move.w	#8,(a0)+
+		move.w	#4,(a0)+				; r
 
-		add.w	#$5000,d2
+		add.w	#$4800,d2
 		dbf	d5,.z
 
-		add.w	#$5000,d1
+		add.w	#$4800,d1
 		dbf	d6,.y
 
-		add.w	#$5000,d0
+		add.w	#$4800,d0
 		dbf	d7,.x
 		rts
 
-Offsets:
-		dc.l	SCREEN_BPL*4
-		dc.l	SCREEN_BPL*3
-		dc.l	SCREEN_BPL*2
-		dc.l	SCREEN_BPL
-		dc.l	0
-		dc.l	0
-		dc.l	0
-		dc.l	0
-		dc.l	0
-		dc.l	0
 
+********************************************************************************
+LerpPointsStart:
+		lea	LerpPointsIncs,a2
+		lea	LerpPointsTmp,a4
+		moveq	#POINTS_COUNT-1,d7
+.l0
+		movem.w	(a0)+,d0-d3
+; write initial values to tmp
+		move.w	d0,(a4)+
+		move.w	d1,(a4)+
+		move.w	d2,(a4)+
+		move.w	d3,d4
+		lsl.w	#8,d4					; r needs to be FP too
+		move.w	d4,(a4)+
+; get deltas
+		sub.w	(a1)+,d0
+		sub.w	(a1)+,d1
+		sub.w	(a1)+,d2
+		sub.w	(a1)+,d3
+; store increments
+		asr.w	#LERP_POINTS_SHIFT,d0
+		asr.w	#LERP_POINTS_SHIFT,d1
+		asr.w	#LERP_POINTS_SHIFT,d2
+		move.w	d0,(a2)+
+		move.w	d1,(a2)+
+		move.w	d2,(a2)+
+		move.w	d3,(a2)+
+		dbf	d7,.l0
+		rts
+
+
+********************************************************************************
+LerpPointsStep:
+		lea	LerpPointsIncs,a0
+		lea	LerpPointsTmp,a1
+		lea	LerpPointsOut,a2
+		moveq	#POINTS_COUNT-1,d7
+.l0
+; get increments
+		movem.w	(a0)+,d0-d2/a3
+; get tmp values
+		movem.w	(a1),d3-d6
+; add increments
+		sub.w	d0,d3
+		sub.w	d1,d4
+		sub.w	d2,d5
+		sub.w	a3,d6
+; update tmp
+		move.w	d3,(a1)+
+		move.w	d4,(a1)+
+		move.w	d5,(a1)+
+		move.w	d6,(a1)+
+; clean up tmp points for use
+		clr.b	d3
+		clr.b	d4
+		clr.b	d5
+		lsr.w	#8,d6
+; write to points buffer
+		move.w	d3,(a2)+
+		move.w	d4,(a2)+
+		move.w	d5,(a2)+
+		move.w	d6,(a2)+
+		dbf	d7,.l0
+		rts
+
+
+********************************************************************************
+Vars:
+********************************************************************************
 
 Zoom:		dc.w	0
+ZoomBase:	dc.w	0
 
+
+********************************************************************************
+Data:
+********************************************************************************
+
+ScreenOffsets:
+	dc.l	SCREEN_BPL*4
+	dc.l	SCREEN_BPL*3
+	dc.l	SCREEN_BPL*2
+	dc.l	SCREEN_BPL
+	dc.l	0
+	dc.l	0
+	dc.l	0
+	dc.l	0
+	dc.l	0
+	dc.l	0
+
+Pal:		dc.w	$114,$437,$869,$cbb,$ffd
 
 Sin1:
 		dc.w	0,804,1608,2410,3212,4011,4808,5602
@@ -454,6 +593,73 @@ Cos1:
 		dc.w	30273,30571,30852,31113,31356,31580,31785,31971
 		dc.w	32137,32285,32412,32521,32609,32678,32728,32757
 
+; https://stackoverflow.com/questions/9600801/evenly-distributing-n-points-on-a-sphere
+SpherePoints:
+		dc.w	0<<8,120<<8,0<<8,4
+		dc.w	-23<<8,116<<8,-21<<8,4
+		dc.w	3<<8,112<<8,41<<8,4
+		dc.w	31<<8,108<<8,-41<<8,4
+		dc.w	-58<<8,104<<8,10<<8,4
+		dc.w	54<<8,100<<8,34<<8,4
+		dc.w	-19<<8,97<<8,-69<<8,4
+		dc.w	-35<<8,93<<8,66<<8,4
+		dc.w	75<<8,89<<8,-28<<8,4
+		dc.w	-78<<8,85<<8,-33<<8,4
+		dc.w	37<<8,81<<8,79<<8,4
+		dc.w	27<<8,78<<8,-87<<8,4
+		dc.w	-82<<8,74<<8,47<<8,4
+		dc.w	94<<8,70<<8,20<<8,4
+		dc.w	-58<<8,66<<8,-82<<8,4
+		dc.w	-14<<8,62<<8,101<<8,4
+		dc.w	79<<8,59<<8,-68<<8,4
+		dc.w	-107<<8,55<<8,-5<<8,4
+		dc.w	76<<8,51<<8,76<<8,4
+		dc.w	-6<<8,47<<8,-111<<8,4
+		dc.w	-72<<8,43<<8,85<<8,4
+		dc.w	112<<8,40<<8,-16<<8,4
+		dc.w	-94<<8,36<<8,-66<<8,4
+		dc.w	25<<8,32<<8,112<<8,4
+		dc.w	57<<8,28<<8,-102<<8,4
+		dc.w	-112<<8,24<<8,35<<8,4
+		dc.w	107<<8,20<<8,49<<8,4
+		dc.w	-46<<8,17<<8,-110<<8,4
+		dc.w	-41<<8,13<<8,112<<8,4
+		dc.w	105<<8,9<<8,-56<<8,4
+		dc.w	-116<<8,5<<8,-31<<8,4
+		dc.w	64<<8,1<<8,100<<8,4
+		dc.w	20<<8,-2<<8,-119<<8,4
+		dc.w	-95<<8,-6<<8,73<<8,4
+		dc.w	119<<8,-10<<8,9<<8,4
+		dc.w	-81<<8,-14<<8,-88<<8,4
+		dc.w	0<<8,-18<<8,118<<8,4
+		dc.w	79<<8,-21<<8,-88<<8,4
+		dc.w	-117<<8,-25<<8,10<<8,4
+		dc.w	92<<8,-29<<8,70<<8,4
+		dc.w	-21<<8,-33<<8,-114<<8,4
+		dc.w	-61<<8,-37<<8,96<<8,4
+		dc.w	109<<8,-40<<8,-30<<8,4
+		dc.w	-100<<8,-44<<8,-52<<8,4
+		dc.w	38<<8,-48<<8,103<<8,4
+		dc.w	40<<8,-52<<8,-101<<8,4
+		dc.w	-97<<8,-56<<8,45<<8,4
+		dc.w	99<<8,-60<<8,30<<8,4
+		dc.w	-52<<8,-63<<8,-89<<8,4
+		dc.w	-21<<8,-67<<8,97<<8,4
+		dc.w	79<<8,-71<<8,-57<<8,4
+		dc.w	-94<<8,-75<<8,-12<<8,4
+		dc.w	59<<8,-79<<8,69<<8,4
+		dc.w	3<<8,-82<<8,-88<<8,4
+		dc.w	-59<<8,-86<<8,59<<8,4
+		dc.w	79<<8,-90<<8,-5<<8,4
+		dc.w	-59<<8,-94<<8,-49<<8,4
+		dc.w	9<<8,-98<<8,69<<8,4
+		dc.w	36<<8,-101<<8,-54<<8,4
+		dc.w	-58<<8,-105<<8,13<<8,4
+		dc.w	44<<8,-109<<8,25<<8,4
+		dc.w	-13<<8,-113<<8,-41<<8,4
+		dc.w	-13<<8,-117<<8,27<<8,4
+		dc.w	0<<8,-120<<8,-0<<8,4
+
 
 *******************************************************************************
 		bss
@@ -462,6 +668,11 @@ Cos1:
 ; Multiplication lookup-table
 MulsTable:	ds.b	256*256
 
-Particles:	ds.b	Particle_SIZEOF*MAX_PARTICLES
+Particles:	ds.b	Point_SIZEOF*POINTS_COUNT
+BoxPoints:	ds.b	Point_SIZEOF*POINTS_COUNT
 
-Rot:		ds.w	3
+LerpPointsIncs:	ds.w	Point_SIZEOF*POINTS_COUNT
+LerpPointsTmp:	ds.b	Point_SIZEOF*POINTS_COUNT
+LerpPointsOut:	ds.b	Point_SIZEOF*POINTS_COUNT
+
+DrawPoints:	ds.l	1
