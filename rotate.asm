@@ -20,8 +20,7 @@ PROFILE=0
 
 FPMULS		macro
 		muls	\1,\2
-		add.l	\2,\2
-		add.l	\2,\2
+		lsl.l	#2,\2
 		swap	\2
 		endm
 
@@ -110,8 +109,8 @@ Frame:
 
 ; Rotation:
 		movem.w	Rot,d5-d7
-		add.w	#20,d5
-		add.w	#0,d6
+		add.w	#0,d5
+		add.w	#2,d6
 		add.w	#0,d7
 		movem.w	d5-d7,Rot
 
@@ -198,7 +197,8 @@ z		equr	d7
 		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatH-SMCLoop(smc)
 ; I = cos(X)*cos(Y)
-		move.w	d4,d0					; cos(X)*cos(Z)
+		move.w	(cos,y),d0				; cos(Y)
+		FPMULS	(cos,z),d0				; cos(Y)*cos(Z)
 		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatI-SMCLoop(smc)
 
