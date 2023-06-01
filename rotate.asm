@@ -16,7 +16,7 @@ DIST_SHIFT = 8
 MAX_PARTICLES = 64
 FIXED_ZOOM=600
 
-PROFILE=0
+PROFILE=1
 
 FPMULS		macro
 		muls	\1,\2
@@ -152,31 +152,19 @@ z		equr	d7
 		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatA-SMCLoop(smc)
 ; B = sin(X)*sin(Y)*cos(Z)−cos(X)*sin(Z)
-		move.w (sin,x),d0
-		FPMULS (sin,y),d0
-		FPMULS (cos,z),d0
-		move.w (cos,x),d1
-		FPMULS (sin,z),d1
-		sub.w d1,d0
-		; move.w	d2,d0					; sin(X)*sin(Y)
-		; FPMULS	(cos,z),d0				; sin(X)*sin(Y)*cos(Z)
-		; move.w	(cos,x),d1				; cos(X)
-		; FPMULS	(sin,z),d1				; cos(X)*sin(Z)
-		; sub.w	d1,d0					; sin(X)*sin(Y)*cos(Z)-cos(X)*sin(Z)
+		move.w	d2,d0					; sin(X)*sin(Y)
+		FPMULS	(cos,z),d0				; sin(X)*sin(Y)*cos(Z)
+		move.w	(cos,x),d1				; cos(X)
+		FPMULS	(sin,z),d1				; cos(X)*sin(Z)
+		sub.w	d1,d0					; sin(X)*sin(Y)*cos(Z)-cos(X)*sin(Z)
 		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatB-SMCLoop(smc)
 ; C = cos(X)*sin(Y)*cos(Z)+sin(X)*sin(Z)
-		move.w (cos,x),d0
-		FPMULS (sin,y),d0
-		FPMULS (cos,z),d0
-		move.w (sin,x),d1
-		FPMULS (sin,z),d1
-		add.w d1,d0
-		; move.w	d4,d0					; cos(X)*cos(Z)
-		; FPMULS	(sin,y),d0				; cos(X)*cos(Z)*sin(Y)
-		; move.w	(sin,x),d1				; sin(X)
-		; FPMULS	(sin,z),d1				; sin(X)*sin(Z)
-		; add.w	d1,d0					; cos(X)*cos(Z)*sin(Y)+sin(X)*sin(Z)
+		move.w	d4,d0					; cos(X)*cos(Z)
+		FPMULS	(sin,y),d0				; cos(X)*cos(Z)*sin(Y)
+		move.w	(sin,x),d1				; sin(X)
+		FPMULS	(sin,z),d1				; sin(X)*sin(Z)
+		add.w	d1,d0					; cos(X)*cos(Z)*sin(Y)+sin(X)*sin(Z)
 		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatC-SMCLoop(smc)
 ; D = cos(Y)*sin(Z)
@@ -185,29 +173,17 @@ z		equr	d7
 		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatD-SMCLoop(smc)
 ; E = sin(X)*sin(Y)*sin(Z)+cos(X)*cos(Z)
-		move.w (sin,x),d0
-		FPMULS (sin,y),d0
-		FPMULS (sin,z),d0
-		move.w (cos,x),d1
-		FPMULS (cos,z),d1
-		add.w d1,d0
-		; move.w	d2,d0					; sin(X)*sin(Y)
-		; FPMULS	(sin,z),d0				; sin(X)*sin(Y)*sin(Z)
-		; add.w	d4,d0					; sin(X)*sin(Y)*sin(Z)+cos(X)*cos(Z)
+		move.w	d2,d0					; sin(X)*sin(Y)
+		FPMULS	(sin,z),d0				; sin(X)*sin(Y)*sin(Z)
+		add.w	d4,d0					; sin(X)*sin(Y)*sin(Z)+cos(X)*cos(Z)
 		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatE-SMCLoop(smc)
 ; F = cos(X)*sin(Y)*sin(Z)−sin(X)*cos(Z)
-		move.w (cos,x),d0
-		FPMULS (sin,y),d0
-		FPMULS (sin,z),d0
-		move.w (sin,x),d1
-		FPMULS (cos,z),d1
-		sub.w d1,d0
-		; move.w	d3,d0					; sin(Z)*cos(X)
-		; FPMULS	(sin,y),d0				; cos(X)*sin(Y)*sin(Z)
-		; move.w	(sin,x),d1				; sin(X)
-		; FPMULS	(cos,z),d1				; sin(X)*cos(Z)
-		; sub.w	d1,d0
+		move.w	d3,d0					; sin(Z)*cos(X)
+		FPMULS	(sin,y),d0				; cos(X)*sin(Y)*sin(Z)
+		move.w	(sin,x),d1				; sin(X)
+		FPMULS	(cos,z),d1				; sin(X)*cos(Z)
+		sub.w	d1,d0
 		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatF-SMCLoop(smc)
 ; G = −sin(Y)
