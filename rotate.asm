@@ -1,5 +1,6 @@
 		include	_main.i
 		include	rotate.i
+		include	tween.i
 
 DIW_W = 320
 DIW_H = 256
@@ -20,7 +21,7 @@ POINTS_COUNT = 64
 LERP_POINTS_SHIFT = 6
 LERP_POINTS_LENGTH = 1<<LERP_POINTS_SHIFT
 
-PROFILE = 0
+PROFILE = 1
 
 FPMULS		macro
 		muls	\1,\2
@@ -42,52 +43,58 @@ Rotate_Vbl:
 		jsr	PokeBpls
 
 ; Scripting:
-		move.w	VBlank+2,d0
-; lerp1
-		cmp.w	#$100,d0
-		blt	.lerp1Done
-		bne	.lerp1Step
+		move.w	VBlank+2,d7
+; Start lerp1:
+		cmp.w	#$100,d7
+		bne	.endLerp1
 		lea	SpherePoints,a0
 		lea	BoxPoints,a1
 		bsr	LerpPointsStart
-		bra	.lerp1Done
-.lerp1Step
-		cmp.w	#$100+LERP_POINTS_LENGTH,d0
-		bgt	.lerp1Done
-		bsr	LerpPointsStep
-		move.l	#LerpPointsOut,DrawPoints
-.lerp1Done
+.endLerp1
 
-; lerp2
-		cmp.w	#$300,d0
-		blt	.scr
-		bne	.lerp2Step
+; Start lerp2:
+		cmp.w	#$300,d7
+		bne	.endLerp2
 		lea	BoxPoints,a0
 		lea	Particles,a1
 		bsr	LerpPointsStart
-		bra	.scr
-.lerp2Step
-		cmp.w	#$300+LERP_POINTS_LENGTH,d0
-		bgt	.lerp2Done
-		bsr	LerpPointsStep
-		move.l	#LerpPointsOut,DrawPoints
-		bra	.scr
-.lerp2Done
-		; move.w	#120,ZoomBase
-; Update particles:
-		lea	Particles,a0
-		move.l	a0,DrawPoints
-UNROLL_PARTICLES=8
-		moveq	#POINTS_COUNT/UNROLL_PARTICLES-1,d7
-.l0
-		rept UNROLL_PARTICLES
-		sub.w	#$100,(a0)+
-		add.w	#$400,(a0)+
-		sub.w	#$200,(a0)+
-		addq #2,a0
-		endr
-		dbf	d7,.l0
-.scr
+.endLerp2
+
+; Start tween:
+	cmp.w	#$300+LERP_POINTS_LENGTH+1,d7
+	bne	.end0
+
+	move.w #150,d0
+	move.w #100,d1
+	move.l #ZoomBase,a1
+	bsr 	TweenStart
+
+	move.w #$100,d0
+	move.w #$80,d1
+	move.l #ParticlesSpeedX,a1
+	bsr 	TweenStart
+
+	move.w #$400,d0
+	move.w #$100,d1
+	move.l #ParticlesSpeedY,a1
+	bsr 	TweenStart
+
+	move.w #$200,d0
+	move.w #$100,d1
+	move.l #ParticlesSpeedZ,a1
+	bsr 	TweenStart
+
+	move.l	#Particles,DrawPoints
+.end0
+
+; 	cmp.w	#$500,d7
+; 	bne	.end1
+; 	move.w #$400,d0
+; 	move.w #$200,d1
+; 	move.l #ParticlesSpeedY,a1
+; 	bsr 	TweenStart
+; .end1
+
 		rts
 
 
@@ -102,7 +109,6 @@ Rotate_Effect:
 		bsr	InitBox
 		bsr	InitSphere
 
-		move.w	#220,ZoomBase
 		move.l	#SpherePoints,DrawPoints
 
 ;-------------------------------------------------------------------------------
@@ -161,6 +167,26 @@ SetPalette:
 Frame:
 		jsr	SwapBuffers
 		jsr	Clear
+
+		bsr	LerpPointsStep
+		bsr	TweenProcess
+
+; Update particle positions:
+		lea	Particles,a0
+		movem.w ParticlesSpeed(pc),d1-d3
+		and.w #$100,d1
+		and.w #$100,d2
+		and.w #$100,d3
+UNROLL_PARTICLES = 8
+		moveq	#POINTS_COUNT/UNROLL_PARTICLES-1,d6
+.l0
+		rept	UNROLL_PARTICLES
+		add.w	d1,(a0)+
+		add.w	d2,(a0)+
+		add.w	d3,(a0)+
+		addq	#2,a0
+		endr
+		dbf	d6,.l0
 
 		move.w	Pal,color(a6)
 
@@ -464,22 +490,25 @@ InitBox:
 
 ********************************************************************************
 InitSphere:
-	lea	SpherePointsData,a0
-	lea	SpherePoints,a1
-	moveq	#POINTS_COUNT-1,d7
+		lea	SpherePointsData,a0
+		lea	SpherePoints,a1
+		moveq	#POINTS_COUNT-1,d7
 .l0
-	move.b (a0)+,d0
-	move.b (a0)+,d1
-	move.b (a0)+,d2
-	lsl.w #8,d0
-	lsl.w #8,d1
-	lsl.w #8,d2
-	move.w d0,(a1)+
-	move.w d1,(a1)+
-	move.w d2,(a1)+
-	move.w #4,(a1)+
-	dbf d7,.l0
-	rts
+		move.b	(a0)+,d0
+		move.b	(a0)+,d1
+		move.b	(a0)+,d2
+		lsl.w	#8,d0
+		lsl.w	#8,d1
+		lsl.w	#8,d2
+		move.w	d0,(a1)+
+		move.w	d1,(a1)+
+		move.w	d2,(a1)+
+		jsr	Random32
+		and.w	#7,d0
+		addq	#1,d0
+		move.w	d0,(a1)+
+		dbf	d7,.l0
+		rts
 
 
 ********************************************************************************
@@ -493,7 +522,7 @@ LerpPointsStart:
 		move.w	d3,d4
 		lsl.w	#8,d4					; r needs to be FP too
 		movem.w	d0-d2/d4,(a4)
-		addq #8,a4
+		addq	#8,a4
 ; get deltas
 		sub.w	(a1)+,d0
 		sub.w	(a1)+,d1
@@ -503,15 +532,20 @@ LerpPointsStart:
 		asr.w	#LERP_POINTS_SHIFT,d0
 		asr.w	#LERP_POINTS_SHIFT,d1
 		asr.w	#LERP_POINTS_SHIFT,d2
-		lsl.w 	#8-LERP_POINTS_SHIFT,d3
+		lsl.w	#8-LERP_POINTS_SHIFT,d3
 		movem.w	d0-d3,(a2)
-		addq #8,a2
+		addq	#8,a2
 		dbf	d7,.l0
+
+		move.w	#LERP_POINTS_LENGTH,LerpPointsRemaining
 		rts
 
 
 ********************************************************************************
 LerpPointsStep:
+		tst.w	LerpPointsRemaining
+		beq	.done
+
 		lea	LerpPointsIncs,a0
 		lea	LerpPointsTmp,a1
 		lea	LerpPointsOut,a2
@@ -528,7 +562,7 @@ LERP_UNROLL = 4
 		sub.w	(a0)+,d6
 ; update tmp
 		movem.w	d3-d6,(a1)
-		addq #8,a1
+		addq	#8,a1
 ; clean up tmp points for use
 		clr.b	d3
 		clr.b	d4
@@ -536,10 +570,14 @@ LERP_UNROLL = 4
 		lsr.w	#8,d6
 ; write to points buffer
 		movem.w	d3-d6,(a2)
-		addq #8,a2
+		addq	#8,a2
 		endr
 		dbf	d7,.l0
-		rts
+		sub.w	#1,LerpPointsRemaining
+		move.l	#LerpPointsOut,DrawPoints
+.done		rts
+
+LerpPointsRemaining: dc.w 0
 
 
 ********************************************************************************
@@ -547,7 +585,12 @@ Vars:
 ********************************************************************************
 
 Zoom:		dc.w	0
-ZoomBase:	dc.w	0
+ZoomBase:	dc.w	220
+
+ParticlesSpeed:
+ParticlesSpeedX: dc.w 0;-$100
+ParticlesSpeedY: dc.w 0;$400
+ParticlesSpeedZ: dc.w 0;-$200
 
 
 ********************************************************************************
@@ -566,7 +609,17 @@ ScreenOffsets:
 		dc.l	0
 		dc.l	0
 
-Pal:		dc.w	$114,$437,$869,$cbb,$ffd
+Pal:
+; dc.w $011,$344,$766,$ba8,$fda ; nic orange
+; dc.w $011,$235,$468,$79c,$acf ; nice blue
+; dc.w $011,$344,$576,$9b8,$cfa ; nice green
+		dc.w	$011,$334,$757,$b8a,$fae		; nice pink
+		dc.w	$011,$345,$768,$bab,$fdf		; nice
+		dc.w	$020,$453,$787,$bca,$fff		; dark green
+		dc.w	$020,$353,$687,$aba,$eff		; green screen
+		dc.w	$101,$334,$668,$aab,$eff		; simple
+		dc.w	$420,$743,$a65,$db8,$ffd
+		dc.w	$114,$437,$869,$cbb,$ffd
 
 Sin1:
 		dc.w	0,804,1608,2410,3212,4011,4808,5602
@@ -678,7 +731,7 @@ SpherePointsData:
 		dc.b	-13,-113,-41
 		dc.b	-13,-117,27
 		dc.b	0,-120,-0
-		printv *-SpherePointsData
+		printv	*-SpherePointsData
 
 
 *******************************************************************************
