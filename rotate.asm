@@ -14,12 +14,13 @@ SIN_SHIFT = 8
 
 DIST_SHIFT = 7
 ; FIXED_ZOOM = 300
+ZOOM_SHIFT = 8
 
 POINTS_COUNT = 64
-LERP_POINTS_SHIFT = 8
+LERP_POINTS_SHIFT = 6
 LERP_POINTS_LENGTH = 1<<LERP_POINTS_SHIFT
 
-PROFILE = 1
+PROFILE = 0
 
 FPMULS		macro
 		muls	\1,\2
@@ -72,16 +73,19 @@ Rotate_Vbl:
 		move.l	#LerpPointsOut,DrawPoints
 		bra	.scr
 .lerp2Done
-		move.w	#120,ZoomBase
+		; move.w	#120,ZoomBase
 ; Update particles:
 		lea	Particles,a0
 		move.l	a0,DrawPoints
-		moveq	#POINTS_COUNT-1,d7
+UNROLL_PARTICLES=8
+		moveq	#POINTS_COUNT/UNROLL_PARTICLES-1,d7
 .l0
-		sub.w	#$100,(a0)
-		add.w	#$400,2(a0)
-		sub.w	#$200,4(a0)
-		lea	Point_SIZEOF(a0),a0
+		rept UNROLL_PARTICLES
+		sub.w	#$100,(a0)+
+		add.w	#$400,(a0)+
+		sub.w	#$200,(a0)+
+		addq #2,a0
+		endr
 		dbf	d7,.l0
 .scr
 		rts
@@ -96,8 +100,9 @@ Rotate_Effect:
 		bsr	InitMulsTbl
 		bsr	InitParticles
 		bsr	InitBox
+		bsr	InitSphere
 
-		move.w	#200,ZoomBase
+		move.w	#220,ZoomBase
 		move.l	#SpherePoints,DrawPoints
 
 ;-------------------------------------------------------------------------------
@@ -166,7 +171,7 @@ SetZoom:
 		lsl	#2,d0
 		and.w	#$7fe,d0
 		move.w	(a0,d0.w),d5
-		asr	#8,d5
+		asr	#ZOOM_SHIFT,d5
 		add.w	ZoomBase(pc),d5
 		move.w	d5,Zoom
 		ifd	FIXED_ZOOM
@@ -349,13 +354,12 @@ Perspective:
 		ext.w	tx
 		add.w	tz,tz
 		move.w	(divtbl,tz),d5				; d5 = 1/z
-		move.w	#15-DIST_SHIFT,d4
 		muls	d5,tx
-		asr.l	d4,tx
+		asr.l	#15-DIST_SHIFT,tx
 		muls	d5,ty
-		asr.l	d4,ty
+		asr.l	#15-DIST_SHIFT,ty
 		mulu	d5,r
-		asr.l	d4,r
+		asr.l	#15-DIST_SHIFT,r
 
 ;-------------------------------------------------------------------------------
 Draw:
@@ -459,6 +463,26 @@ InitBox:
 
 
 ********************************************************************************
+InitSphere:
+	lea	SpherePointsData,a0
+	lea	SpherePoints,a1
+	moveq	#POINTS_COUNT-1,d7
+.l0
+	move.b (a0)+,d0
+	move.b (a0)+,d1
+	move.b (a0)+,d2
+	lsl.w #8,d0
+	lsl.w #8,d1
+	lsl.w #8,d2
+	move.w d0,(a1)+
+	move.w d1,(a1)+
+	move.w d2,(a1)+
+	move.w #4,(a1)+
+	dbf d7,.l0
+	rts
+
+
+********************************************************************************
 LerpPointsStart:
 		lea	LerpPointsIncs,a2
 		lea	LerpPointsTmp,a4
@@ -466,12 +490,10 @@ LerpPointsStart:
 .l0
 		movem.w	(a0)+,d0-d3
 ; write initial values to tmp
-		move.w	d0,(a4)+
-		move.w	d1,(a4)+
-		move.w	d2,(a4)+
 		move.w	d3,d4
 		lsl.w	#8,d4					; r needs to be FP too
-		move.w	d4,(a4)+
+		movem.w	d0-d2/d4,(a4)
+		addq #8,a4
 ; get deltas
 		sub.w	(a1)+,d0
 		sub.w	(a1)+,d1
@@ -481,10 +503,9 @@ LerpPointsStart:
 		asr.w	#LERP_POINTS_SHIFT,d0
 		asr.w	#LERP_POINTS_SHIFT,d1
 		asr.w	#LERP_POINTS_SHIFT,d2
-		move.w	d0,(a2)+
-		move.w	d1,(a2)+
-		move.w	d2,(a2)+
-		move.w	d3,(a2)+
+		lsl.w 	#8-LERP_POINTS_SHIFT,d3
+		movem.w	d0-d3,(a2)
+		addq #8,a2
 		dbf	d7,.l0
 		rts
 
@@ -506,20 +527,16 @@ LERP_UNROLL = 4
 		sub.w	(a0)+,d5
 		sub.w	(a0)+,d6
 ; update tmp
-		move.w	d3,(a1)+
-		move.w	d4,(a1)+
-		move.w	d5,(a1)+
-		move.w	d6,(a1)+
+		movem.w	d3-d6,(a1)
+		addq #8,a1
 ; clean up tmp points for use
 		clr.b	d3
 		clr.b	d4
 		clr.b	d5
 		lsr.w	#8,d6
 ; write to points buffer
-		move.w	d3,(a2)+
-		move.w	d4,(a2)+
-		move.w	d5,(a2)+
-		move.w	d6,(a2)+
+		movem.w	d3-d6,(a2)
+		addq #8,a2
 		endr
 		dbf	d7,.l0
 		rts
@@ -595,71 +612,73 @@ Cos1:
 		dc.w	32137,32285,32412,32521,32609,32678,32728,32757
 
 ; https://stackoverflow.com/questions/9600801/evenly-distributing-n-points-on-a-sphere
-SpherePoints:
-		dc.w	0<<8,120<<8,0<<8,4
-		dc.w	-23<<8,116<<8,-21<<8,4
-		dc.w	3<<8,112<<8,41<<8,4
-		dc.w	31<<8,108<<8,-41<<8,4
-		dc.w	-58<<8,104<<8,10<<8,4
-		dc.w	54<<8,100<<8,34<<8,4
-		dc.w	-19<<8,97<<8,-69<<8,4
-		dc.w	-35<<8,93<<8,66<<8,4
-		dc.w	75<<8,89<<8,-28<<8,4
-		dc.w	-78<<8,85<<8,-33<<8,4
-		dc.w	37<<8,81<<8,79<<8,4
-		dc.w	27<<8,78<<8,-87<<8,4
-		dc.w	-82<<8,74<<8,47<<8,4
-		dc.w	94<<8,70<<8,20<<8,4
-		dc.w	-58<<8,66<<8,-82<<8,4
-		dc.w	-14<<8,62<<8,101<<8,4
-		dc.w	79<<8,59<<8,-68<<8,4
-		dc.w	-107<<8,55<<8,-5<<8,4
-		dc.w	76<<8,51<<8,76<<8,4
-		dc.w	-6<<8,47<<8,-111<<8,4
-		dc.w	-72<<8,43<<8,85<<8,4
-		dc.w	112<<8,40<<8,-16<<8,4
-		dc.w	-94<<8,36<<8,-66<<8,4
-		dc.w	25<<8,32<<8,112<<8,4
-		dc.w	57<<8,28<<8,-102<<8,4
-		dc.w	-112<<8,24<<8,35<<8,4
-		dc.w	107<<8,20<<8,49<<8,4
-		dc.w	-46<<8,17<<8,-110<<8,4
-		dc.w	-41<<8,13<<8,112<<8,4
-		dc.w	105<<8,9<<8,-56<<8,4
-		dc.w	-116<<8,5<<8,-31<<8,4
-		dc.w	64<<8,1<<8,100<<8,4
-		dc.w	20<<8,-2<<8,-119<<8,4
-		dc.w	-95<<8,-6<<8,73<<8,4
-		dc.w	119<<8,-10<<8,9<<8,4
-		dc.w	-81<<8,-14<<8,-88<<8,4
-		dc.w	0<<8,-18<<8,118<<8,4
-		dc.w	79<<8,-21<<8,-88<<8,4
-		dc.w	-117<<8,-25<<8,10<<8,4
-		dc.w	92<<8,-29<<8,70<<8,4
-		dc.w	-21<<8,-33<<8,-114<<8,4
-		dc.w	-61<<8,-37<<8,96<<8,4
-		dc.w	109<<8,-40<<8,-30<<8,4
-		dc.w	-100<<8,-44<<8,-52<<8,4
-		dc.w	38<<8,-48<<8,103<<8,4
-		dc.w	40<<8,-52<<8,-101<<8,4
-		dc.w	-97<<8,-56<<8,45<<8,4
-		dc.w	99<<8,-60<<8,30<<8,4
-		dc.w	-52<<8,-63<<8,-89<<8,4
-		dc.w	-21<<8,-67<<8,97<<8,4
-		dc.w	79<<8,-71<<8,-57<<8,4
-		dc.w	-94<<8,-75<<8,-12<<8,4
-		dc.w	59<<8,-79<<8,69<<8,4
-		dc.w	3<<8,-82<<8,-88<<8,4
-		dc.w	-59<<8,-86<<8,59<<8,4
-		dc.w	79<<8,-90<<8,-5<<8,4
-		dc.w	-59<<8,-94<<8,-49<<8,4
-		dc.w	9<<8,-98<<8,69<<8,4
-		dc.w	36<<8,-101<<8,-54<<8,4
-		dc.w	-58<<8,-105<<8,13<<8,4
-		dc.w	44<<8,-109<<8,25<<8,4
-		dc.w	-13<<8,-113<<8,-41<<8,4
-		dc.w	-13<<8,-117<<8,27<<8,4
-		dc.w	0<<8,-120<<8,-0<<8,4
+; TODO: could calc this if needed
+SpherePointsData:
+		dc.b	0,120,0
+		dc.b	-23,116,-21
+		dc.b	3,112,41
+		dc.b	31,108,-41
+		dc.b	-58,104,10
+		dc.b	54,100,34
+		dc.b	-19,97,-69
+		dc.b	-35,93,66
+		dc.b	75,89,-28
+		dc.b	-78,85,-33
+		dc.b	37,81,79
+		dc.b	27,78,-87
+		dc.b	-82,74,47
+		dc.b	94,70,20
+		dc.b	-58,66,-82
+		dc.b	-14,62,101
+		dc.b	79,59,-68
+		dc.b	-107,55,-5
+		dc.b	76,51,76
+		dc.b	-6,47,-111
+		dc.b	-72,43,85
+		dc.b	112,40,-16
+		dc.b	-94,36,-66
+		dc.b	25,32,112
+		dc.b	57,28,-102
+		dc.b	-112,24,35
+		dc.b	107,20,49
+		dc.b	-46,17,-110
+		dc.b	-41,13,112
+		dc.b	105,9,-56
+		dc.b	-116,5,-31
+		dc.b	64,1,100
+		dc.b	20,-2,-119
+		dc.b	-95,-6,73
+		dc.b	119,-10,9
+		dc.b	-81,-14,-88
+		dc.b	0,-18,118
+		dc.b	79,-21,-88
+		dc.b	-117,-25,10
+		dc.b	92,-29,70
+		dc.b	-21,-33,-114
+		dc.b	-61,-37,96
+		dc.b	109,-40,-30
+		dc.b	-100,-44,-52
+		dc.b	38,-48,103
+		dc.b	40,-52,-101
+		dc.b	-97,-56,45
+		dc.b	99,-60,30
+		dc.b	-52,-63,-89
+		dc.b	-21,-67,97
+		dc.b	79,-71,-57
+		dc.b	-94,-75,-12
+		dc.b	59,-79,69
+		dc.b	3,-82,-88
+		dc.b	-59,-86,59
+		dc.b	79,-90,-5
+		dc.b	-59,-94,-49
+		dc.b	9,-98,69
+		dc.b	36,-101,-54
+		dc.b	-58,-105,13
+		dc.b	44,-109,25
+		dc.b	-13,-113,-41
+		dc.b	-13,-117,27
+		dc.b	0,-120,-0
+		printv *-SpherePointsData
 
 
 *******************************************************************************
@@ -671,6 +690,7 @@ MulsTable:	ds.b	256*256
 
 Particles:	ds.b	Point_SIZEOF*POINTS_COUNT
 BoxPoints:	ds.b	Point_SIZEOF*POINTS_COUNT
+SpherePoints:	ds.b	Point_SIZEOF*POINTS_COUNT
 
 LerpPointsIncs:	ds.w	Point_SIZEOF*POINTS_COUNT
 LerpPointsTmp:	ds.b	Point_SIZEOF*POINTS_COUNT
