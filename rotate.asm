@@ -14,20 +14,14 @@ SIN_MASK = $1fe
 SIN_SHIFT = 8
 
 DIST_SHIFT = 7
-; FIXED_ZOOM = 300
 ZOOM_SHIFT = 8
+; FIXED_ZOOM = 300
 
 POINTS_COUNT = 64
-LERP_POINTS_SHIFT = 6
+LERP_POINTS_SHIFT = 7
 LERP_POINTS_LENGTH = 1<<LERP_POINTS_SHIFT
 
-PROFILE = 1
-
-FPMULS		macro
-		muls	\1,\2
-		add.l	\2,\2
-		swap	\2
-		endm
+PROFILE = 0
 
 		rsreset
 Point_X		rs.w	1
@@ -36,64 +30,66 @@ Point_Z		rs.w	1
 Point_R		rs.w	1
 Point_SIZEOF	rs.b	0
 
+; Fixed point multiplication for 1/15 format
+FPMULS		macro
+		muls	\1,\2
+		add.l	\2,\2
+		swap	\2
+		endm
 
 ********************************************************************************
 Rotate_Vbl:
 ********************************************************************************
 		jsr	PokeBpls
 
-; Scripting:
+;-------------------------------------------------------------------------------
+Script:
 		move.w	VBlank+2,d7
 ; Start lerp1:
 		cmp.w	#$100,d7
 		bne	.endLerp1
 		lea	SpherePoints,a0
 		lea	BoxPoints,a1
+		pea	.endScript
 		bsr	LerpPointsStart
 .endLerp1
-
 ; Start lerp2:
 		cmp.w	#$300,d7
 		bne	.endLerp2
 		lea	BoxPoints,a0
 		lea	Particles,a1
+		pea	.endScript
 		bsr	LerpPointsStart
 .endLerp2
+; Zoom / scroll speed tween:
+		cmp.w	#$300+LERP_POINTS_LENGTH+1,d7
+		bne	.endZoom
 
-; Start tween:
-	cmp.w	#$300+LERP_POINTS_LENGTH+1,d7
-	bne	.end0
+		move.w	#150,d0
+		move.w	#100,d1
+		move.l	#ZoomBase,a1
+		bsr	TweenStart
 
-	move.w #150,d0
-	move.w #100,d1
-	move.l #ZoomBase,a1
-	bsr 	TweenStart
+		move.w	#$200,d0
+		move.w	#$80,d1
+		move.l	#ParticlesSpeedX,a1
+		bsr	TweenStart
 
-	move.w #$100,d0
-	move.w #$80,d1
-	move.l #ParticlesSpeedX,a1
-	bsr 	TweenStart
+		move.w	#$400,d0
+		move.w	#$100,d1
+		move.l	#ParticlesSpeedY,a1
+		bsr	TweenStart
 
-	move.w #$400,d0
-	move.w #$100,d1
-	move.l #ParticlesSpeedY,a1
-	bsr 	TweenStart
+		move.w	#$400,d0
+		move.w	#$100,d1
+		move.l	#ParticlesSpeedZ,a1
+		bsr	TweenStart
 
-	move.w #$200,d0
-	move.w #$100,d1
-	move.l #ParticlesSpeedZ,a1
-	bsr 	TweenStart
+		move.l	#Particles,DrawPoints
+		bra	.endScript
+.endZoom
 
-	move.l	#Particles,DrawPoints
-.end0
-
-; 	cmp.w	#$500,d7
-; 	bne	.end1
-; 	move.w #$400,d0
-; 	move.w #$200,d1
-; 	move.l #ParticlesSpeedY,a1
-; 	bsr 	TweenStart
-; .end1
+.endScript
 
 		rts
 
@@ -173,10 +169,11 @@ Frame:
 
 ; Update particle positions:
 		lea	Particles,a0
-		movem.w ParticlesSpeed(pc),d1-d3
-		and.w #$100,d1
-		and.w #$100,d2
-		and.w #$100,d3
+		movem.w	ParticlesSpeed(pc),d1-d3
+		move.w	#$f00,d0
+		and.w	d0,d1
+		and.w	d0,d2
+		and.w	d0,d3
 UNROLL_PARTICLES = 8
 		moveq	#POINTS_COUNT/UNROLL_PARTICLES-1,d6
 .l0
@@ -225,6 +222,10 @@ SetRotation:
 		; z
 		move.w	d4,d7
 		and.w	#SIN_MASK,d7
+
+		; move.w	#0,d5
+		; move.w	#0,d6
+		; move.w	#0,d7
 
 ;-------------------------------------------------------------------------------
 ; Calculate rotation matrix and apply values to self-modifying code loop
@@ -532,7 +533,9 @@ LerpPointsStart:
 		asr.w	#LERP_POINTS_SHIFT,d0
 		asr.w	#LERP_POINTS_SHIFT,d1
 		asr.w	#LERP_POINTS_SHIFT,d2
+		ifgt	8-LERP_POINTS_SHIFT
 		lsl.w	#8-LERP_POINTS_SHIFT,d3
+		endc
 		movem.w	d0-d3,(a2)
 		addq	#8,a2
 		dbf	d7,.l0
@@ -588,9 +591,9 @@ Zoom:		dc.w	0
 ZoomBase:	dc.w	220
 
 ParticlesSpeed:
-ParticlesSpeedX: dc.w 0;-$100
-ParticlesSpeedY: dc.w 0;$400
-ParticlesSpeedZ: dc.w 0;-$200
+ParticlesSpeedX: dc.w	0					;-$100
+ParticlesSpeedY: dc.w	0					;$400
+ParticlesSpeedZ: dc.w	0					;-$200
 
 
 ********************************************************************************
