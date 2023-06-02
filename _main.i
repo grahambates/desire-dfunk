@@ -37,7 +37,7 @@
 
 ; Maximum radius for blitter circles
 ; Need to adjust BltCircBpl size when you change this
-BLTCIRC_MAX_R = 90
+BLTCIRC_MAX_R = 48
 
 		rsreset
 Blit_Adr	rs.l	1

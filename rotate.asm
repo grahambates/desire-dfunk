@@ -14,7 +14,7 @@ SIN_MASK = $1fe
 SIN_SHIFT = 8
 
 DIST_SHIFT = 7
-ZOOM_SHIFT = 8
+ZOOM_SHIFT = 9
 ; FIXED_ZOOM = 300
 
 POINTS_COUNT = 64
@@ -46,6 +46,16 @@ Rotate_Vbl:
 Script:
 		move.w	VBlank+2,d7
 ; Start lerp1:
+		cmp.w	#$20,d7
+		bne	.endLerp0
+		move.w	#150,d0
+		move.w	#$80,d1
+		move.l	#ZoomBase,a1
+		pea	.endScript
+		bsr	TweenStart
+.endLerp0
+
+; Start lerp1:
 		cmp.w	#$100,d7
 		bne	.endLerp1
 		lea	SpherePoints,a0
@@ -65,7 +75,7 @@ Script:
 		cmp.w	#$300+LERP_POINTS_LENGTH+1,d7
 		bne	.endZoom
 
-		move.w	#150,d0
+		move.w	#120,d0
 		move.w	#100,d1
 		move.l	#ZoomBase,a1
 		bsr	TweenStart
@@ -89,6 +99,42 @@ Script:
 		bra	.endScript
 .endZoom
 
+;
+		cmp.w	#$500,d7
+		bne	.endStop
+		move.w	#$0,d0
+		move.w	#$80,d1
+		move.l	#ParticlesSpeedX,a1
+		bsr	TweenStart
+
+		move.w	#$0,d0
+		move.w	#$80,d1
+		move.l	#ParticlesSpeedY,a1
+		bsr	TweenStart
+
+		move.w	#$0,d0
+		move.w	#$80,d1
+		move.l	#ParticlesSpeedZ,a1
+		bsr	TweenStart
+		bra	.endScript
+.endStop
+;
+		cmp.w	#$580,d7
+		bne	.endLerp3
+		lea	Particles,a0
+		lea	LogoPoints,a1
+		pea	.endScript
+		bsr	LerpPointsStart
+.endLerp3
+
+		cmp.w	#$680,d7
+		bne	.endLerp4
+		lea	LogoPoints,a0
+		lea	SpherePoints,a1
+		pea	.endScript
+		bsr	LerpPointsStart
+.endLerp4
+
 .endScript
 
 		rts
@@ -104,6 +150,7 @@ Rotate_Effect:
 		bsr	InitParticles
 		bsr	InitBox
 		bsr	InitSphere
+		bsr	InitLogo
 
 		move.l	#SpherePoints,DrawPoints
 
@@ -165,7 +212,7 @@ Frame:
 		jsr	Clear
 
 		bsr	LerpPointsStep
-		bsr	TweenProcess
+		bsr	TweenStep
 
 ; Update particle positions:
 		lea	Particles,a0
@@ -194,7 +241,8 @@ SetZoom:
 		lsl	#2,d0
 		and.w	#$7fe,d0
 		move.w	(a0,d0.w),d5
-		asr	#ZOOM_SHIFT,d5
+		move.w	#ZOOM_SHIFT,d0
+		asr	d0,d5
 		add.w	ZoomBase(pc),d5
 		move.w	d5,Zoom
 		ifd	FIXED_ZOOM
@@ -513,6 +561,35 @@ InitSphere:
 
 
 ********************************************************************************
+InitLogo:
+		lea	LogoPointsData,a0
+		lea	LogoPoints,a1
+		moveq	#2,d3
+		moveq	#6-1,d7
+.letter
+		move.b	(a0)+,d0				; x offset
+		move.b	(a0)+,d6				; count-1
+		ext.w	d6
+.pt
+		move.b	(a0)+,d1
+		move.b	(a0)+,d2
+		add.b	d0,d1
+		sub.b	#13,d1
+		sub.b	#2,d2
+		lsl.b	#3,d1
+		lsl.b	#3,d2
+		move.b	d1,(a1)+				; x
+		clr.b	(a1)+
+		move.b	d2,(a1)+				; y
+		clr.b	(a1)+
+		clr.w	(a1)+					; z
+		move.w	d3,(a1)+				; r
+		dbf	d6,.pt
+		dbf	d7,.letter
+		rts
+
+
+********************************************************************************
 LerpPointsStart:
 		lea	LerpPointsIncs,a2
 		lea	LerpPointsTmp,a4
@@ -588,7 +665,7 @@ Vars:
 ********************************************************************************
 
 Zoom:		dc.w	0
-ZoomBase:	dc.w	220
+ZoomBase:	dc.w	2000
 
 ParticlesSpeed:
 ParticlesSpeedX: dc.w	0					;-$100
@@ -737,6 +814,43 @@ SpherePointsData:
 		printv	*-SpherePointsData
 
 
+LogoPointsData:
+; D
+		dc.b	0,12-1					; x,count
+		dc.b	0,0,0,1,0,2,0,3,0,4
+		dc.b	1,0,2,0
+		dc.b	3,1,3,2,3,3
+		dc.b	1,4,2,4
+; E
+		dc.b	5,13-1
+		dc.b	0,0,0,1,0,2,0,3,0,4
+		dc.b	1,0,2,0,3,0
+		dc.b	1,2,2,2
+		dc.b	1,4,2,4,3,4
+; S
+		dc.b	10,10-1
+		dc.b	1,0,2,0,3,0
+		dc.b	0,1
+		dc.b	1,2,2,2
+		dc.b	3,3
+		dc.b	0,4,1,4,2,4
+; i
+		dc.b	15,4-1
+		dc.b	0,0,0,2,0,3,0,4
+; R
+		dc.b	17,12-1
+		dc.b	0,0,0,1,0,2,0,3,0,4
+		dc.b	1,0,2,0
+		dc.b	3,1
+		dc.b	1,2,2,2
+		dc.b	3,3,3,4
+; E
+		dc.b	22,13-1
+		dc.b	0,0,0,1,0,2,0,3,0,4
+		dc.b	1,0,2,0,3,0
+		dc.b	1,2,2,2
+		dc.b	1,4,2,4,3,4
+
 *******************************************************************************
 		bss
 *******************************************************************************
@@ -747,6 +861,7 @@ MulsTable:	ds.b	256*256
 Particles:	ds.b	Point_SIZEOF*POINTS_COUNT
 BoxPoints:	ds.b	Point_SIZEOF*POINTS_COUNT
 SpherePoints:	ds.b	Point_SIZEOF*POINTS_COUNT
+LogoPoints:	ds.b	Point_SIZEOF*POINTS_COUNT
 
 LerpPointsIncs:	ds.w	Point_SIZEOF*POINTS_COUNT
 LerpPointsTmp:	ds.b	Point_SIZEOF*POINTS_COUNT
