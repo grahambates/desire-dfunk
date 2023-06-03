@@ -81,15 +81,15 @@ Script:
 		lea	Particles,a1
 		pea	.endScript
 		bsr	LerpPoints
-.endLerp2
-; Zoom / scroll speed tween:
-		cmp.w	#$400+LERP_POINTS_LENGTH+1,d7
-		bne	.endZoom
 
 		move.w	#150,d0
 		move.w	#8,d1
 		move.l	#ZoomBase,a1
 		bsr	LerpWord
+.endLerp2
+; Zoom / scroll speed tween:
+		cmp.w	#$400+LERP_POINTS_LENGTH+1,d7
+		bne	.endZoom
 
 		move.w	#$200,d0
 		move.w	#6,d1
@@ -753,6 +753,9 @@ ScreenOffsets:	dc.l	SCREEN_BPL*2
 		dc.l	0
 
 Pal:
+	; dc.w $320,$473,$0d7,$9d6,$ce6,$fd5
+	; dc.w $123,$175,$0d7,$9d6,$ce6,$fd5 ; https://gradient-blaster.grahambates.com/?points=123@0,1d7@2,fd5@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
+	dc.w $123,$228,$40d,$84d,$b5e,$f5d ; https://gradient-blaster.grahambates.com/?points=123@0,41d@2,f5d@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
 		; dc.w	$000,$f00,$0f0,$00f,$0ff,$fff ; test
 		; dc.w $011,$344,$766,$ba8,$fda ; nic orange
 		; dc.w $011,$235,$468,$79c,$acf ; nice blue
