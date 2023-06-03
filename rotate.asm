@@ -83,26 +83,26 @@ Script:
 		bsr	LerpPoints
 
 		move.w	#150,d0
-		move.w	#8,d1
+		move.w	#6,d1
 		move.l	#ZoomBase,a1
 		bsr	LerpWord
 .endLerp2
 ; Zoom / scroll speed tween:
-		cmp.w	#$400+LERP_POINTS_LENGTH+1,d7
+		cmp.w	#$400+LERP_POINTS_LENGTH,d7
 		bne	.endZoom
 
 		move.w	#$200,d0
-		move.w	#6,d1
+		move.w	#4,d1
 		move.l	#ParticlesSpeedX,a1
 		bsr	LerpWord
 
 		move.w	#$400,d0
-		move.w	#7,d1
+		move.w	#4,d1
 		move.l	#ParticlesSpeedY,a1
 		bsr	LerpWord
 
 		move.w	#$400,d0
-		move.w	#8,d1
+		move.w	#4,d1
 		move.l	#ParticlesSpeedZ,a1
 		bsr	LerpWord
 
@@ -224,14 +224,14 @@ BuildPalette:
 
 ********************************************************************************
 Frame:
-		jsr	SwapBuffers
-		jsr	Clear
-
 		bsr	LerpPointsStep
 		bsr	LerpWordsStep
 
 UpdateParticles:
 		lea	Particles,a0
+		move.l	DrawPoints(pc),a1
+		cmp.l	a0,a1
+		bne	.skipUpdate
 		movem.w	ParticlesSpeed(pc),d1-d3
 		move.w	#$f00,d0
 		and.w	d0,d1
@@ -247,6 +247,7 @@ UNROLL_PARTICLES = 8
 		addq	#2,a0
 		endr
 		dbf	d6,.l0
+.skipUpdate
 
 		move.w	Pal,color(a6)
 
@@ -373,6 +374,22 @@ z		equr	d7
 		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatI-SMCLoop(smc)
 
+
+
+;-------------------------------------------------------------------------------
+; EOF
+		ifne	PROFILE
+		move.w	#$f00,color(a6)
+		endc
+		DebugStartIdle
+		jsr	WaitEOF
+		DebugStopIdle
+		move.w	Pal(pc),color(a6)
+
+		jsr	SwapBuffers
+		jsr	Clear
+
+
 ;-------------------------------------------------------------------------------
 Transform:
 
@@ -459,15 +476,6 @@ Draw:
 SMCNext		move.l	(sp)+,a0
 		dbf	d7,SMCLoop
 		move.l	#0,(clear)+				; End clear list
-
-;-------------------------------------------------------------------------------
-; EOF
-		ifne	PROFILE
-		move.w	#$f00,color(a6)
-		endc
-		DebugStartIdle
-		jsr	WaitEOF
-		DebugStopIdle
 
 		bra	Frame
 		rts
@@ -732,6 +740,8 @@ Vars:
 Zoom:		dc.w	0
 ZoomBase:	dc.w	2000
 
+DrawPoints:	ds.l	1
+
 ParticlesSpeed:
 ParticlesSpeedX: dc.w	0					;-$100
 ParticlesSpeedY: dc.w	0					;$400
@@ -753,14 +763,21 @@ ScreenOffsets:	dc.l	SCREEN_BPL*2
 		dc.l	0
 
 Pal:
-	; dc.w $320,$473,$0d7,$9d6,$ce6,$fd5
-	; dc.w $123,$175,$0d7,$9d6,$ce6,$fd5 ; https://gradient-blaster.grahambates.com/?points=123@0,1d7@2,fd5@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
-	dc.w $123,$228,$40d,$84d,$b5e,$f5d ; https://gradient-blaster.grahambates.com/?points=123@0,41d@2,f5d@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
+		; ; green / cyan
+		; dc.w $123,$164,$3a4,$4c8,$5dc,$5ef ; https://gradient-blaster.grahambates.com/?points=123@0,3a4@2,5ef@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
+		; ; pink / cyan
+		dc.w $123,$636,$a39,$a7b,$9bd,$5ef ; https://gradient-blaster.grahambates.com/?points=123@0,a39@2,5ef@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
+		; ; bright pink / cyan
+		; dc.w $123,$737,$d0b,$c8d,$abe,$5ef ; https://gradient-blaster.grahambates.com/?points=123@0,d1b@2,5ef@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
+
+		; bright pink / blue
+		dc.w	$123,$228,$40d,$84d,$b5e,$f5d		; https://gradient-blaster.grahambates.com/?points=123@0,41d@2,f5d@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
+
 		; dc.w	$000,$f00,$0f0,$00f,$0ff,$fff ; test
 		; dc.w $011,$344,$766,$ba8,$fda ; nic orange
 		; dc.w $011,$235,$468,$79c,$acf ; nice blue
 		; dc.w $011,$344,$576,$9b8,$cfa ; nice green
-		dc.w $123,$336,$649,$86a,$a7b,$b9b
+		dc.w	$123,$336,$649,$86a,$a7b,$b9b
 		dc.w	$000,$324,$649,$86a,$a7b,$b9b		; https://gradient-blaster.grahambates.com/?points=001@0,649@2,b9b@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
 		dc.w	$011,$334,$757,$b8a,$fae,$fff		; nice pink
 		; dc.w	$011,$345,$768,$bab,$fdf		; nice
@@ -937,5 +954,3 @@ LogoPoints:	ds.b	Point_SIZEOF*POINTS_COUNT
 LerpPointsIncs:	ds.w	Point_SIZEOF*POINTS_COUNT
 LerpPointsTmp:	ds.b	Point_SIZEOF*POINTS_COUNT
 LerpPointsOut:	ds.b	Point_SIZEOF*POINTS_COUNT
-
-DrawPoints:	ds.l	1
