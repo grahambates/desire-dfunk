@@ -13,8 +13,9 @@ SIN_MASK = $1fe
 SIN_SHIFT = 8
 
 DIST_SHIFT = 7
-ZOOM_SHIFT = 9
+ZOOM_SHIFT = 8
 ; FIXED_ZOOM = 300
+MULSCALE=170
 
 POINTS_COUNT = 64
 LERP_POINTS_SHIFT = 7
@@ -58,7 +59,7 @@ Script:
 ; Start lerp1:
 		cmp.w	#$40,d7
 		bne	.endLerp0
-		move.w	#150,d0
+		move.w	#300,d0
 		move.w	#7,d1
 		move.l	#ZoomBase,a1
 		pea	.endScript
@@ -66,27 +67,27 @@ Script:
 .endLerp0
 
 ; Start lerp1:
-		cmp.w	#$100,d7
+		cmp.w	#$180,d7
 		bne	.endLerp1
 		lea	SpherePoints,a0
-		lea	BoxPoints,a1
+		lea	CubePoints,a1
 		pea	.endScript
 		bsr	LerpPoints
 .endLerp1
 ; Start lerp2:
-		cmp.w	#$300,d7
+		cmp.w	#$380,d7
 		bne	.endLerp2
-		lea	BoxPoints,a0
+		lea	CubePoints,a0
 		lea	Particles,a1
 		pea	.endScript
 		bsr	LerpPoints
 .endLerp2
 ; Zoom / scroll speed tween:
-		cmp.w	#$300+LERP_POINTS_LENGTH+1,d7
+		cmp.w	#$400+LERP_POINTS_LENGTH+1,d7
 		bne	.endZoom
 
-		move.w	#120,d0
-		move.w	#6,d1
+		move.w	#150,d0
+		move.w	#8,d1
 		move.l	#ZoomBase,a1
 		bsr	LerpWord
 
@@ -136,7 +137,6 @@ Script:
 		pea	.endScript
 		bsr	LerpPoints
 .endLerp3
-
 		cmp.w	#$680,d7
 		bne	.endLerp4
 		lea	LogoPoints,a0
@@ -144,6 +144,12 @@ Script:
 		pea	.endScript
 		bsr	LerpPoints
 .endLerp4
+		cmp.w	#$780,d7
+		bne	.endLerp5
+		move.w	#1000,d0
+		move.w	#8,d1
+		move.l	#ZoomBase,a1
+.endLerp5
 
 .endScript
 
@@ -158,7 +164,7 @@ Rotate_Effect:
 
 		bsr	InitMulsTbl
 		bsr	InitParticles
-		bsr	InitBox
+		bsr	InitCube
 		bsr	InitSphere
 		bsr	InitLogo
 
@@ -224,7 +230,7 @@ Frame:
 		bsr	LerpPointsStep
 		bsr	LerpWordsStep
 
-; Update particle positions:
+UpdateParticles:
 		lea	Particles,a0
 		movem.w	ParticlesSpeed(pc),d1-d3
 		move.w	#$f00,d0
@@ -248,7 +254,7 @@ UNROLL_PARTICLES = 8
 SetZoom:
 		lea	Sin,a0
 		move.w	VBlank+2,d0
-		lsl	#2,d0
+		lsl	#3,d0
 		and.w	#$7fe,d0
 		move.w	(a0,d0.w),d5
 		move.w	#ZOOM_SHIFT,d0
@@ -480,7 +486,8 @@ InitMulsTbl:
 		move.w	#256-1,d6
 .loop2		move.w	d0,d2					; d2 = x
 		muls.w	d1,d2					; d2 = x*y
-		asr.w	#8,d2					; d2 = (x*y)/128
+		; asr.w	#7,d2					; d2 = (x*y)/128
+		divs #MULSCALE,d2
 		move.b	d2,(a0)+				; write to table
 		addq	#1,d1
 		dbf	d6,.loop2
@@ -519,30 +526,30 @@ InitParticles:
 
 
 ********************************************************************************
-InitBox:
-		lea	BoxPoints,a0
+InitCube:
+		lea	CubePoints,a0
 
-		move.w	#$9300,d0
+		move.w	#$9a00,d0
 		moveq	#4-1,d7
 .x
-		move.w	#$9300,d1
+		move.w	#$9a00,d1
 		moveq	#4-1,d6
 .y
-		move.w	#$9300,d2
+		move.w	#$9a00,d2
 		moveq	#4-1,d5
 .z
 		move.w	d0,(a0)+
 		move.w	d1,(a0)+
 		move.w	d2,(a0)+
-		move.w	#4,(a0)+				; r
+		move.w	#6,(a0)+				; r
 
-		add.w	#$4800,d2
+		add.w	#$4400,d2
 		dbf	d5,.z
 
-		add.w	#$4800,d1
+		add.w	#$4400,d1
 		dbf	d6,.y
 
-		add.w	#$4800,d0
+		add.w	#$4400,d0
 		dbf	d7,.x
 		rts
 
@@ -749,13 +756,13 @@ ScreenOffsets:
 		dc.l	0
 
 Pal:
-; dc.w $011,$344,$766,$ba8,$fda ; nic orange
-; dc.w $011,$235,$468,$79c,$acf ; nice blue
-; dc.w $011,$344,$576,$9b8,$cfa ; nice green
-		dc.w	$011,$334,$757,$b8a,$fae		; nice pink
-		dc.w	$011,$345,$768,$bab,$fdf		; nice
-		dc.w	$020,$453,$787,$bca,$fff		; dark green
-		dc.w	$020,$353,$687,$aba,$eff		; green screen
+		; dc.w $011,$344,$766,$ba8,$fda ; nic orange
+		; dc.w $011,$235,$468,$79c,$acf ; nice blue
+		; dc.w $011,$344,$576,$9b8,$cfa ; nice green
+		; dc.w	$011,$334,$757,$b8a,$fae		; nice pink
+		; dc.w	$011,$345,$768,$bab,$fdf		; nice
+		; dc.w	$020,$453,$787,$bca,$fff		; dark green
+		; dc.w	$020,$353,$687,$aba,$eff		; green screen
 		dc.w	$101,$334,$668,$aab,$eff		; simple
 		dc.w	$420,$743,$a65,$db8,$ffd
 		dc.w	$114,$437,$869,$cbb,$ffd
@@ -920,7 +927,7 @@ MulsTable:	ds.b	256*256
 LerpWordsState:	ds.b	Lerp_SIZEOF*LERPS_WORDS_LEN
 
 Particles:	ds.b	Point_SIZEOF*POINTS_COUNT
-BoxPoints:	ds.b	Point_SIZEOF*POINTS_COUNT
+CubePoints:	ds.b	Point_SIZEOF*POINTS_COUNT
 SpherePoints:	ds.b	Point_SIZEOF*POINTS_COUNT
 LogoPoints:	ds.b	Point_SIZEOF*POINTS_COUNT
 
