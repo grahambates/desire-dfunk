@@ -5,7 +5,7 @@
 _start:
 		include	"PhotonsMiniWrapper1.04.i"
 
-MUSIC_ENABLE = 1
+MUSIC_ENABLE = 0
 MAX_CLEAR = 100*2+2
 DMASET = DMAF_SETCLR!DMAF_MASTER!DMAF_RASTER!DMAF_COPPER!DMAF_BLITTER
 INTSET = INTF_SETCLR!INTF_INTEN!INTF_VERTB
@@ -173,7 +173,7 @@ InitSqrt:
 InitSin:
 		lea	Sin,a0
 		moveq	#0,d0
-		move.w	#16383,d1
+		move.w	#$4000,d1
 		moveq	#32,d2
 .loop:
 		move.w	d0,d3
@@ -273,7 +273,7 @@ InitValueNoise:
 
 ********************************************************************************
 Effects:
-; jsr     Tentacles_Effect
+		jsr     Tentacles_Effect
 		jsr	Rotate_Effect
 		rts						; Exit demo
 
