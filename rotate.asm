@@ -1,6 +1,5 @@
 		include	_main.i
 		include	rotate.i
-		include	tween.i
 
 DIW_W = 320
 DIW_H = 256
@@ -21,6 +20,8 @@ POINTS_COUNT = 64
 LERP_POINTS_SHIFT = 7
 LERP_POINTS_LENGTH = 1<<LERP_POINTS_SHIFT
 
+LERPS_WORDS_LEN = 4
+
 PROFILE = 0
 
 		rsreset
@@ -30,12 +31,21 @@ Point_Z		rs.w	1
 Point_R		rs.w	1
 Point_SIZEOF	rs.b	0
 
+		rsreset
+Lerp_Count	rs.w	1
+Lerp_Shift	rs.w	1
+Lerp_Inc	rs.l	1
+Lerp_Tmp	rs.l	1
+Lerp_Ptr	rs.l	1					; Target address pointer
+Lerp_SIZEOF	rs.w	0
+
 ; Fixed point multiplication for 1/15 format
 FPMULS		macro
 		muls	\1,\2
 		add.l	\2,\2
 		swap	\2
 		endm
+
 
 ********************************************************************************
 Rotate_Vbl:
@@ -46,13 +56,13 @@ Rotate_Vbl:
 Script:
 		move.w	VBlank+2,d7
 ; Start lerp1:
-		cmp.w	#$20,d7
+		cmp.w	#$40,d7
 		bne	.endLerp0
 		move.w	#150,d0
-		move.w	#$80,d1
+		move.w	#7,d1
 		move.l	#ZoomBase,a1
 		pea	.endScript
-		bsr	TweenStart
+		bsr	LerpWord
 .endLerp0
 
 ; Start lerp1:
@@ -61,7 +71,7 @@ Script:
 		lea	SpherePoints,a0
 		lea	BoxPoints,a1
 		pea	.endScript
-		bsr	LerpPointsStart
+		bsr	LerpPoints
 .endLerp1
 ; Start lerp2:
 		cmp.w	#$300,d7
@@ -69,31 +79,31 @@ Script:
 		lea	BoxPoints,a0
 		lea	Particles,a1
 		pea	.endScript
-		bsr	LerpPointsStart
+		bsr	LerpPoints
 .endLerp2
 ; Zoom / scroll speed tween:
 		cmp.w	#$300+LERP_POINTS_LENGTH+1,d7
 		bne	.endZoom
 
 		move.w	#120,d0
-		move.w	#100,d1
+		move.w	#6,d1
 		move.l	#ZoomBase,a1
-		bsr	TweenStart
+		bsr	LerpWord
 
 		move.w	#$200,d0
-		move.w	#$80,d1
+		move.w	#6,d1
 		move.l	#ParticlesSpeedX,a1
-		bsr	TweenStart
+		bsr	LerpWord
 
 		move.w	#$400,d0
-		move.w	#$100,d1
+		move.w	#7,d1
 		move.l	#ParticlesSpeedY,a1
-		bsr	TweenStart
+		bsr	LerpWord
 
 		move.w	#$400,d0
-		move.w	#$100,d1
+		move.w	#8,d1
 		move.l	#ParticlesSpeedZ,a1
-		bsr	TweenStart
+		bsr	LerpWord
 
 		move.l	#Particles,DrawPoints
 		bra	.endScript
@@ -102,20 +112,20 @@ Script:
 ;
 		cmp.w	#$500,d7
 		bne	.endStop
-		move.w	#$0,d0
-		move.w	#$80,d1
+		move.w	#0,d0
+		move.w	#7,d1
 		move.l	#ParticlesSpeedX,a1
-		bsr	TweenStart
+		bsr	LerpWord
 
-		move.w	#$0,d0
-		move.w	#$80,d1
+		move.w	#0,d0
+		move.w	#7,d1
 		move.l	#ParticlesSpeedY,a1
-		bsr	TweenStart
+		bsr	LerpWord
 
-		move.w	#$0,d0
-		move.w	#$80,d1
+		move.w	#0,d0
+		move.w	#7,d1
 		move.l	#ParticlesSpeedZ,a1
-		bsr	TweenStart
+		bsr	LerpWord
 		bra	.endScript
 .endStop
 ;
@@ -124,7 +134,7 @@ Script:
 		lea	Particles,a0
 		lea	LogoPoints,a1
 		pea	.endScript
-		bsr	LerpPointsStart
+		bsr	LerpPoints
 .endLerp3
 
 		cmp.w	#$680,d7
@@ -132,7 +142,7 @@ Script:
 		lea	LogoPoints,a0
 		lea	SpherePoints,a1
 		pea	.endScript
-		bsr	LerpPointsStart
+		bsr	LerpPoints
 .endLerp4
 
 .endScript
@@ -212,7 +222,7 @@ Frame:
 		jsr	Clear
 
 		bsr	LerpPointsStep
-		bsr	TweenStep
+		bsr	LerpWordsStep
 
 ; Update particle positions:
 		lea	Particles,a0
@@ -590,7 +600,7 @@ InitLogo:
 
 
 ********************************************************************************
-LerpPointsStart:
+LerpPoints:
 		lea	LerpPointsIncs,a2
 		lea	LerpPointsTmp,a4
 		moveq	#POINTS_COUNT-1,d7
@@ -658,6 +668,55 @@ LERP_UNROLL = 4
 .done		rts
 
 LerpPointsRemaining: dc.w 0
+
+
+********************************************************************************
+; Start a new lerp
+;-------------------------------------------------------------------------------
+; d0.w - target value
+; d1.w - duration (pow 2)
+; a1 - ptr
+;-------------------------------------------------------------------------------
+LerpWord:
+		lea	LerpWordsState,a2
+		moveq	#LERPS_WORDS_LEN-1,d2
+.l		tst.w	Lerp_Count(a2)
+		beq	.free
+		lea	Lerp_SIZEOF(a2),a2
+		dbf	d2,.l
+		rts						; no free slots
+.free
+		moveq	#1,d2
+		lsl.w	d1,d2
+		move.w	d2,(a2)+				; count
+		move.w	d1,(a2)+				; shift
+		move.w	(a1),d3					; current value
+		sub.w	d3,d0
+		ext.l	d0
+		move.l	d0,(a2)+				; inc
+		lsl.l	d1,d3
+		move.l	d3,(a2)+				; tmp
+		move.l	a1,(a2)+				; ptr
+		rts
+
+********************************************************************************
+; Continue any active lerps
+;-------------------------------------------------------------------------------
+LerpWordsStep:
+		lea	LerpWordsState,a0
+		moveq	#LERPS_WORDS_LEN-1,d0
+.l		tst.w	Lerp_Count(a0)				; Skip if not enabled / finished
+		beq	.next
+		sub.w	#1,Lerp_Count(a0)
+		movem.l	Lerp_Inc(a0),d1-d2/a1
+		add.l	d1,d2
+		move.l	d2,Lerp_Tmp(a0)
+		move.w	Lerp_Shift(a0),d1
+		asr.l	d1,d2
+		move.w	d2,(a1)
+.next		lea	Lerp_SIZEOF(a0),a0
+		dbf	d0,.l
+		rts
 
 
 ********************************************************************************
@@ -857,6 +916,8 @@ LogoPointsData:
 
 ; Multiplication lookup-table
 MulsTable:	ds.b	256*256
+
+LerpWordsState:	ds.b	Lerp_SIZEOF*LERPS_WORDS_LEN
 
 Particles:	ds.b	Point_SIZEOF*POINTS_COUNT
 BoxPoints:	ds.b	Point_SIZEOF*POINTS_COUNT
