@@ -15,7 +15,7 @@ SIN_SHIFT = 8
 DIST_SHIFT = 7
 ZOOM_SHIFT = 8
 ; FIXED_ZOOM = 300
-MULSCALE=170
+MULSCALE = 170
 
 POINTS_COUNT = 64
 LERP_POINTS_SHIFT = 7
@@ -171,15 +171,15 @@ Rotate_Effect:
 		move.l	#SpherePoints,DrawPoints
 
 ;-------------------------------------------------------------------------------
-SetPalette:
-		lea	color16(a6),a1
-		move.w	#15-1,d6
+BuildPalette:
+		lea	color31+2(a6),a1
+		move.w	#31-1,d6
 .col
-		lea	Pal+10,a2
+		lea	Pal+12,a2
 		moveq	#0,d0					; r
 		moveq	#0,d1					; g
 		moveq	#0,d2					; b
-		moveq	#4-1,d5					; iterate channels
+		moveq	#5-1,d5					; iterate channels
 .chan1
 		move.w	-(a2),d4				; Channel color
 		move.w	d6,d3
@@ -220,7 +220,7 @@ SetPalette:
 		move.w	d0,-(a1)
 		dbf	d6,.col
 ; Set bg
-		move.w	-(a2),color(a6)
+		move.w	Pal(pc),color(a6)
 
 ********************************************************************************
 Frame:
@@ -433,10 +433,9 @@ MatF		add.b	__SMC__(multbl,oz.w),ty
 Colour:
 		move.w	tz,d3
 		sub.w	a0,d3					; TODO: this is dumb
-		add.w	#128,d3
-		lsr	#3,d3
+		asr.w	#5,d3
+		lsl.w	#2,d3
 		lea	ScreenOffsets,a0
-		and.w	#$3c,d3
 		move.l	(a0,d3.w),d3
 
 ;-------------------------------------------------------------------------------
@@ -487,7 +486,7 @@ InitMulsTbl:
 .loop2		move.w	d0,d2					; d2 = x
 		muls.w	d1,d2					; d2 = x*y
 		; asr.w	#7,d2					; d2 = (x*y)/128
-		divs #MULSCALE,d2
+		divs	#MULSCALE,d2
 		move.b	d2,(a0)+				; write to table
 		addq	#1,d1
 		dbf	d6,.loop2
@@ -743,23 +742,24 @@ ParticlesSpeedZ: dc.w	0					;-$200
 Data:
 ********************************************************************************
 
-ScreenOffsets:
+		dc.l	SCREEN_BPL*4
+		dc.l	SCREEN_BPL*4
 		dc.l	SCREEN_BPL*4
 		dc.l	SCREEN_BPL*3
-		dc.l	SCREEN_BPL*2
+ScreenOffsets:	dc.l	SCREEN_BPL*2
 		dc.l	SCREEN_BPL
-		dc.l	0
-		dc.l	0
-		dc.l	0
 		dc.l	0
 		dc.l	0
 		dc.l	0
 
 Pal:
+		; dc.w	$000,$f00,$0f0,$00f,$0ff,$fff ; test
 		; dc.w $011,$344,$766,$ba8,$fda ; nic orange
 		; dc.w $011,$235,$468,$79c,$acf ; nice blue
 		; dc.w $011,$344,$576,$9b8,$cfa ; nice green
-		; dc.w	$011,$334,$757,$b8a,$fae		; nice pink
+		dc.w $123,$336,$649,$86a,$a7b,$b9b
+		dc.w	$000,$324,$649,$86a,$a7b,$b9b		; https://gradient-blaster.grahambates.com/?points=001@0,649@2,b9b@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
+		dc.w	$011,$334,$757,$b8a,$fae,$fff		; nice pink
 		; dc.w	$011,$345,$768,$bab,$fdf		; nice
 		; dc.w	$020,$453,$787,$bca,$fff		; dark green
 		; dc.w	$020,$353,$687,$aba,$eff		; green screen
