@@ -5,10 +5,10 @@
 _start:
 		include	"PhotonsMiniWrapper1.04.i"
 
-MUSIC_ENABLE = 0
+MUSIC_ENABLE = 1
 MAX_CLEAR = 100*2+2
 DMASET = DMAF_SETCLR!DMAF_MASTER!DMAF_RASTER!DMAF_COPPER!DMAF_BLITTER
-INTSET = INTF_SETCLR!INTF_INTEN!INTF_VERTB
+INTSET = INTF_SETCLR!INTF_INTEN!INTF_VERTB|INTF_COPER
 RANDOM_SEED = $a162b2c9
 
 ; Display window:
@@ -38,26 +38,40 @@ DIW_YSTOP = DIW_YSTRT+DIW_H
 
 
 ********************************************************************************
-Interrupt:
+VblInterrupt:
 		movem.l	d0-a6,-(sp)
 		lea	custom,a6
-		btst	#5,intreqr+1(a6)
-		beq.s	.notvb
 
+;-------------------------------------------------------------------------------
+; Vertical blank interrupt:
+		btst	#INTB_VERTB,intreqr+1(a6)
+		beq.s	.notvb
 ; Increment frame counter:
 		lea	VBlank(pc),a0
 		addq.l	#1,(a0)
-
+; Call effect interrupt if Installed
 		move.l	InterruptRoutine,d0
 		beq	.noInt
 		move.l	d0,a0
 		jsr	(a0)
 .noInt
-
 		moveq	#INTF_VERTB,d0
 		move.w	d0,intreq(a6)
 		move.w	d0,intreq(a6)
-.notvb:		movem.l	(sp)+,d0-a6
+		bra	.end
+.notvb:
+
+;-------------------------------------------------------------------------------
+; Copper interrupt
+		btst	#INTB_COPER,intreqr+1(a6)
+		beq.s	.end
+		lea	$dff0a0,a6				; always set a6 to dff0a0 before calling LSP tick
+		bsr	LSP_MusicPlayTick			; player music tick
+		moveq	#INTF_COPER,d0
+		move.w	d0,intreq+custom
+		move.w	d0,intreq+custom
+.end
+		movem.l	(sp)+,d0-a6
 		rte
 
 PokeBpls:
@@ -73,6 +87,14 @@ InstallInterrupt:
 		move.l	a0,InterruptRoutine
 		rts
 
+InstallCopper:
+		move.l	a0,d0
+		swap.w	d0
+		lea	Cop1Lc+2,a1
+		move.w	d0,(a1)
+		move.w	a0,4(a1)
+		rts
+
 InterruptRoutine:
 		dc.l	0
 
@@ -83,12 +105,14 @@ Demo:
 		DebugRegisterResource DebugResScreen2
 		DebugRegisterResource DebugResCop
 
-		move.w	#0,color00(a6)				; clear bg during precalc
-		move.l	#Cop,cop1lc(a6)
-		move.l	#Interrupt,$6c(a4)
+		lea	BlankCop,a0
+		bsr	InstallCopper
+		move.l	a0,cop1lc(a6)
 
 ********************************************************************************
 Precalc:
+		jsr Rotate_Precalc
+
 		move.w	#DMAF_SETCLR!DMAF_MASTER!DMAF_BLITTER,dmacon(a6)
 
 ********************************************************************************
@@ -253,27 +277,28 @@ InitValueNoise:
 		addq	#1,d3					; range shift
 		dbf	d7,.octave
 
-; ifne    MUSIC_ENABLE
-; jsr     Music_Init
-; endc
-
 		move.w	#INTSET,intena(a6)
 		bsr	WaitEOF
 		move.w	#DMASET,dmacon(a6)
 
 ; Start music:
-		ifne    MUSIC_ENABLE
-		; Init LSP and start replay using easy CIA toolbox
-		lea		LSPMusic,a0
-		lea		LSPBank,a1
-		suba.l	a2,a2			; suppose VBR=0 ( A500 )
-		moveq	#0,d0			; suppose PAL machine
-		bsr		LSP_MusicDriver_CIA_Start
+		ifne	MUSIC_ENABLE
+		lea	LSPMusic,a0
+		lea	LSPBank,a1
+		lea	CopDma+3,a2
+		bsr	LSP_MusicInit
+
+		; setup copper list & interrupt
+		move.l	#VblInterrupt,$6c.w
+		move.l	#MainCop,cop1lc(a6)
+		move.w	#(1<<4),$dff09e
+		move.w	#$c000|(1<<4),$dff09a
+		move.w	#$8000|(1<<7),$dff096			; Copper DMA
 		endc
 
 ********************************************************************************
 Effects:
-		jsr     Tentacles_Effect
+		jsr	Tentacles_Effect
 		jsr	Rotate_Effect
 		rts						; Exit demo
 
@@ -700,9 +725,6 @@ DrawCircleFill:
 		bset	d3,(a0,d6.w)
 		rts
 
-		; Include simple CIA toolkit
-		include	"LightSpeedPlayer_cia.i"
-
 		; Include generic LSP player
 		include	"LightSpeedPlayer.i"
 
@@ -726,7 +748,7 @@ ViewClearList:	dc.l	ClearList1
 ; Debug resource data:
 DebugResScreen:	DebugResourceBitmap Screen1,"Screen.bpl",SCREEN_W,SCREEN_H,BPLS,0
 DebugResScreen2: DebugResourceBitmap Screen2,"Screen2.bpl",SCREEN_W,SCREEN_H,BPLS,0
-DebugResCop:	DebugResourceCopperlist Cop,"Cop",CopE-Cop
+DebugResCop:	DebugResourceCopperlist CirclesCop,"Cop",CirclesCopE-CirclesCop
 
 LSPMusic:	incbin	"data/funky_shuffler.lsmusic"
 		even
@@ -739,8 +761,18 @@ LSPMusic:	incbin	"data/funky_shuffler.lsmusic"
 LSPBank:	incbin	"data/funky_shuffler.lsbank"
 		even
 
-; Main copper list:
-Cop:
+MainCop:
+		dc.l	(20<<24)|($09fffe)			; wait scanline 20
+		dc.l	$009c8000|(1<<4)			; fire copper interrupt
+		dc.l	((20+11)<<24)|($09fffe)			; wait scanline 50+11
+CopDma:		dc.w	dmacon,$8000
+Cop1Lc:		dc.w	cop2lc,0				; Address of installed copper
+		dc.w	cop2lc+2,0
+		dc.w	copjmp2,0				; Jump to installed copper
+
+;-------------------------------------------------------------------------------
+; Cirlces copper list:
+CirclesCop:
 		dc.w	fmode,0
 		dc.w	diwstrt,DIW_YSTRT<<8!DIW_XSTRT
 		dc.w	diwstop,(DIW_YSTOP-256)<<8!(DIW_XSTOP-256)
@@ -750,8 +782,18 @@ Cop:
 		dc.w	bpl2mod,DIW_MOD
 		dc.w	bplcon0,BPLS<<12!$200
 		dc.w	bplcon1,0
-CopEnd:		dc.l	-2
-CopE:
+		dc.l	-2
+CirclesCopE:
+
+;-------------------------------------------------------------------------------
+; Initial Copperlist for blank screen
+BlankCop:
+		dc.w	diwstrt,$2c81
+		dc.w	diwstop,$2cc1
+		dc.w	dmacon,DMAF_SPRITE
+		dc.w	bplcon0,$200
+		dc.w	color00,0
+		dc.l	-2
 
 
 *******************************************************************************

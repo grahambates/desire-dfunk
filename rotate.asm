@@ -15,7 +15,7 @@ SIN_SHIFT = 8
 DIST_SHIFT = 7
 ZOOM_SHIFT = 8
 ; FIXED_ZOOM = 300
-MULSCALE = 170
+MULSCALE = 180
 
 POINTS_COUNT = 64
 LERP_POINTS_SHIFT = 7
@@ -49,17 +49,20 @@ FPMULS		macro
 
 
 ********************************************************************************
-Rotate_Vbl:
+Rotate_Vbi:
 ********************************************************************************
 		jsr	PokeBpls
 
+		move.l	VBlank,d7
+		sub.l	StartFrame(pc),d7
+		move.l	d7,CurrFrame
+
 ;-------------------------------------------------------------------------------
 Script:
-		move.w	VBlank+2,d7
 ; Start lerp1:
-		cmp.w	#$40,d7
+		cmp.w	#1,d7
 		bne	.endLerp0
-		move.w	#300,d0
+		move.w	#200,d0
 		move.w	#7,d1
 		move.l	#ZoomBase,a1
 		pea	.endScript
@@ -88,7 +91,7 @@ Script:
 		bsr	LerpWord
 .endLerp2
 ; Zoom / scroll speed tween:
-		cmp.w	#$400+LERP_POINTS_LENGTH,d7
+		cmp.w	#$380+LERP_POINTS_LENGTH,d7
 		bne	.endZoom
 
 		move.w	#$200,d0
@@ -110,7 +113,6 @@ Script:
 		bra	.endScript
 .endZoom
 
-;
 		cmp.w	#$500,d7
 		bne	.endStop
 		move.w	#0,d0
@@ -152,78 +154,40 @@ Script:
 .endLerp5
 
 .endScript
+		rts
 
+
+********************************************************************************
+Rotate_Precalc:
+********************************************************************************
+		bsr	InitMulsTbl
+		bsr	InitParticles
+		bsr	InitCube
+		bsr	InitSphere
+		bsr	InitLogo
+		bsr	BuildPalette
 		rts
 
 
 ********************************************************************************
 Rotate_Effect:
 ********************************************************************************
-		lea	Rotate_Vbl(pc),a0
-		jsr	InstallInterrupt
+		move.l	VBlank,StartFrame
+		move.w	Colors,color(a6)
 
-		bsr	InitMulsTbl
-		bsr	InitParticles
-		bsr	InitCube
-		bsr	InitSphere
-		bsr	InitLogo
+		lea	Rotate_Vbi(pc),a0
+		jsr	InstallInterrupt
+		lea	CirclesCop,a0
+		jsr	InstallCopper
 
 		move.l	#SpherePoints,DrawPoints
 
-;-------------------------------------------------------------------------------
-BuildPalette:
-		lea	color31+2(a6),a1
-		move.w	#31-1,d6
-.col
-		lea	Pal+12,a2
-		moveq	#0,d0					; r
-		moveq	#0,d1					; g
-		moveq	#0,d2					; b
-		moveq	#5-1,d5					; iterate channels
-.chan1
-		move.w	-(a2),d4				; Channel color
-		move.w	d6,d3
-		addq	#1,d3
-		btst	d5,d3
-		beq	.nextChan
-; Add the colours:
-; blue
-		move.w	d4,d3
-		and.w	#$f,d3
-		add.w	d3,d2
-		cmp.w	#$f,d2
-		ble	.blueOk
-		move.w	#$f,d2
-.blueOk
-; green
-		lsr	#4,d4
-		move.w	d4,d3
-		and.w	#$f,d3
-		add.w	d3,d1
-		cmp.w	#$f,d1
-		ble	.greenOk
-		move.w	#$f,d1
-.greenOk
-; red
-		lsr	#4,d4
-		and.w	#$f,d4
-		add.w	d4,d0
-		cmp.w	#$f,d0
-		ble	.redOk
-		move.w	#$f,d0
-.redOk
-.nextChan	dbf	d5,.chan1
-		lsl.w	#8,d0
-		lsl.w	#4,d1
-		add.w	d1,d0
-		add.w	d2,d0
-		move.w	d0,-(a1)
-		dbf	d6,.col
-; Set bg
-		move.w	Pal(pc),color(a6)
+		lea Pal,a0
+		bsr LoadPalette
 
 ********************************************************************************
 Frame:
+
 		bsr	LerpPointsStep
 		bsr	LerpWordsStep
 
@@ -249,12 +213,12 @@ UNROLL_PARTICLES = 8
 		dbf	d6,.l0
 .skipUpdate
 
-		move.w	Pal,color(a6)
+		move.w	Colors,color(a6)
 
 ;-------------------------------------------------------------------------------
 SetZoom:
 		lea	Sin,a0
-		move.w	VBlank+2,d0
+		move.w	CurrFrame+2,d0
 		lsl	#3,d0
 		and.w	#$7fe,d0
 		move.w	(a0,d0.w),d5
@@ -268,7 +232,7 @@ SetZoom:
 
 ;-------------------------------------------------------------------------------
 SetRotation:
-		move.w	VBlank+2,d4
+		move.w	CurrFrame+2,d4
 		; x
 		move.w	d4,d5
 		lsl	#1,d5
@@ -384,7 +348,7 @@ z		equr	d7
 		DebugStartIdle
 		jsr	WaitEOF
 		DebugStopIdle
-		move.w	Pal(pc),color(a6)
+		; move.w	Colors(pc),color(a6)
 
 		jsr	SwapBuffers
 		jsr	Clear
@@ -482,6 +446,66 @@ SMCNext		move.l	(sp)+,a0
 
 
 ********************************************************************************
+BuildPalette:
+	lea	PalE,a1
+	move.w	#31-1,d6
+.col
+	lea	Colors+12,a2
+	moveq	#0,d0					; r
+	moveq	#0,d1					; g
+	moveq	#0,d2					; b
+	moveq	#5-1,d5					; iterate channels
+.chan1
+	move.w	-(a2),d4				; Channel color
+	move.w	d6,d3
+	addq	#1,d3
+	btst	d5,d3
+	beq	.nextChan
+; Add the colours:
+; blue
+	move.w	d4,d3
+	and.w	#$f,d3
+	add.w	d3,d2
+	cmp.w	#$f,d2
+	ble	.blueOk
+	move.w	#$f,d2
+.blueOk
+; green
+	lsr	#4,d4
+	move.w	d4,d3
+	and.w	#$f,d3
+	add.w	d3,d1
+	cmp.w	#$f,d1
+	ble	.greenOk
+	move.w	#$f,d1
+.greenOk
+; red
+	lsr	#4,d4
+	and.w	#$f,d4
+	add.w	d4,d0
+	cmp.w	#$f,d0
+	ble	.redOk
+	move.w	#$f,d0
+.redOk
+.nextChan	dbf	d5,.chan1
+	lsl.w	#8,d0
+	lsl.w	#4,d1
+	add.w	d1,d0
+	add.w	d2,d0
+	move.w	d0,-(a1)
+	dbf	d6,.col
+	rts
+
+********************************************************************************
+LoadPalette:
+		lea	color(a6),a1
+		move.w	#32/2-1,d0
+.col		move.l	(a0)+,(a1)+
+		dbf	d0,.col
+		rts
+
+
+********************************************************************************
 ; Populate multiplication lookup table
 ; [-127 to 127] * [-127 to 127] / 128
 ;-------------------------------------------------------------------------------
@@ -548,7 +572,7 @@ InitCube:
 		move.w	d0,(a0)+
 		move.w	d1,(a0)+
 		move.w	d2,(a0)+
-		move.w	#6,(a0)+				; r
+		move.w	#8,(a0)+				; r
 
 		add.w	#$4400,d2
 		dbf	d5,.z
@@ -737,6 +761,8 @@ LerpWordsStep:
 Vars:
 ********************************************************************************
 
+StartFrame:	dc.l	0
+CurrFrame:	dc.l	0
 Zoom:		dc.w	0
 ZoomBase:	dc.w	2000
 
@@ -762,11 +788,11 @@ ScreenOffsets:	dc.l	SCREEN_BPL*2
 		dc.l	0
 		dc.l	0
 
-Pal:
+Colors:
 		; ; green / cyan
 		; dc.w $123,$164,$3a4,$4c8,$5dc,$5ef ; https://gradient-blaster.grahambates.com/?points=123@0,3a4@2,5ef@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
 		; ; pink / cyan
-		dc.w $123,$636,$a39,$a7b,$9bd,$5ef ; https://gradient-blaster.grahambates.com/?points=123@0,a39@2,5ef@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
+		dc.w	$123,$636,$a39,$a7b,$9bd,$5ef		; https://gradient-blaster.grahambates.com/?points=123@0,a39@2,5ef@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
 		; ; bright pink / cyan
 		; dc.w $123,$737,$d0b,$c8d,$abe,$5ef ; https://gradient-blaster.grahambates.com/?points=123@0,d1b@2,5ef@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
 
@@ -943,6 +969,9 @@ LogoPointsData:
 
 ; Multiplication lookup-table
 MulsTable:	ds.b	256*256
+
+Pal:		ds.w	32
+PalE:
 
 LerpWordsState:	ds.b	Lerp_SIZEOF*LERPS_WORDS_LEN
 

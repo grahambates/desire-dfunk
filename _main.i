@@ -16,6 +16,7 @@
 		xref	DrawCircle
 		xref	CopCircle
 		xref	Plot
+		xref CirclesCop
 
 		xref	VBlank
 		xref	DrawBuffer
@@ -23,6 +24,7 @@
 
 		xref	PokeBpls
 		xref	InstallInterrupt
+		xref	InstallCopper
 
 		xref	Sin
 		xref	Cos

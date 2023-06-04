@@ -1,7 +1,7 @@
 		include	_main.i
 		include	tentacles.i
 
-TENTACLES_END_FRAME = $fff
+TENTACLES_END_FRAME = 32*32
 
 OUTER_COUNT = 7
 INNER_COUNT = 7
@@ -45,7 +45,8 @@ DDF_STRT = ((DIW_XSTRT-17)>>1)&$00fc-SCROLL*8
 DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 
 Tentacles_Effect:
-		move.l	#Cop,cop1lc(a6)
+		lea	Cop,a0
+		jsr	InstallCopper
 
 ; Load palette
 		lea	Pal(pc),a0
@@ -57,6 +58,15 @@ Tentacles_Effect:
 Frame:
 ; Horizontal scroll position frame frame count
 		move.l	VBlank,d6
+
+; BPM test
+; 		move.l d6,d7
+; 		move.w #0,color(a6)
+; 		btst #4,d7
+; 		beq .odd
+; 		move.w #$fff,color(a6)
+; .odd
+
 		; add.w	d6,d6
 		moveq	#15,d0					; last 4 bits go in bplcon1 and save later for adjustment
 		and.w	d6,d0
@@ -107,6 +117,8 @@ Frame:
 
 ; Scale value from sum of sines:
 		move.w	VBlank+2,d6
+		add.w #$130,d6
+
 		lsl.w	#2,d6
 		lea	Sin,a3
 
@@ -301,8 +313,8 @@ Scale:		dc.w	$100
 Scroll:		dc.w	0
 Pal:
 
-		dc.w 0,$f06,$f58,$f79,$f9a,$fbc,$ecd,$ded
-		dc.w 0,$f5b,$f7c,$f9d,$fbd,$fde,$fef,$fff
+		dc.w	0,$f06,$f58,$f79,$f9a,$fbc,$ecd,$ded
+		dc.w	$744,$f5b,$f7c,$f9d,$fbd,$fde,$fef,$fff
 
 		; dc.w	$000,$aa0,$895,$676,$466,$357,$037,$007
 		; dc.w	$000,$ff0,$de8,$9cb,$7ac,$49d,$06e,$00f
@@ -326,6 +338,10 @@ CopBplPt:
 		dc.w	bpl0pt+REPTN*4+2,0
 		endr
 CopScroll:	dc.w	bplcon1,0
+
+		dc.w $180,$123
+
+		dc.l	-2
 
 ; https://gradient-blaster.grahambates.com/?points=000@0,324@127,000@255&steps=256&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=100
 Gradient:
