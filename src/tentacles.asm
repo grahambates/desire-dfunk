@@ -1,4 +1,6 @@
+		incdir	src
 		include	_main.i
+		include	zcircles.i
 		include	tentacles.i
 
 TENTACLES_END_FRAME = 32*32

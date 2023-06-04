@@ -1,13 +1,13 @@
+		incdir	src
 		include	_main.i
 		include	rotate.i
+		include	zcircles.i
 
-DIW_W = 320
-DIW_H = 256
-DIW_BW = DIW_W/8
-SCREEN_W = DIW_W+32
-SCREEN_H = DIW_H+32
-SCREEN_BW = SCREEN_W/8
-SCREEN_BPL = SCREEN_BW*SCREEN_H
+DIW_W = CIRCLES_DIW_W
+DIW_H = CIRCLES_DIW_H
+SCREEN_W = CIRCLES_SCREEN_W
+SCREEN_H = CIRCLES_SCREEN_H
+BPLS=5
 
 SIN_MASK = $1fe
 SIN_SHIFT = 8
@@ -47,11 +47,30 @@ FPMULS		macro
 		swap	\2
 		endm
 
+;-------------------------------------------------------------------------------
+; Derived
+COLORS = 1<<BPLS
+SCREEN_BW = SCREEN_W/8
+SCREEN_BPL = SCREEN_BW*SCREEN_H
+SCREEN_SIZE = SCREEN_BW*SCREEN_H*BPLS
+DIW_BW = DIW_W/8
+DIW_MOD = SCREEN_BW-DIW_BW-2
+DIW_XSTRT = ($242-DIW_W)/2
+DIW_YSTRT = ($158-DIW_H)/2
+DIW_XSTOP = DIW_XSTRT+DIW_W
+DIW_YSTOP = DIW_YSTRT+DIW_H
+
 
 ********************************************************************************
 Rotate_Vbi:
 ********************************************************************************
-		jsr	PokeBpls
+
+		move.l	ViewBuffer(pc),a0
+		lea	bpl0pt+custom,a1
+		rept	BPLS
+		move.l	a0,(a1)+
+		lea	SCREEN_BPL(a0),a0
+		endr
 
 		move.l	VBlank,d7
 		sub.l	StartFrame(pc),d7
@@ -235,18 +254,18 @@ SetRotation:
 		move.w	CurrFrame+2,d4
 		; x
 		move.w	d4,d5
-		lsl	#1,d5
-		add.w	#$200,d5
-		and.w	#$7fe,d5
-		move.w	(a0,d5.w),d5
-		lsr	#5,d5
+		; lsl	#1,d5
+		; add.w	#$200,d5
+		; and.w	#$7fe,d5
+		; move.w	(a0,d5.w),d5
+		; lsr	#5,d5
 		and.w	#SIN_MASK,d5
 		; y
 		move.w	d4,d6
-		lsl	#1,d6
-		and.w	#$7fe,d6
-		move.w	(a0,d6.w),d6
-		lsr	#4,d6
+		; lsl	#1,d6
+		; and.w	#$7fe,d6
+		; move.w	(a0,d6.w),d6
+		; lsr	#4,d6
 		and.w	#SIN_MASK,d6
 		; z
 		move.w	d4,d7
@@ -351,7 +370,9 @@ z		equr	d7
 		; move.w	Colors(pc),color(a6)
 
 		jsr	SwapBuffers
-		jsr	Clear
+
+		move.l	DrawClearList(pc),a0
+		jsr	ClearCircles
 
 
 ;-------------------------------------------------------------------------------
@@ -758,15 +779,31 @@ LerpWordsStep:
 
 
 ********************************************************************************
+SwapBuffers:
+	movem.l	DblBuffers(pc),a0-a5
+	exg	a0,a1
+	exg	a2,a3
+	exg	a4,a5
+	movem.l	a0-a5,DblBuffers
+	rts
+
+
+********************************************************************************
 Vars:
 ********************************************************************************
+
+DblBuffers:
+DrawClearList:	dc.l	ClearList2
+ViewClearList:	dc.l	ClearList1
+DrawBuffer:	dc.l	Screen2
+ViewBuffer:	dc.l	Screen1
 
 StartFrame:	dc.l	0
 CurrFrame:	dc.l	0
 Zoom:		dc.w	0
 ZoomBase:	dc.w	2000
 
-DrawPoints:	ds.l	1
+DrawPoints:	dc.l	0
 
 ParticlesSpeed:
 ParticlesSpeedX: dc.w	0					;-$100
@@ -962,6 +999,29 @@ LogoPointsData:
 		dc.b	1,0,2,0,3,0
 		dc.b	1,2,2,2
 		dc.b	1,4,2,4,3,4
+
+*******************************************************************************
+		data_c
+*******************************************************************************
+
+;-------------------------------------------------------------------------------
+; Cirlces copper list:
+CirclesCop:
+		dc.w	diwstrt,DIW_YSTRT<<8!DIW_XSTRT
+		dc.w	diwstop,(DIW_YSTOP-256)<<8!(DIW_XSTOP-256)
+		dc.w	ddfstrt,(DIW_XSTRT-17)>>1&$fc
+		dc.w	ddfstop,(DIW_XSTRT-17+(SCREEN_W>>4-1)<<4)>>1&$fc
+		dc.w	bpl1mod,DIW_MOD
+		dc.w	bpl2mod,DIW_MOD
+		dc.w	bplcon0,BPLS<<12!$200
+		dc.w	bplcon1,0
+		dc.l	-2
+CirclesCopE:
+
+
+; Double buffered screens
+Screen1:	ds.b	SCREEN_SIZE
+Screen2:	ds.b	SCREEN_SIZE
 
 *******************************************************************************
 		bss
