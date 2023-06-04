@@ -7,7 +7,7 @@
 _start:
 		include	"PhotonsMiniWrapper1.04.i"
 
-MUSIC_ENABLE = 0
+MUSIC_ENABLE = 1
 DMASET = DMAF_SETCLR!DMAF_MASTER!DMAF_RASTER!DMAF_COPPER!DMAF_BLITTER
 INTSET = INTF_SETCLR!INTF_INTEN!INTF_VERTB|INTF_COPER
 RANDOM_SEED = $a162b2c9
@@ -94,7 +94,7 @@ StartMusic:
 
 ********************************************************************************
 Effects:
-		; jsr	Tentacles_Effect
+		jsr	Tentacles_Effect
 		jsr	Rotate_Effect
 		rts						; Exit demo
 

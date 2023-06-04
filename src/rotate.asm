@@ -254,18 +254,18 @@ SetRotation:
 		move.w	CurrFrame+2,d4
 		; x
 		move.w	d4,d5
-		; lsl	#1,d5
-		; add.w	#$200,d5
-		; and.w	#$7fe,d5
-		; move.w	(a0,d5.w),d5
-		; lsr	#5,d5
+		lsl	#1,d5
+		add.w	#$200,d5
+		and.w	#$7fe,d5
+		move.w	(a0,d5.w),d5
+		lsr	#5,d5
 		and.w	#SIN_MASK,d5
 		; y
 		move.w	d4,d6
-		; lsl	#1,d6
-		; and.w	#$7fe,d6
-		; move.w	(a0,d6.w),d6
-		; lsr	#4,d6
+		lsl	#1,d6
+		and.w	#$7fe,d6
+		move.w	(a0,d6.w),d6
+		lsr	#4,d6
 		and.w	#SIN_MASK,d6
 		; z
 		move.w	d4,d7
@@ -780,11 +780,10 @@ LerpWordsStep:
 
 ********************************************************************************
 SwapBuffers:
-	movem.l	DblBuffers(pc),a0-a5
+	movem.l	DblBuffers(pc),a0-a3
 	exg	a0,a1
 	exg	a2,a3
-	exg	a4,a5
-	movem.l	a0-a5,DblBuffers
+	movem.l	a0-a3,DblBuffers
 	rts
 
 
@@ -1018,6 +1017,9 @@ CirclesCop:
 		dc.l	-2
 CirclesCopE:
 
+*******************************************************************************
+		bss_c
+*******************************************************************************
 
 ; Double buffered screens
 Screen1:	ds.b	SCREEN_SIZE
