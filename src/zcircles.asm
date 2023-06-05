@@ -61,6 +61,8 @@ DrawCircle:
 		bra	Plot
 .skip:		rts
 
+SKIPCLIP=1
+
 ********************************************************************************
 ; Draw a circle using blitter
 ;-------------------------------------------------------------------------------
@@ -82,13 +84,12 @@ BlitCircle:
 		subq	#1,d4
 ; mulu	#Blit_SIZEOF,d4
 		lsl.w	#3,d4					; optimise
-		ext.l	d4
 		lea	BltCircSizes,a0
 		lea	(a0,d4.w),a0
 		movem.w	Blit_Mod(a0),d6/a4
 		move.l	Blit_Adr(a0),a0
 
-		cmp.w	#8,d2
+		cmp.w	#CIRCLES_PAD/2,d2
 		ble	.noClip
 
 ; Clipping checks:
@@ -96,6 +97,8 @@ BlitCircle:
 		move.w	#-CIRCLES_SCREEN_H/2,d4
 		sub.w	d1,d4
 		blt	.minYOk
+
+		bra .skip
 		add.w	d4,d1					; offset y position
 		move.w	#SCREEN_BW,d5				; get byte width from modulo
 		sub.w	d6,d5
@@ -111,6 +114,7 @@ BlitCircle:
 		sub.w	d2,d4
 		sub.w	d1,d4
 		bge	.maxYOk
+		bra .skip
 		neg.w	d4
 		move.w	#SCREEN_BW,d5				; get byte width from modulo
 		sub.w	d6,d5
@@ -126,6 +130,7 @@ BlitCircle:
 		asr.w	#4,d4
 		sub.w	#-DIW_BW/4,d4
 		bge	.minXOk
+		bra .skip
 		neg.w	d4
 		subq	#1,d4
 		sub.w	d4,a4					; adjust bltsize
@@ -145,6 +150,7 @@ BlitCircle:
 		sub.w	d6,d4
 		sub.w	#DIW_BW/2,d4
 		ble	.maxXOk
+		bra .skip
 		lsr.w	#1,d4
 		sub.w	d4,a4					; adjust bltsize
 		add.w	d4,d4					; byte offset
@@ -152,6 +158,7 @@ BlitCircle:
 		swap	d6
 		add.w	d4,d6
 		swap	d6
+
 .maxXOk:
 .noClip
 
@@ -176,9 +183,9 @@ BlitCircle:
 		WAIT_BLIT
 		move.l	d6,bltamod(a6)
 		move.w	d6,bltcmod(a6)
-		move.l	#-1,d6
-		lsl.l	d4,d6
-		move.l	d6,bltafwm(a6)
+		; moveq	#-1,d6
+		; lsl.l	d4,d6
+		; move.l	d6,bltafwm(a6)
 		lsl.w	#2,d4					; d4 = offset into bltcon table
 		move.l	.bltcon(pc,d4),bltcon0(a6)
 		move.l	d5,bltcpt(a6)

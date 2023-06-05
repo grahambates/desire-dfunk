@@ -7,7 +7,7 @@ DIW_W = CIRCLES_DIW_W
 DIW_H = CIRCLES_DIW_H
 SCREEN_W = CIRCLES_SCREEN_W
 SCREEN_H = CIRCLES_SCREEN_H
-BPLS=5
+BPLS = 5
 
 SIN_MASK = $1fe
 SIN_SHIFT = 8
@@ -21,8 +21,6 @@ POINTS_COUNT = 64
 LERP_POINTS_SHIFT = 7
 LERP_POINTS_LENGTH = 1<<LERP_POINTS_SHIFT
 
-LERPS_WORDS_LEN = 4
-
 PROFILE = 0
 
 		rsreset
@@ -32,20 +30,6 @@ Point_Z		rs.w	1
 Point_R		rs.w	1
 Point_SIZEOF	rs.b	0
 
-		rsreset
-Lerp_Count	rs.w	1
-Lerp_Shift	rs.w	1
-Lerp_Inc	rs.l	1
-Lerp_Tmp	rs.l	1
-Lerp_Ptr	rs.l	1					; Target address pointer
-Lerp_SIZEOF	rs.w	0
-
-; Fixed point multiplication for 1/15 format
-FPMULS		macro
-		muls	\1,\2
-		add.l	\2,\2
-		swap	\2
-		endm
 
 ;-------------------------------------------------------------------------------
 ; Derived
@@ -62,133 +46,6 @@ DIW_YSTOP = DIW_YSTRT+DIW_H
 
 
 ********************************************************************************
-Rotate_Vbi:
-********************************************************************************
-
-		move.l	ViewBuffer(pc),a0
-		lea	bpl0pt+custom,a1
-		rept	BPLS
-		move.l	a0,(a1)+
-		lea	SCREEN_BPL(a0),a0
-		endr
-
-		move.l	VBlank,d7
-		sub.l	StartFrame(pc),d7
-		move.l	d7,CurrFrame
-
-;-------------------------------------------------------------------------------
-Script:
-; Start lerp1:
-		cmp.w	#1,d7
-		bne	.endLerp0
-		move.w	#200,d0
-		move.w	#7,d1
-		move.l	#ZoomBase,a1
-		pea	.endScript
-		bsr	LerpWord
-.endLerp0
-
-; Start lerp1:
-		cmp.w	#$180,d7
-		bne	.endLerp1
-		lea	SpherePoints,a0
-		lea	CubePoints,a1
-		pea	.endScript
-		bsr	LerpPoints
-.endLerp1
-; Start lerp2:
-		cmp.w	#$380,d7
-		bne	.endLerp2
-		lea	CubePoints,a0
-		lea	Particles,a1
-		pea	.endScript
-		bsr	LerpPoints
-
-		move.w	#150,d0
-		move.w	#6,d1
-		move.l	#ZoomBase,a1
-		bsr	LerpWord
-.endLerp2
-; Zoom / scroll speed tween:
-		cmp.w	#$380+LERP_POINTS_LENGTH,d7
-		bne	.endZoom
-
-		move.w	#$200,d0
-		move.w	#4,d1
-		move.l	#ParticlesSpeedX,a1
-		bsr	LerpWord
-
-		move.w	#$400,d0
-		move.w	#4,d1
-		move.l	#ParticlesSpeedY,a1
-		bsr	LerpWord
-
-		move.w	#$400,d0
-		move.w	#4,d1
-		move.l	#ParticlesSpeedZ,a1
-		bsr	LerpWord
-
-		move.l	#Particles,DrawPoints
-		bra	.endScript
-.endZoom
-
-		cmp.w	#$500,d7
-		bne	.endStop
-		move.w	#0,d0
-		move.w	#7,d1
-		move.l	#ParticlesSpeedX,a1
-		bsr	LerpWord
-
-		move.w	#0,d0
-		move.w	#7,d1
-		move.l	#ParticlesSpeedY,a1
-		bsr	LerpWord
-
-		move.w	#0,d0
-		move.w	#7,d1
-		move.l	#ParticlesSpeedZ,a1
-		bsr	LerpWord
-		bra	.endScript
-.endStop
-;
-		cmp.w	#$580,d7
-		bne	.endLerp3
-		lea	Particles,a0
-		lea	LogoPoints,a1
-		pea	.endScript
-		bsr	LerpPoints
-.endLerp3
-		cmp.w	#$680,d7
-		bne	.endLerp4
-		lea	LogoPoints,a0
-		lea	SpherePoints,a1
-		pea	.endScript
-		bsr	LerpPoints
-.endLerp4
-		cmp.w	#$780,d7
-		bne	.endLerp5
-		move.w	#1000,d0
-		move.w	#8,d1
-		move.l	#ZoomBase,a1
-.endLerp5
-
-.endScript
-		rts
-
-
-********************************************************************************
-Rotate_Precalc:
-********************************************************************************
-		bsr	InitMulsTbl
-		bsr	InitParticles
-		bsr	InitCube
-		bsr	InitSphere
-		bsr	InitLogo
-		bsr	BuildPalette
-		rts
-
-
-********************************************************************************
 Rotate_Effect:
 ********************************************************************************
 		move.l	VBlank,StartFrame
@@ -196,19 +53,18 @@ Rotate_Effect:
 
 		lea	Rotate_Vbi(pc),a0
 		jsr	InstallInterrupt
-		lea	CirclesCop,a0
+		lea	Cop,a0
 		jsr	InstallCopper
 
 		move.l	#SpherePoints,DrawPoints
 
-		lea Pal,a0
-		bsr LoadPalette
+		lea	Pal,a0
+		bsr	LoadPalette
 
 ********************************************************************************
 Frame:
 
 		bsr	LerpPointsStep
-		bsr	LerpWordsStep
 
 UpdateParticles:
 		lea	Particles,a0
@@ -395,7 +251,6 @@ r		equr	d6
 		move.l	DrawBuffer,draw
 		lea	DIW_BW/2+SCREEN_H/2*SCREEN_BW(draw),draw ; centered with top/left padding
 		move.l	DrawClearList,clear
-		lea	DivTab,divtbl
 		lea	MulsTable+(256*127+128),multbl		; start at middle of table (0x)
 
 		move.w	#POINTS_COUNT-1,d7
@@ -445,6 +300,7 @@ Perspective:
 		ext.w	ty
 		ext.w	tx
 		add.w	tz,tz
+		lea	DivTab,divtbl
 		move.w	(divtbl,tz),d5				; d5 = 1/z
 		muls	d5,tx
 		asr.l	#15-DIST_SHIFT,tx
@@ -467,62 +323,181 @@ SMCNext		move.l	(sp)+,a0
 
 
 ********************************************************************************
-BuildPalette:
-	lea	PalE,a1
-	move.w	#31-1,d6
-.col
-	lea	Colors+12,a2
-	moveq	#0,d0					; r
-	moveq	#0,d1					; g
-	moveq	#0,d2					; b
-	moveq	#5-1,d5					; iterate channels
-.chan1
-	move.w	-(a2),d4				; Channel color
-	move.w	d6,d3
-	addq	#1,d3
-	btst	d5,d3
-	beq	.nextChan
-; Add the colours:
-; blue
-	move.w	d4,d3
-	and.w	#$f,d3
-	add.w	d3,d2
-	cmp.w	#$f,d2
-	ble	.blueOk
-	move.w	#$f,d2
-.blueOk
-; green
-	lsr	#4,d4
-	move.w	d4,d3
-	and.w	#$f,d3
-	add.w	d3,d1
-	cmp.w	#$f,d1
-	ble	.greenOk
-	move.w	#$f,d1
-.greenOk
-; red
-	lsr	#4,d4
-	and.w	#$f,d4
-	add.w	d4,d0
-	cmp.w	#$f,d0
-	ble	.redOk
-	move.w	#$f,d0
-.redOk
-.nextChan	dbf	d5,.chan1
-	lsl.w	#8,d0
-	lsl.w	#4,d1
-	add.w	d1,d0
-	add.w	d2,d0
-	move.w	d0,-(a1)
-	dbf	d6,.col
-	rts
+Rotate_Vbi:
+********************************************************************************
+
+		move.l	ViewBuffer(pc),a0
+		lea	bpl0pt+custom,a1
+		rept	BPLS
+		move.l	a0,(a1)+
+		lea	SCREEN_BPL(a0),a0
+		endr
+
+		move.l	VBlank,d7
+		sub.l	StartFrame(pc),d7
+		move.l	d7,CurrFrame
+
+;-------------------------------------------------------------------------------
+Script:
+; Start lerp1:
+		cmp.w	#1,d7
+		bne	.endLerp0
+		move.w	#200,d0
+		move.w	#7,d1
+		move.l	#ZoomBase,a1
+		pea	.endScript
+		jsr	LerpWord
+.endLerp0
+
+; Start lerp1:
+		cmp.w	#$180,d7
+		bne	.endLerp1
+		lea	SpherePoints,a0
+		lea	CubePoints,a1
+		pea	.endScript
+		bsr	LerpPoints
+.endLerp1
+; Start lerp2:
+		cmp.w	#$380,d7
+		bne	.endLerp2
+		lea	CubePoints,a0
+		lea	Particles,a1
+		pea	.endScript
+		bsr	LerpPoints
+
+		move.w	#150,d0
+		move.w	#6,d1
+		move.l	#ZoomBase,a1
+		jsr	LerpWord
+.endLerp2
+; Zoom / scroll speed tween:
+		cmp.w	#$380+LERP_POINTS_LENGTH,d7
+		bne	.endZoom
+
+		move.w	#$200,d0
+		move.w	#4,d1
+		move.l	#ParticlesSpeedX,a1
+		jsr	LerpWord
+
+		move.w	#$400,d0
+		move.w	#4,d1
+		move.l	#ParticlesSpeedY,a1
+		jsr	LerpWord
+
+		move.w	#$400,d0
+		move.w	#4,d1
+		move.l	#ParticlesSpeedZ,a1
+		jsr	LerpWord
+
+		move.l	#Particles,DrawPoints
+		bra	.endScript
+.endZoom
+
+		cmp.w	#$500,d7
+		bne	.endStop
+		move.w	#0,d0
+		move.w	#7,d1
+		move.l	#ParticlesSpeedX,a1
+		jsr	LerpWord
+
+		move.w	#0,d0
+		move.w	#7,d1
+		move.l	#ParticlesSpeedY,a1
+		jsr	LerpWord
+
+		move.w	#0,d0
+		move.w	#7,d1
+		move.l	#ParticlesSpeedZ,a1
+		jsr	LerpWord
+		bra	.endScript
+.endStop
+;
+		cmp.w	#$580,d7
+		bne	.endLerp3
+		lea	Particles,a0
+		lea	LogoPoints,a1
+		pea	.endScript
+		bsr	LerpPoints
+.endLerp3
+		cmp.w	#$680,d7
+		bne	.endLerp4
+		lea	LogoPoints,a0
+		lea	SpherePoints,a1
+		pea	.endScript
+		bsr	LerpPoints
+.endLerp4
+		cmp.w	#$780,d7
+		bne	.endLerp5
+		move.w	#1000,d0
+		move.w	#8,d1
+		move.l	#ZoomBase,a1
+.endLerp5
+
+.endScript
+		rts
+
 
 ********************************************************************************
-LoadPalette:
-		lea	color(a6),a1
-		move.w	#32/2-1,d0
-.col		move.l	(a0)+,(a1)+
-		dbf	d0,.col
+Rotate_Precalc:
+********************************************************************************
+		bsr	InitMulsTbl
+		bsr	InitParticles
+		bsr	InitCube
+		bsr	InitSphere
+		bsr	InitLogo
+		bsr	BuildPalette
+		rts
+
+
+********************************************************************************
+BuildPalette:
+		lea	PalE,a1
+		move.w	#31-1,d6
+.col
+		lea	Colors+12,a2
+		moveq	#0,d0					; r
+		moveq	#0,d1					; g
+		moveq	#0,d2					; b
+		moveq	#5-1,d5					; iterate channels
+.chan1
+		move.w	-(a2),d4				; Channel color
+		move.w	d6,d3
+		addq	#1,d3
+		btst	d5,d3
+		beq	.nextChan
+; Add the colours:
+; blue
+		move.w	d4,d3
+		and.w	#$f,d3
+		add.w	d3,d2
+		cmp.w	#$f,d2
+		ble	.blueOk
+		move.w	#$f,d2
+.blueOk
+; green
+		lsr	#4,d4
+		move.w	d4,d3
+		and.w	#$f,d3
+		add.w	d3,d1
+		cmp.w	#$f,d1
+		ble	.greenOk
+		move.w	#$f,d1
+.greenOk
+; red
+		lsr	#4,d4
+		and.w	#$f,d4
+		add.w	d4,d0
+		cmp.w	#$f,d0
+		ble	.redOk
+		move.w	#$f,d0
+.redOk
+.nextChan	dbf	d5,.chan1
+		lsl.w	#8,d0
+		lsl.w	#4,d1
+		add.w	d1,d0
+		add.w	d2,d0
+		move.w	d0,-(a1)
+		dbf	d6,.col
 		rts
 
 
@@ -730,61 +705,21 @@ LerpPointsRemaining: dc.w 0
 
 
 ********************************************************************************
-; Start a new lerp
-;-------------------------------------------------------------------------------
-; d0.w - target value
-; d1.w - duration (pow 2)
-; a1 - ptr
-;-------------------------------------------------------------------------------
-LerpWord:
-		lea	LerpWordsState,a2
-		moveq	#LERPS_WORDS_LEN-1,d2
-.l		tst.w	Lerp_Count(a2)
-		beq	.free
-		lea	Lerp_SIZEOF(a2),a2
-		dbf	d2,.l
-		rts						; no free slots
-.free
-		moveq	#1,d2
-		lsl.w	d1,d2
-		move.w	d2,(a2)+				; count
-		move.w	d1,(a2)+				; shift
-		move.w	(a1),d3					; current value
-		sub.w	d3,d0
-		ext.l	d0
-		move.l	d0,(a2)+				; inc
-		lsl.l	d1,d3
-		move.l	d3,(a2)+				; tmp
-		move.l	a1,(a2)+				; ptr
-		rts
-
-********************************************************************************
-; Continue any active lerps
-;-------------------------------------------------------------------------------
-LerpWordsStep:
-		lea	LerpWordsState,a0
-		moveq	#LERPS_WORDS_LEN-1,d0
-.l		tst.w	Lerp_Count(a0)				; Skip if not enabled / finished
-		beq	.next
-		sub.w	#1,Lerp_Count(a0)
-		movem.l	Lerp_Inc(a0),d1-d2/a1
-		add.l	d1,d2
-		move.l	d2,Lerp_Tmp(a0)
-		move.w	Lerp_Shift(a0),d1
-		asr.l	d1,d2
-		move.w	d2,(a1)
-.next		lea	Lerp_SIZEOF(a0),a0
-		dbf	d0,.l
-		rts
-
-
-********************************************************************************
 SwapBuffers:
-	movem.l	DblBuffers(pc),a0-a3
-	exg	a0,a1
-	exg	a2,a3
-	movem.l	a0-a3,DblBuffers
-	rts
+		movem.l	DblBuffers(pc),a0-a3
+		exg	a0,a1
+		exg	a2,a3
+		movem.l	a0-a3,DblBuffers
+		rts
+
+
+********************************************************************************
+LoadPalette:
+		lea	color(a6),a1
+		move.w	#32/2-1,d0
+.col		move.l	(a0)+,(a1)+
+		dbf	d0,.col
+		rts
 
 
 ********************************************************************************
@@ -1005,7 +940,7 @@ LogoPointsData:
 
 ;-------------------------------------------------------------------------------
 ; Cirlces copper list:
-CirclesCop:
+Cop:
 		dc.w	diwstrt,DIW_YSTRT<<8!DIW_XSTRT
 		dc.w	diwstop,(DIW_YSTOP-256)<<8!(DIW_XSTOP-256)
 		dc.w	ddfstrt,(DIW_XSTRT-17)>>1&$fc
@@ -1014,8 +949,9 @@ CirclesCop:
 		dc.w	bpl2mod,DIW_MOD
 		dc.w	bplcon0,BPLS<<12!$200
 		dc.w	bplcon1,0
+		dc.w	color,$123
 		dc.l	-2
-CirclesCopE:
+CopE:
 
 *******************************************************************************
 		bss_c
@@ -1034,8 +970,6 @@ MulsTable:	ds.b	256*256
 
 Pal:		ds.w	32
 PalE:
-
-LerpWordsState:	ds.b	Lerp_SIZEOF*LERPS_WORDS_LEN
 
 Particles:	ds.b	Point_SIZEOF*POINTS_COUNT
 CubePoints:	ds.b	Point_SIZEOF*POINTS_COUNT

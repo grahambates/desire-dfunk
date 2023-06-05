@@ -46,30 +46,51 @@ DIW_STOP = ((DIW_YSTOP-256)<<8)!(DIW_XSTOP-256)
 DDF_STRT = ((DIW_XSTRT-17)>>1)&$00fc-SCROLL*8
 DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 
+Fade		dc.w	0
+
 Tentacles_Effect:
 		lea	Cop,a0
 		jsr	InstallCopper
 
-; Load palette
-		lea	Pal(pc),a0
+Frame:
+		; Horizontal scroll position frame frame count
+		move.l	VBlank,d0
+
+; Fade in
+		cmp.w	#64,d0
+		bgt	.noFadeIn
+		lea	PalStart,a0
+		lea	Pal,a1
+		lea	PalOut,a2
+		lsl	#8,d0
+		add.w	d0,d0
+		moveq	#COLORS-1,d1
+		jsr	LerpPal
+		bra	.loadPal
+.noFadeIn
+
+; Fade out
+		cmp.w	#TENTACLES_END_FRAME-64,d0
+		blt	.endFade
+		lea	Pal,a0
+		lea	PalStart,a1
+		lea	PalOut,a2
+		sub.w	#TENTACLES_END_FRAME-64,d0
+		lsl	#8,d0
+		add.w	d0,d0
+		moveq	#COLORS-1,d1
+		jsr	LerpPal
+
+.loadPal
+		lea	PalOut,a0
 		lea	color00(a6),a1
 		moveq	#16-1,d7
 .col		move.w	(a0)+,(a1)+
 		dbf	d7,.col
+.endFade
 
-Frame:
-; Horizontal scroll position frame frame count
 		move.l	VBlank,d6
 
-; BPM test
-; 		move.l d6,d7
-; 		move.w #0,color(a6)
-; 		btst #4,d7
-; 		beq .odd
-; 		move.w #$fff,color(a6)
-; .odd
-
-		; add.w	d6,d6
 		moveq	#15,d0					; last 4 bits go in bplcon1 and save later for adjustment
 		and.w	d6,d0
 		not.w	d0
@@ -119,7 +140,7 @@ Frame:
 
 ; Scale value from sum of sines:
 		move.w	VBlank+2,d6
-		add.w #$130,d6
+		add.w	#$130,d6
 
 		lsl.w	#2,d6
 		lea	Sin,a3
@@ -314,9 +335,12 @@ BlitCircleUnsafe:
 Scale:		dc.w	$100
 Scroll:		dc.w	0
 Pal:
-
-		dc.w	0,$f06,$f58,$f79,$f9a,$fbc,$ecd,$ded
+		dc.w	$123,$f06,$f58,$f79,$f9a,$fbc,$ecd,$ded
 		dc.w	$744,$f5b,$f7c,$f9d,$fbd,$fde,$fef,$fff
+
+PalStart:
+		dc.w	$123,$123,$123,$123,$123,$123,$123,$123
+		dc.w	$123,$123,$123,$123,$123,$123,$123,$123
 
 		; dc.w	$000,$aa0,$895,$676,$466,$357,$037,$007
 		; dc.w	$000,$ff0,$de8,$9cb,$7ac,$49d,$06e,$00f
@@ -326,7 +350,6 @@ Pal:
 *******************************************************************************
 
 Cop:
-		dc.w	fmode,0
 		dc.w	diwstrt,DIW_STRT
 		dc.w	diwstop,DIW_STOP
 		dc.w	ddfstrt,DDF_STRT
@@ -340,9 +363,6 @@ CopBplPt:
 		dc.w	bpl0pt+REPTN*4+2,0
 		endr
 CopScroll:	dc.w	bplcon1,0
-
-		dc.w $180,$123
-
 		dc.l	-2
 
 ; https://gradient-blaster.grahambates.com/?points=000@0,324@127,000@255&steps=256&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=100
@@ -724,3 +744,5 @@ Gradient:
 		bss_c
 Screen:
 		ds.b	SCREEN_BW*BPLS*SCREEN_H*2
+
+PalOut:		ds.w	COLORS
