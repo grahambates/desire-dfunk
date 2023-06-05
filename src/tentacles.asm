@@ -3,7 +3,7 @@
 		include	zcircles.i
 		include	tentacles.i
 
-TENTACLES_END_FRAME = 32*4
+TENTACLES_END_FRAME = 32*32
 
 OUTER_COUNT = 7
 INNER_COUNT = 7

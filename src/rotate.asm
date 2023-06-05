@@ -15,13 +15,13 @@ SIN_SHIFT = 8
 DIST_SHIFT = 7
 ZOOM_SHIFT = 8
 ; FIXED_ZOOM = 300
-MULSCALE = 196
+MULSCALE = 160
 
 POINTS_COUNT = 64
 LERP_POINTS_SHIFT = 7
 LERP_POINTS_LENGTH = 1<<LERP_POINTS_SHIFT
 
-PROFILE = 1
+PROFILE = 0
 
 		rsreset
 Point_X		rs.w	1
@@ -128,13 +128,15 @@ SetRotation:
 		and.w	#SIN_MASK,d5
 		; y
 		move.w	d4,d6
-		lsl	#1,d6
-		and.w	#$7fe,d6
-		move.w	(a0,d6.w),d6
-		lsr	#4,d6
+		; lsl	#1,d6
+		; and.w	#$7fe,d6
+		; move.w	(a0,d6.w),d6
+		; lsr	#4,d6
+		muls #5,d6
 		and.w	#SIN_MASK,d6
 		; z
 		move.w	d4,d7
+		add.w d7,d7
 		and.w	#SIN_MASK,d7
 
 		; move.w	#0,d5

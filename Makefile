@@ -3,8 +3,17 @@ vasm_objects := $(addprefix obj/, $(patsubst %.asm,%.o,$(notdir $(vasm_sources))
 objects := $(vasm_objects)
 deps := $(objects:.o=.d)
 
-$(info sources: $(vasm_sources))
-$(info objects: $(vasm_objects))
+# dude_images := $(wildcard assets/dude_walking_16_frames/*.iff)
+# dude_images_png := $(addprefix data/dude_walking_16_frames/, $(patsubst %.iff,%.png,$(notdir $(dude_images))))
+# dude_images_raw := $(addprefix data/dude_walking_16_frames/raw/, $(patsubst %.iff,%.raw,$(notdir $(dude_images))))
+
+# -include $(deps)
+
+# data/dude_walking_16_frames/%.png : assets/dude_walking_16_frames/%.iff
+# 	convert -extent 96x160 -gravity SouthWest -background "#000000" $< $@
+
+# data/dude_walking_16_frames/raw/%.raw : data/dude_walking_16_frames/%.png
+# 	 ~/amiga/bin/amigeconv -f bitplane -d 3 $< $@
 
 program = out/a
 OUT = $(program)
