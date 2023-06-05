@@ -15,13 +15,13 @@ SIN_SHIFT = 8
 DIST_SHIFT = 7
 ZOOM_SHIFT = 8
 ; FIXED_ZOOM = 300
-MULSCALE = 180
+MULSCALE = 196
 
 POINTS_COUNT = 64
 LERP_POINTS_SHIFT = 7
 LERP_POINTS_LENGTH = 1<<LERP_POINTS_SHIFT
 
-PROFILE = 0
+PROFILE = 1
 
 		rsreset
 Point_X		rs.w	1
@@ -48,8 +48,20 @@ DIW_YSTOP = DIW_YSTRT+DIW_H
 ********************************************************************************
 Rotate_Effect:
 ********************************************************************************
+		; Allocate memory
+		move.l 4.w,a6
+		move.l	#SCREEN_SIZE,d0
+		move.l	#MEMF_CHIP!MEMF_CLEAR,d1
+		jsr	_LVOAllocMem(a6)
+		move.l	d0,DrawBuffer
+
+		move.l	#SCREEN_SIZE,d0
+		jsr	_LVOAllocMem(a6)
+		move.l	d0,ViewBuffer
+
+		lea custom,a6
+
 		move.l	VBlank,StartFrame
-		move.w	Colors,color(a6)
 
 		lea	Rotate_Vbi(pc),a0
 		jsr	InstallInterrupt
@@ -87,8 +99,6 @@ UNROLL_PARTICLES = 8
 		endr
 		dbf	d6,.l0
 .skipUpdate
-
-		move.w	Colors,color(a6)
 
 ;-------------------------------------------------------------------------------
 SetZoom:
@@ -223,7 +233,6 @@ z		equr	d7
 		DebugStartIdle
 		jsr	WaitEOF
 		DebugStopIdle
-		; move.w	Colors(pc),color(a6)
 
 		jsr	SwapBuffers
 
@@ -319,6 +328,17 @@ SMCNext		move.l	(sp)+,a0
 		move.l	#0,(clear)+				; End clear list
 
 		bra	Frame
+
+		; Free memory
+		move.l 4.w,a6
+		move.l	#SCREEN_SIZE,d0
+		move.l	DrawBuffer,a1
+		jsr	_LVOFreeMem(a6)
+
+		move.l	#SCREEN_SIZE,d0
+		move.l	ViewBuffer,a1
+		jsr	_LVOFreeMem(a6)
+
 		rts
 
 
@@ -729,8 +749,8 @@ Vars:
 DblBuffers:
 DrawClearList:	dc.l	ClearList2
 ViewClearList:	dc.l	ClearList1
-DrawBuffer:	dc.l	Screen2
-ViewBuffer:	dc.l	Screen1
+DrawBuffer:	dc.l	0
+ViewBuffer:	dc.l	0
 
 StartFrame:	dc.l	0
 CurrFrame:	dc.l	0
@@ -894,7 +914,6 @@ SpherePointsData:
 		dc.b	-13,-113,-41
 		dc.b	-13,-117,27
 		dc.b	0,-120,-0
-		printv	*-SpherePointsData
 
 
 LogoPointsData:
@@ -954,17 +973,9 @@ Cop:
 CopE:
 
 *******************************************************************************
-		bss_c
-*******************************************************************************
-
-; Double buffered screens
-Screen1:	ds.b	SCREEN_SIZE
-Screen2:	ds.b	SCREEN_SIZE
-
-*******************************************************************************
 		bss
 *******************************************************************************
-
+bss:
 ; Multiplication lookup-table
 MulsTable:	ds.b	256*256
 
@@ -979,3 +990,4 @@ LogoPoints:	ds.b	Point_SIZEOF*POINTS_COUNT
 LerpPointsIncs:	ds.w	Point_SIZEOF*POINTS_COUNT
 LerpPointsTmp:	ds.b	Point_SIZEOF*POINTS_COUNT
 LerpPointsOut:	ds.b	Point_SIZEOF*POINTS_COUNT
+		printv *-bss

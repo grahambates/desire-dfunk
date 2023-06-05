@@ -3,7 +3,7 @@
 		include	zcircles.i
 		include	tentacles.i
 
-TENTACLES_END_FRAME = 32*32
+TENTACLES_END_FRAME = 32*4
 
 OUTER_COUNT = 7
 INNER_COUNT = 7
@@ -51,6 +51,15 @@ Fade		dc.w	0
 Tentacles_Effect:
 		lea	Cop,a0
 		jsr	InstallCopper
+
+		; Allocate screen memory
+		move.l 4.w,a6
+		move.l	#SCREEN_BW*BPLS*SCREEN_H*2,d0
+		moveq	#MEMF_CHIP,d1
+		jsr	_LVOAllocMem(a6)
+		move.l	d0,Screen
+
+		lea custom,a6
 
 Frame:
 		; Horizontal scroll position frame frame count
@@ -104,7 +113,7 @@ Frame:
 		; word value added to bpl address
 		lsr.w	#4,d6
 		add.w	d6,d6
-		lea	Screen,a1
+		move.l	Screen,a1
 		lea	(a1,d6.w),a1
 
 		lea	CopBplPt+2,a0
@@ -224,11 +233,20 @@ Frame:
 		add.w	#($400/INNER_COUNT)*2,d4
 		dbf	d5,.l1
 
-		add.w	#($400/OUTER_COUNT)*2*3,d6
+		add.w	#($400/OUTER_COUNT)*2,d6
 		dbf	d7,.l0
 
 		cmp.l	#TENTACLES_END_FRAME,VBlank
 		blt	Frame
+
+		; Free screen memory
+		move.l 4.w,a6
+		move.l	#SCREEN_BW*BPLS*SCREEN_H*2,d0
+		move.l	Screen(pc),a1
+		jsr	_LVOFreeMem(a6)
+
+		lea custom,a6
+
 		rts
 
 
@@ -342,8 +360,8 @@ PalStart:
 		dc.w	$123,$123,$123,$123,$123,$123,$123,$123
 		dc.w	$123,$123,$123,$123,$123,$123,$123,$123
 
-		; dc.w	$000,$aa0,$895,$676,$466,$357,$037,$007
-		; dc.w	$000,$ff0,$de8,$9cb,$7ac,$49d,$06e,$00f
+Screen:		dc.l	0
+
 
 *******************************************************************************
 		data_c
@@ -365,384 +383,8 @@ CopBplPt:
 CopScroll:	dc.w	bplcon1,0
 		dc.l	-2
 
-; https://gradient-blaster.grahambates.com/?points=000@0,324@127,000@255&steps=256&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=100
-Gradient:
-		dc.w	$2b07,$fffe
-		dc.w	$180,$000
-		dc.w	$4207,$fffe
-		dc.w	$180,$001
-		dc.w	$4307,$fffe
-		dc.w	$180,$000
-		dc.w	$4407,$fffe
-		dc.w	$180,$100
-		dc.w	$4507,$fffe
-		dc.w	$180,$000
-		dc.w	$4707,$fffe
-		dc.w	$180,$001
-		dc.w	$4807,$fffe
-		dc.w	$180,$000
-		dc.w	$4a07,$fffe
-		dc.w	$180,$100
-		dc.w	$4b07,$fffe
-		dc.w	$180,$000
-		dc.w	$4c07,$fffe
-		dc.w	$180,$001
-		dc.w	$4d07,$fffe
-		dc.w	$180,$000
-		dc.w	$4f07,$fffe
-		dc.w	$180,$101
-		dc.w	$5007,$fffe
-		dc.w	$180,$000
-		dc.w	$5207,$fffe
-		dc.w	$180,$101
-		dc.w	$5307,$fffe
-		dc.w	$180,$000
-		dc.w	$5407,$fffe
-		dc.w	$180,$001
-		dc.w	$5507,$fffe
-		dc.w	$180,$000
-		dc.w	$5607,$fffe
-		dc.w	$180,$101
-		dc.w	$5707,$fffe
-		dc.w	$180,$001
-		dc.w	$5807,$fffe
-		dc.w	$180,$101
-		dc.w	$5907,$fffe
-		dc.w	$180,$000
-		dc.w	$5a07,$fffe
-		dc.w	$180,$101
-		dc.w	$5b07,$fffe
-		dc.w	$180,$001
-		dc.w	$5c07,$fffe
-		dc.w	$180,$111
-		dc.w	$5d07,$fffe
-		dc.w	$180,$001
-		dc.w	$5e07,$fffe
-		dc.w	$180,$101
-		dc.w	$5f07,$fffe
-		dc.w	$180,$011
-		dc.w	$6007,$fffe
-		dc.w	$180,$101
-		dc.w	$6107,$fffe
-		dc.w	$180,$001
-		dc.w	$6207,$fffe
-		dc.w	$180,$111
-		dc.w	$6307,$fffe
-		dc.w	$180,$001
-		dc.w	$6407,$fffe
-		dc.w	$180,$112
-		dc.w	$6507,$fffe
-		dc.w	$180,$101
-		dc.w	$6607,$fffe
-		dc.w	$180,$011
-		dc.w	$6707,$fffe
-		dc.w	$180,$101
-		dc.w	$6807,$fffe
-		dc.w	$180,$001
-		dc.w	$6907,$fffe
-		dc.w	$180,$101
-		dc.w	$6a07,$fffe
-		dc.w	$180,$112
-		dc.w	$6b07,$fffe
-		dc.w	$180,$101
-		dc.w	$6c07,$fffe
-		dc.w	$180,$111
-		dc.w	$6d07,$fffe
-		dc.w	$180,$101
-		dc.w	$6f07,$fffe
-		dc.w	$180,$112
-		dc.w	$7007,$fffe
-		dc.w	$180,$101
-		dc.w	$7107,$fffe
-		dc.w	$180,$111
-		dc.w	$7207,$fffe
-		dc.w	$180,$102
-		dc.w	$7407,$fffe
-		dc.w	$180,$111
-		dc.w	$7507,$fffe
-		dc.w	$180,$102
-		dc.w	$7607,$fffe
-		dc.w	$180,$212
-		dc.w	$7707,$fffe
-		dc.w	$180,$101
-		dc.w	$7807,$fffe
-		dc.w	$180,$112
-		dc.w	$7907,$fffe
-		dc.w	$180,$102
-		dc.w	$7a07,$fffe
-		dc.w	$180,$212
-		dc.w	$7b07,$fffe
-		dc.w	$180,$102
-		dc.w	$7c07,$fffe
-		dc.w	$180,$212
-		dc.w	$7d07,$fffe
-		dc.w	$180,$112
-		dc.w	$7f07,$fffe
-		dc.w	$180,$212
-		dc.w	$8007,$fffe
-		dc.w	$180,$112
-		dc.w	$8107,$fffe
-		dc.w	$180,$202
-		dc.w	$8207,$fffe
-		dc.w	$180,$113
-		dc.w	$8307,$fffe
-		dc.w	$180,$212
-		dc.w	$8507,$fffe
-		dc.w	$180,$112
-		dc.w	$8607,$fffe
-		dc.w	$180,$212
-		dc.w	$8707,$fffe
-		dc.w	$180,$103
-		dc.w	$8807,$fffe
-		dc.w	$180,$212
-		dc.w	$8a07,$fffe
-		dc.w	$180,$223
-		dc.w	$8b07,$fffe
-		dc.w	$180,$112
-		dc.w	$8c07,$fffe
-		dc.w	$180,$213
-		dc.w	$8d07,$fffe
-		dc.w	$180,$212
-		dc.w	$8e07,$fffe
-		dc.w	$180,$113
-		dc.w	$8f07,$fffe
-		dc.w	$180,$213
-		dc.w	$9107,$fffe
-		dc.w	$180,$212
-		dc.w	$9207,$fffe
-		dc.w	$180,$223
-		dc.w	$9307,$fffe
-		dc.w	$180,$213
-		dc.w	$9607,$fffe
-		dc.w	$180,$314
-		dc.w	$9707,$fffe
-		dc.w	$180,$223
-		dc.w	$9807,$fffe
-		dc.w	$180,$213
-		dc.w	$9a07,$fffe
-		dc.w	$180,$313
-		dc.w	$9b07,$fffe
-		dc.w	$180,$213
-		dc.w	$9c07,$fffe
-		dc.w	$180,$224
-		dc.w	$9d07,$fffe
-		dc.w	$180,$213
-		dc.w	$9e07,$fffe
-		dc.w	$180,$313
-		dc.w	$9f07,$fffe
-		dc.w	$180,$223
-		dc.w	$a007,$fffe
-		dc.w	$180,$313
-		dc.w	$a107,$fffe
-		dc.w	$180,$214
-		dc.w	$a207,$fffe
-		dc.w	$180,$323
-		dc.w	$a307,$fffe
-		dc.w	$180,$223
-		dc.w	$a407,$fffe
-		dc.w	$180,$324
-		dc.w	$a507,$fffe
-		dc.w	$180,$313
-		dc.w	$a607,$fffe
-		dc.w	$180,$224
-		dc.w	$a707,$fffe
-		dc.w	$180,$313
-		dc.w	$a807,$fffe
-		dc.w	$180,$224
-		dc.w	$a907,$fffe
-		dc.w	$180,$314
-		dc.w	$aa07,$fffe
-		dc.w	$180,$324
-		dc.w	$ab07,$fffe
-		dc.w	$180,$323
-		dc.w	$ad07,$fffe
-		dc.w	$180,$214
-		dc.w	$ae07,$fffe
-		dc.w	$180,$323
-		dc.w	$af07,$fffe
-		dc.w	$180,$324
-		dc.w	$b007,$fffe
-		dc.w	$180,$213
-		dc.w	$b107,$fffe
-		dc.w	$180,$223
-		dc.w	$b207,$fffe
-		dc.w	$180,$314
-		dc.w	$b307,$fffe
-		dc.w	$180,$213
-		dc.w	$b407,$fffe
-		dc.w	$180,$323
-		dc.w	$b507,$fffe
-		dc.w	$180,$213
-		dc.w	$b607,$fffe
-		dc.w	$180,$324
-		dc.w	$b707,$fffe
-		dc.w	$180,$213
-		dc.w	$b807,$fffe
-		dc.w	$180,$323
-		dc.w	$b907,$fffe
-		dc.w	$180,$213
-		dc.w	$ba07,$fffe
-		dc.w	$180,$324
-		dc.w	$bb07,$fffe
-		dc.w	$180,$213
-		dc.w	$bc07,$fffe
-		dc.w	$180,$313
-		dc.w	$bd07,$fffe
-		dc.w	$180,$213
-		dc.w	$bf07,$fffe
-		dc.w	$180,$222
-		dc.w	$c007,$fffe
-		dc.w	$180,$213
-		dc.w	$c407,$fffe
-		dc.w	$180,$313
-		dc.w	$c507,$fffe
-		dc.w	$180,$213
-		dc.w	$c607,$fffe
-		dc.w	$180,$212
-		dc.w	$c707,$fffe
-		dc.w	$180,$113
-		dc.w	$c807,$fffe
-		dc.w	$180,$212
-		dc.w	$ca07,$fffe
-		dc.w	$180,$223
-		dc.w	$cb07,$fffe
-		dc.w	$180,$112
-		dc.w	$cc07,$fffe
-		dc.w	$180,$213
-		dc.w	$cd07,$fffe
-		dc.w	$180,$212
-		dc.w	$ce07,$fffe
-		dc.w	$180,$112
-		dc.w	$cf07,$fffe
-		dc.w	$180,$213
-		dc.w	$d007,$fffe
-		dc.w	$180,$212
-		dc.w	$d107,$fffe
-		dc.w	$180,$112
-		dc.w	$d207,$fffe
-		dc.w	$180,$213
-		dc.w	$d307,$fffe
-		dc.w	$180,$202
-		dc.w	$d407,$fffe
-		dc.w	$180,$112
-		dc.w	$d607,$fffe
-		dc.w	$180,$213
-		dc.w	$d707,$fffe
-		dc.w	$180,$112
-		dc.w	$d807,$fffe
-		dc.w	$180,$202
-		dc.w	$d907,$fffe
-		dc.w	$180,$111
-		dc.w	$da07,$fffe
-		dc.w	$180,$212
-		dc.w	$db07,$fffe
-		dc.w	$180,$102
-		dc.w	$dc07,$fffe
-		dc.w	$180,$112
-		dc.w	$dd07,$fffe
-		dc.w	$180,$102
-		dc.w	$de07,$fffe
-		dc.w	$180,$212
-		dc.w	$df07,$fffe
-		dc.w	$180,$112
-		dc.w	$e007,$fffe
-		dc.w	$180,$101
-		dc.w	$e107,$fffe
-		dc.w	$180,$102
-		dc.w	$e207,$fffe
-		dc.w	$180,$211
-		dc.w	$e307,$fffe
-		dc.w	$180,$102
-		dc.w	$e407,$fffe
-		dc.w	$180,$112
-		dc.w	$e507,$fffe
-		dc.w	$180,$101
-		dc.w	$e607,$fffe
-		dc.w	$180,$111
-		dc.w	$e707,$fffe
-		dc.w	$180,$101
-		dc.w	$e807,$fffe
-		dc.w	$180,$102
-		dc.w	$e907,$fffe
-		dc.w	$180,$101
-		dc.w	$ea07,$fffe
-		dc.w	$180,$112
-		dc.w	$eb07,$fffe
-		dc.w	$180,$101
-		dc.w	$ec07,$fffe
-		dc.w	$180,$111
-		dc.w	$ed07,$fffe
-		dc.w	$180,$001
-		dc.w	$ee07,$fffe
-		dc.w	$180,$101
-		dc.w	$ef07,$fffe
-		dc.w	$180,$112
-		dc.w	$f007,$fffe
-		dc.w	$180,$001
-		dc.w	$f107,$fffe
-		dc.w	$180,$011
-		dc.w	$f207,$fffe
-		dc.w	$180,$101
-		dc.w	$f307,$fffe
-		dc.w	$180,$001
-		dc.w	$f407,$fffe
-		dc.w	$180,$111
-		dc.w	$f507,$fffe
-		dc.w	$180,$001
-		dc.w	$f607,$fffe
-		dc.w	$180,$101
-		dc.w	$f707,$fffe
-		dc.w	$180,$000
-		dc.w	$f807,$fffe
-		dc.w	$180,$101
-		dc.w	$f907,$fffe
-		dc.w	$180,$001
-		dc.w	$fa07,$fffe
-		dc.w	$180,$111
-		dc.w	$fb07,$fffe
-		dc.w	$180,$000
-		dc.w	$fc07,$fffe
-		dc.w	$180,$101
-		dc.w	$fd07,$fffe
-		dc.w	$180,$001
-		dc.w	$ff07,$fffe
-		dc.w	$180,$110
-		dc.w	$ffdf,$fffe				; PAL fix
-		dc.w	$007,$fffe
-		dc.w	$180,$001
-		dc.w	$107,$fffe
-		dc.w	$180,$100
-		dc.w	$207,$fffe
-		dc.w	$180,$001
-		dc.w	$307,$fffe
-		dc.w	$180,$000
-		dc.w	$407,$fffe
-		dc.w	$180,$100
-		dc.w	$507,$fffe
-		dc.w	$180,$001
-		dc.w	$607,$fffe
-		dc.w	$180,$000
-		dc.w	$707,$fffe
-		dc.w	$180,$001
-		dc.w	$807,$fffe
-		dc.w	$180,$000
-		dc.w	$a07,$fffe
-		dc.w	$180,$100
-		dc.w	$b07,$fffe
-		dc.w	$180,$000
-		dc.w	$c07,$fffe
-		dc.w	$180,$001
-		dc.w	$d07,$fffe
-		dc.w	$180,$000
-		dc.w	$1607,$fffe
-		dc.w	$180,$001
-		dc.w	$1707,$fffe
-		dc.w	$180,$000
-		dc.w	$ffff,$fffe				; End copper list
-		dc.l	-2
-
-		bss_c
-Screen:
-		ds.b	SCREEN_BW*BPLS*SCREEN_H*2
+*******************************************************************************
+		bss
+*******************************************************************************
 
 PalOut:		ds.w	COLORS

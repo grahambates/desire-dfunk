@@ -1,6 +1,10 @@
 		incdir	"include"
 
 		include	"hw.i"
+		include	"funcdef.i"
+		include	"exec/exec_lib.i"
+		include	"exec/memory.i"
+
 		include	"debug.i"
 		include	"macros.i"
 
