@@ -393,7 +393,7 @@ Script:
 		jsr	LerpWord
 .endLerp2
 ; Zoom / scroll speed tween:
-		cmp.w	#$380+LERP_POINTS_LENGTH,d7
+		cmp.w	#$380+LERP_POINTS_LENGTH+1,d7
 		bne	.endZoom
 
 		move.w	#$200,d0

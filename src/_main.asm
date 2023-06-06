@@ -46,7 +46,7 @@ StartMusic:
 
 ;-------------------------------------------------------------------------------
 Effects:
-		jsr	Tentacles_Effect
+		; jsr	Tentacles_Effect
 		jsr	Rotate_Effect
 		rts						; Exit demo
 
