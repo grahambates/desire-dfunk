@@ -53,13 +53,47 @@ Tentacles_Effect:
 		jsr	InstallCopper
 
 		; Allocate screen memory
-		move.l 4.w,a6
+		move.l	4.w,a6
 		move.l	#SCREEN_BW*BPLS*SCREEN_H*2,d0
 		moveq	#MEMF_CHIP,d1
 		jsr	_LVOAllocMem(a6)
 		move.l	d0,Screen
 
-		lea custom,a6
+		; Sprites
+
+		lea	CopSprPt+2,a0
+		lea	Sprite,a1
+		move.l	a1,a2
+
+		moveq #4-1,d7
+.sprSlice:
+		move.w	(a1)+,d0
+		lea	(a2,d0.w),a3
+		move.w	a3,4(a0)
+		move.l	a3,d1
+		swap	d1
+		move.w	d1,(a0)
+		lea	8(a0),a0
+		dbf	d7,.sprSlice
+
+		move.l	#NullSprite,d1
+		move.w	d0,d1
+		swap	d0
+		moveq	#8-4-1,d7
+.spr
+		move.w	d0,(a0)
+		move.w	d1,4(a0)
+		lea	8(a0),a0
+		dbf	d7,.spr
+
+		lea	custom,a6
+
+		move.w	#$357,color17(a6)
+		move.w	#$fff,color18(a6)
+		move.w	#$00f,color19(a6)
+		move.w	#$357,color21(a6)
+		move.w	#$fff,color22(a6)
+		move.w	#$00f,color23(a6)
 
 Frame:
 		; Horizontal scroll position frame frame count
@@ -239,13 +273,15 @@ Frame:
 		cmp.l	#TENTACLES_END_FRAME,VBlank
 		blt	Frame
 
+		move.w #DMAF_SPRITE,dmacon(a6)
+
 		; Free screen memory
-		move.l 4.w,a6
+		move.l	4.w,a6
 		move.l	#SCREEN_BW*BPLS*SCREEN_H*2,d0
 		move.l	Screen(pc),a1
 		jsr	_LVOFreeMem(a6)
 
-		lea custom,a6
+		lea	custom,a6
 
 		rts
 
@@ -375,13 +411,25 @@ Cop:
 		dc.w	bpl1mod,DIW_MOD
 		dc.w	bpl2mod,DIW_MOD
 		dc.w	bplcon0,BPLS<<(12+DPF)!DPF<<10!$200
+		dc.w	dmacon,DMAF_SETCLR!DMAF_SPRITE
 CopBplPt:
 		rept	BPLS
 		dc.w	bpl0pt+REPTN*4,0
 		dc.w	bpl0pt+REPTN*4+2,0
 		endr
+CopSprPt:
+		rept	8
+		dc.w	spr0pth+REPTN*4,0
+		dc.w	spr0ptl+REPTN*4,0
+		endr
 CopScroll:	dc.w	bplcon1,0
 		dc.l	-2
+
+Sprite:
+		incbin	"assets/foo.spr"
+
+NullSprite:
+		dc.l	0
 
 *******************************************************************************
 		bss
