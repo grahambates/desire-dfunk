@@ -48,14 +48,49 @@ DIW_YSTOP = DIW_YSTRT+DIW_H
 ********************************************************************************
 Rotate_Effect:
 ********************************************************************************
-		; Allocate memory
+		; Allocate and clear screen memory
 		move.l	#SCREEN_SIZE,d0
+		; screen 1
 		jsr	AllocChip
 		move.l	a0,DrawBuffer
+		WAIT_BLIT
+		move.l	a0,bltdpt(a6)
+		move.l	#$01000000,bltcon0(a6)
+		clr.l	bltdmod(a6)
+		move.w	#(SCREEN_H*3)<<6!(SCREEN_BW/2),bltsize(a6)
+		WAIT_BLIT
+		move.w	#(SCREEN_H*2)<<6!(SCREEN_BW/2),bltsize(a6)
+		; screen 2
 		jsr	AllocChip
 		move.l	a0,ViewBuffer
+		WAIT_BLIT
+		move.l	a0,bltdpt(a6)
+		move.w	#(SCREEN_H*3)<<6!(SCREEN_BW/2),bltsize(a6)
+		WAIT_BLIT
+		move.w	#(SCREEN_H*2)<<6!(SCREEN_BW/2),bltsize(a6)
 
-		lea custom,a6
+		; Allocate data mem
+		move.l	#256*256,d0
+		jsr	AllocPublic
+		move.l	a0,MulsTable
+		move.l	#Point_SIZEOF*POINTS_COUNT,d0
+		jsr	AllocPublic
+		move.l	a0,Particles
+		jsr	AllocPublic
+		move.l	a0,CubePoints
+		jsr	AllocPublic
+		move.l	a0,SpherePoints
+		jsr	AllocPublic
+		move.l	a0,LogoPoints
+		jsr	AllocPublic
+		move.l	a0,LerpPointsTmp
+		jsr	AllocPublic
+		move.l	a0,LerpPointsOut
+		move.l #Point_SIZEOF*POINTS_COUNT*2,d0
+		jsr	AllocPublic
+		move.l	a0,LerpPointsIncs
+
+		bsr	Rotate_Precalc
 
 		move.l	VBlank,StartFrame
 
@@ -64,7 +99,7 @@ Rotate_Effect:
 		lea	Cop,a0
 		jsr	InstallCopper
 
-		move.l	#SpherePoints,DrawPoints
+		move.l	SpherePoints(pc),DrawPoints
 
 		lea	Pal,a0
 		bsr	LoadPalette
@@ -75,7 +110,7 @@ Frame:
 		bsr	LerpPointsStep
 
 UpdateParticles:
-		lea	Particles,a0
+		move.l	Particles(pc),a0
 		move.l	DrawPoints(pc),a1
 		cmp.l	a0,a1
 		bne	.skipUpdate
@@ -128,11 +163,11 @@ SetRotation:
 		; and.w	#$7fe,d6
 		; move.w	(a0,d6.w),d6
 		; lsr	#4,d6
-		muls #5,d6
+		muls	#5,d6
 		and.w	#SIN_MASK,d6
 		; z
 		move.w	d4,d7
-		add.w d7,d7
+		add.w	d7,d7
 		and.w	#SIN_MASK,d7
 
 		; move.w	#0,d5
@@ -258,7 +293,8 @@ r		equr	d6
 		move.l	DrawBuffer,draw
 		lea	DIW_BW/2+SCREEN_H/2*SCREEN_BW(draw),draw ; centered with top/left padding
 		move.l	DrawClearList,clear
-		lea	MulsTable+(256*127+128),multbl		; start at middle of table (0x)
+		move.l	MulsTable(pc),multbl			; start at middle of table (0x)
+		add.l	#256*127+128,multbl
 
 		move.w	#POINTS_COUNT-1,d7
 SMCLoop:
@@ -328,7 +364,7 @@ SMCNext		move.l	(sp)+,a0
 		bra	Frame
 
 		; Free memory
-		jsr Free
+		jsr	Free
 
 		rts
 
@@ -363,16 +399,16 @@ Script:
 ; Start lerp1:
 		cmp.w	#$180,d7
 		bne	.endLerp1
-		lea	SpherePoints,a0
-		lea	CubePoints,a1
+		move.l	SpherePoints(pc),a0
+		move.l	CubePoints(pc),a1
 		pea	.endScript
 		bsr	LerpPoints
 .endLerp1
 ; Start lerp2:
 		cmp.w	#$380,d7
 		bne	.endLerp2
-		lea	CubePoints,a0
-		lea	Particles,a1
+		move.l	CubePoints(pc),a0
+		move.l	Particles(pc),a1
 		pea	.endScript
 		bsr	LerpPoints
 
@@ -400,7 +436,7 @@ Script:
 		move.l	#ParticlesSpeedZ,a1
 		jsr	LerpWord
 
-		move.l	#Particles,DrawPoints
+		move.l	Particles(pc),DrawPoints
 		bra	.endScript
 .endZoom
 
@@ -425,15 +461,15 @@ Script:
 ;
 		cmp.w	#$580,d7
 		bne	.endLerp3
-		lea	Particles,a0
-		lea	LogoPoints,a1
+		move.l	Particles(pc),a0
+		move.l	LogoPoints(pc),a1
 		pea	.endScript
 		bsr	LerpPoints
 .endLerp3
 		cmp.w	#$680,d7
 		bne	.endLerp4
-		lea	LogoPoints,a0
-		lea	SpherePoints,a1
+		move.l	LogoPoints(pc),a0
+		move.l	SpherePoints(pc),a1
 		pea	.endScript
 		bsr	LerpPoints
 .endLerp4
@@ -517,7 +553,7 @@ BuildPalette:
 ; [-127 to 127] * [-127 to 127] / 128
 ;-------------------------------------------------------------------------------
 InitMulsTbl:
-		lea	MulsTable,a0
+		move.l	MulsTable(pc),a0
 		move.w	#-127,d0				; d0 = x = -127-127
 		move.w	#256-1,d7
 .loop1		moveq	#-127,d1				; d1 = y = -127-127
@@ -536,7 +572,7 @@ InitMulsTbl:
 
 ********************************************************************************
 InitParticles:
-		lea	Particles,a0
+		move.l	Particles(pc),a0
 		moveq	#POINTS_COUNT-1,d7
 .l0
 ; x/y/z (-127-127)<<8 pre-shifted fom muls offset
@@ -565,7 +601,7 @@ InitParticles:
 
 ********************************************************************************
 InitCube:
-		lea	CubePoints,a0
+		move.l	CubePoints(pc),a0
 
 		move.w	#$9a00,d0
 		moveq	#4-1,d7
@@ -594,8 +630,8 @@ InitCube:
 
 ********************************************************************************
 InitSphere:
-		lea	SpherePointsData,a0
-		lea	SpherePoints,a1
+		lea	SpherePointsData(pc),a0
+		move.l	SpherePoints(pc),a1
 		moveq	#POINTS_COUNT-1,d7
 .l0
 		move.b	(a0)+,d0
@@ -618,7 +654,7 @@ InitSphere:
 ********************************************************************************
 InitLogo:
 		lea	LogoPointsData,a0
-		lea	LogoPoints,a1
+		move.l	LogoPoints(pc),a1
 		moveq	#2,d3
 		moveq	#6-1,d7
 .letter
@@ -646,8 +682,8 @@ InitLogo:
 
 ********************************************************************************
 LerpPoints:
-		lea	LerpPointsIncs,a2
-		lea	LerpPointsTmp,a4
+		move.l	LerpPointsIncs(pc),a2
+		move.l	LerpPointsTmp(pc),a4
 		moveq	#POINTS_COUNT-1,d7
 .l0
 		movem.w	(a0)+,d0-d3
@@ -681,9 +717,9 @@ LerpPointsStep:
 		tst.w	LerpPointsRemaining
 		beq	.done
 
-		lea	LerpPointsIncs,a0
-		lea	LerpPointsTmp,a1
-		lea	LerpPointsOut,a2
+		move.l	LerpPointsIncs(pc),a0
+		move.l	LerpPointsTmp(pc),a1
+		move.l	LerpPointsOut(pc),a2
 LERP_UNROLL = 4
 		moveq	#POINTS_COUNT/LERP_UNROLL-1,d7
 .l0
@@ -709,7 +745,7 @@ LERP_UNROLL = 4
 		endr
 		dbf	d7,.l0
 		sub.w	#1,LerpPointsRemaining
-		move.l	#LerpPointsOut,DrawPoints
+		move.l	LerpPointsOut(pc),DrawPoints
 .done		rts
 
 LerpPointsRemaining: dc.w 0
@@ -756,6 +792,16 @@ ParticlesSpeedY: dc.w	0					;$400
 ParticlesSpeedZ: dc.w	0					;-$200
 
 
+Allocated:
+MulsTable:	dc.l	0
+Particles:	dc.l	0
+CubePoints:	dc.l	0
+SpherePoints:	dc.l	0
+LogoPoints:	dc.l	0
+LerpPointsTmp:	dc.l	0
+LerpPointsOut:	dc.l	0
+LerpPointsIncs:	dc.l	0
+
 ********************************************************************************
 Data:
 ********************************************************************************
@@ -769,6 +815,10 @@ ScreenOffsets:	dc.l	SCREEN_BPL*2
 		dc.l	0
 		dc.l	0
 		dc.l	0
+
+Pal:		ds.w	32
+PalE:
+
 
 Colors:
 		; ; green / cyan
@@ -951,6 +1001,7 @@ LogoPointsData:
 ;-------------------------------------------------------------------------------
 ; Cirlces copper list:
 Cop:
+		dc.w	dmacon,DMAF_SPRITE
 		dc.w	diwstrt,DIW_YSTRT<<8!DIW_XSTRT
 		dc.w	diwstop,(DIW_YSTOP-256)<<8!(DIW_XSTOP-256)
 		dc.w	ddfstrt,(DIW_XSTRT-17)>>1&$fc
@@ -962,23 +1013,3 @@ Cop:
 		dc.w	color,$123
 		dc.l	-2
 CopE:
-
-*******************************************************************************
-		bss
-*******************************************************************************
-bss:
-; Multiplication lookup-table
-MulsTable:	ds.b	256*256
-
-Pal:		ds.w	32
-PalE:
-
-Particles:	ds.b	Point_SIZEOF*POINTS_COUNT
-CubePoints:	ds.b	Point_SIZEOF*POINTS_COUNT
-SpherePoints:	ds.b	Point_SIZEOF*POINTS_COUNT
-LogoPoints:	ds.b	Point_SIZEOF*POINTS_COUNT
-
-LerpPointsIncs:	ds.w	Point_SIZEOF*POINTS_COUNT
-LerpPointsTmp:	ds.b	Point_SIZEOF*POINTS_COUNT
-LerpPointsOut:	ds.b	Point_SIZEOF*POINTS_COUNT
-		printv *-bss

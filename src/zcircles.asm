@@ -61,8 +61,6 @@ DrawCircle:
 		bra	Plot
 .skip:		rts
 
-SKIPCLIP=1
-
 ********************************************************************************
 ; Draw a circle using blitter
 ;-------------------------------------------------------------------------------
@@ -194,15 +192,11 @@ BlitCircle:
 		move.w	a4,bltsize(a6)
 .skip:		rts
 
-		lsl.w	#2,d4
-		move.l	.bltcon(pc,d4),bltcon0(a6)
-; snip...
-
 ; Table for combined minterm and shifts for bltcon0/bltcon1
-.bltcon:	dc.l	$0fea0000,$1fea1000,$2fea2000,$3fea3000
-		dc.l	$4fea4000,$5fea5000,$6fea6000,$7fea7000
-		dc.l	$8fea8000,$9fea9000,$afeaa000,$bfeab000
-		dc.l	$cfeac000,$dfead000,$efeae000,$ffeaf000
+.bltcon: dc.l   $0bfa0000,$1bfa1000,$2bfa2000,$3bfa3000
+        dc.l    $4bfa4000,$5bfa5000,$6bfa6000,$7bfa7000
+        dc.l    $8bfa8000,$9bfa9000,$abfaa000,$bbfab000
+        dc.l    $cbfac000,$dbfad000,$ebfae000,$fbfaf000
 
 
 ********************************************************************************

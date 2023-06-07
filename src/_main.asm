@@ -3,6 +3,7 @@
 		include	"tentacles.i"
 		include	"rotate.i"
 		include	"zcircles.i"
+		include	"tunnel.i"
 
 _start:
 		include	"PhotonsMiniWrapper1.04.i"
@@ -13,14 +14,16 @@ INTSET = INTF_SETCLR!INTF_INTEN!INTF_VERTB|INTF_COPER
 RANDOM_SEED = $a162b2c9
 LERPS_WORDS_LEN = 4
 
+DIVS_RANGE = $7ff
+
 ********************************************************************************
 ; Memory
 
-CHIP_BUFFER_SIZE = 1024*380
-PUBLIC_BUFFER_SIZE = 1024*200
+CHIP_BUFFER_SIZE = 1024*350
+PUBLIC_BUFFER_SIZE = 1024*300
 
-AllocPublicOffset	dc.l	0
-AllocChipOffset		dc.l	0
+AllocPublicOffset dc.l	0
+AllocChipOffset	dc.l	0
 
 ; TODO: limit check?
 ; TODO: bi-directional?
@@ -61,7 +64,6 @@ Demo:
 Precalc:
 		bsr	PrecalcTables
 		jsr	Circles_Precalc
-		jsr	Rotate_Precalc
 
 StartMusic:
 		ifne	MUSIC_ENABLE
@@ -77,6 +79,7 @@ StartMusic:
 
 ;-------------------------------------------------------------------------------
 Effects:
+		jsr 	Tunnel_Effect
 		jsr	Tentacles_Effect
 		jsr	Rotate_Effect
 		rts						; Exit demo
@@ -194,7 +197,7 @@ PrecalcTables:
 		divu	d7,d0
 		move.w	d0,(a0)+
 		addq	#1,d7
-		cmp.w	#$fff,d7
+		cmp.w	#DIVS_RANGE,d7
 		ble	.l
 
 		rts
@@ -348,11 +351,13 @@ InterruptRoutine:
 
 
 ********************************************************************************
-* Data
+Data:
 ********************************************************************************
 
 LSPMusic:	incbin	"data/funky_shuffler.lsmusic"
 		even
+		printt Data
+		printv *-Data
 
 
 *******************************************************************************
@@ -411,7 +416,7 @@ SqrtTab:	ds.b	$100*$100
 Sin:		ds.w	256
 Cos:		ds.w	1024
 
-DivTab:		ds.w	$fff
+DivTab:		ds.w	DIVS_RANGE
 
 LerpWordsState:	ds.b	Lerp_SIZEOF*LERPS_WORDS_LEN
 
