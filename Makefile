@@ -7,8 +7,6 @@ deps := $(objects:.o=.d)
 # dude_images_png := $(addprefix data/dude_walking_16_frames/, $(patsubst %.iff,%.png,$(notdir $(dude_images))))
 # dude_images_raw := $(addprefix data/dude_walking_16_frames/raw/, $(patsubst %.iff,%.raw,$(notdir $(dude_images))))
 
-# -include $(deps)
-
 # data/dude_walking_16_frames/%.png : assets/dude_walking_16_frames/%.iff
 # 	convert -extent 96x160 -gravity SouthWest -background "#000000" $< $@
 
@@ -57,14 +55,15 @@ clean:
 	$(info Cleaning...)
 	@$(RM) obj/* out/*.*
 
--include $(deps)
+# -include $(deps)
 
 $(vasm_objects): obj/%.o : src/%.asm
+	$(info )
 	$(info Assembling $<)
 	@$(VASM) $(VASMFLAGS) -o $@ $(CURDIR)/$<
 
 $(deps): obj/%.d : src/%.asm
 	$(info Building dependencies for $<)
-	$(VASM) $(VASMFLAGS) -quiet -depend=make -o $(patsubst %.d,%.o,$@) $(CURDIR)/$< > $@
+	$(VASM) $(VASMFLAGS) -depend=make -o $(patsubst %.d,%.o,$@) $(CURDIR)/$< > $@
 
 .PHONY: all clean dist
