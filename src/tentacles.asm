@@ -53,11 +53,9 @@ Tentacles_Effect:
 		jsr	InstallCopper
 
 		; Allocate screen memory
-		move.l	4.w,a6
 		move.l	#SCREEN_BW*BPLS*SCREEN_H*2,d0
-		moveq	#MEMF_CHIP,d1
-		jsr	_LVOAllocMem(a6)
-		move.l	d0,Screen
+		jsr	AllocChip
+		move.l	a0,Screen
 
 		; Sprites
 
@@ -65,7 +63,7 @@ Tentacles_Effect:
 		lea	Sprite,a1
 		move.l	a1,a2
 
-		moveq #4-1,d7
+		moveq	#4-1,d7
 .sprSlice:
 		move.w	(a1)+,d0
 		lea	(a2,d0.w),a3
@@ -273,13 +271,8 @@ Frame:
 		cmp.l	#TENTACLES_END_FRAME,VBlank
 		blt	Frame
 
-		move.w #DMAF_SPRITE,dmacon(a6)
-
-		; Free screen memory
-		move.l	4.w,a6
-		move.l	#SCREEN_BW*BPLS*SCREEN_H*2,d0
-		move.l	Screen(pc),a1
-		jsr	_LVOFreeMem(a6)
+		move.w	#DMAF_SPRITE,dmacon(a6)
+		jsr	Free
 
 		lea	custom,a6
 

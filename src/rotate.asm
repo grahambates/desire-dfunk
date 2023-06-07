@@ -49,15 +49,11 @@ DIW_YSTOP = DIW_YSTRT+DIW_H
 Rotate_Effect:
 ********************************************************************************
 		; Allocate memory
-		move.l 4.w,a6
 		move.l	#SCREEN_SIZE,d0
-		move.l	#MEMF_CHIP!MEMF_CLEAR,d1
-		jsr	_LVOAllocMem(a6)
-		move.l	d0,DrawBuffer
-
-		move.l	#SCREEN_SIZE,d0
-		jsr	_LVOAllocMem(a6)
-		move.l	d0,ViewBuffer
+		jsr	AllocChip
+		move.l	a0,DrawBuffer
+		jsr	AllocChip
+		move.l	a0,ViewBuffer
 
 		lea custom,a6
 
@@ -332,14 +328,7 @@ SMCNext		move.l	(sp)+,a0
 		bra	Frame
 
 		; Free memory
-		move.l 4.w,a6
-		move.l	#SCREEN_SIZE,d0
-		move.l	DrawBuffer,a1
-		jsr	_LVOFreeMem(a6)
-
-		move.l	#SCREEN_SIZE,d0
-		move.l	ViewBuffer,a1
-		jsr	_LVOFreeMem(a6)
+		jsr Free
 
 		rts
 

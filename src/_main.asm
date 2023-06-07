@@ -13,6 +13,35 @@ INTSET = INTF_SETCLR!INTF_INTEN!INTF_VERTB|INTF_COPER
 RANDOM_SEED = $a162b2c9
 LERPS_WORDS_LEN = 4
 
+********************************************************************************
+; Memory
+
+CHIP_BUFFER_SIZE = 1024*380
+PUBLIC_BUFFER_SIZE = 1024*200
+
+AllocPublicOffset	dc.l	0
+AllocChipOffset		dc.l	0
+
+; TODO: limit check?
+; TODO: bi-directional?
+
+; d0 = bytes
+; returns a0 = address
+AllocChip:
+		move.l	AllocChipOffset(pc),a0
+		add.l	d0,AllocChipOffset
+		rts
+
+AllocPublic:
+		move.l	AllocPublicOffset(pc),a0
+		add.l	d0,AllocPublicOffset
+		rts
+
+Free:
+		move.l	#PublicBuffer,AllocPublicOffset
+		move.l	#ChipBuffer,AllocChipOffset
+		rts
+
 
 ********************************************************************************
 Demo:
@@ -25,6 +54,8 @@ Demo:
 		move.l	a0,cop1lc(a6)
 
 		move.w	#DMASET,dmacon(a6)
+
+		bsr	Free
 
 ;-------------------------------------------------------------------------------
 Precalc:
@@ -46,7 +77,7 @@ StartMusic:
 
 ;-------------------------------------------------------------------------------
 Effects:
-		; jsr	Tentacles_Effect
+		jsr	Tentacles_Effect
 		jsr	Rotate_Effect
 		rts						; Exit demo
 
@@ -65,7 +96,7 @@ MainInterrupt:
 		lea	VBlank(pc),a0
 		addq.l	#1,(a0)
 ; Process active lerps
-		bsr LerpWordsStep
+		bsr	LerpWordsStep
 
 ; Call effect interrupt if Installed
 		move.l	InterruptRoutine,d0
@@ -354,10 +385,22 @@ BlankCop:
 		dc.w	color00,$123
 		dc.l	-2
 
+*******************************************************************************
+		bss_c
+*******************************************************************************
+
+ChipBuffer:
+		ds.b	CHIP_BUFFER_SIZE
+ChipBufferE:
+
 
 *******************************************************************************
 		bss
 *******************************************************************************
+
+PublicBuffer:
+		ds.b	PUBLIC_BUFFER_SIZE
+PublicBufferE:
 
 ; Precalced sqrt LUT data
 SqrtTab:	ds.b	$100*$100
@@ -372,20 +415,20 @@ DivTab:		ds.w	$fff
 
 LerpWordsState:	ds.b	Lerp_SIZEOF*LERPS_WORDS_LEN
 
-	; section anim,data
-	; incbin data/dude_walking_16_frames/raw/dude_walking_b_01.raw
-	; incbin data/dude_walking_16_frames/raw/dude_walking_b_02.raw
-	; incbin data/dude_walking_16_frames/raw/dude_walking_b_03.raw
-	; incbin data/dude_walking_16_frames/raw/dude_walking_b_04.raw
-	; incbin data/dude_walking_16_frames/raw/dude_walking_b_05.raw
-	; incbin data/dude_walking_16_frames/raw/dude_walking_b_06.raw
-	; incbin data/dude_walking_16_frames/raw/dude_walking_b_07.raw
-	; incbin data/dude_walking_16_frames/raw/dude_walking_b_08.raw
-	; incbin data/dude_walking_16_frames/raw/dude_walking_b_09.raw
-	; incbin data/dude_walking_16_frames/raw/dude_walking_b_10.raw
-	; incbin data/dude_walking_16_frames/raw/dude_walking_b_11.raw
-	; incbin data/dude_walking_16_frames/raw/dude_walking_b_12.raw
-	; incbin data/dude_walking_16_frames/raw/dude_walking_b_13.raw
-	; incbin data/dude_walking_16_frames/raw/dude_walking_b_14.raw
-	; incbin data/dude_walking_16_frames/raw/dude_walking_b_15.raw
-	; incbin data/dude_walking_16_frames/raw/dude_walking_b_16.raw
+; section anim,data
+; incbin data/dude_walking_16_frames/raw/dude_walking_b_01.raw
+; incbin data/dude_walking_16_frames/raw/dude_walking_b_02.raw
+; incbin data/dude_walking_16_frames/raw/dude_walking_b_03.raw
+; incbin data/dude_walking_16_frames/raw/dude_walking_b_04.raw
+; incbin data/dude_walking_16_frames/raw/dude_walking_b_05.raw
+; incbin data/dude_walking_16_frames/raw/dude_walking_b_06.raw
+; incbin data/dude_walking_16_frames/raw/dude_walking_b_07.raw
+; incbin data/dude_walking_16_frames/raw/dude_walking_b_08.raw
+; incbin data/dude_walking_16_frames/raw/dude_walking_b_09.raw
+; incbin data/dude_walking_16_frames/raw/dude_walking_b_10.raw
+; incbin data/dude_walking_16_frames/raw/dude_walking_b_11.raw
+; incbin data/dude_walking_16_frames/raw/dude_walking_b_12.raw
+; incbin data/dude_walking_16_frames/raw/dude_walking_b_13.raw
+; incbin data/dude_walking_16_frames/raw/dude_walking_b_14.raw
+; incbin data/dude_walking_16_frames/raw/dude_walking_b_15.raw
+; incbin data/dude_walking_16_frames/raw/dude_walking_b_16.raw

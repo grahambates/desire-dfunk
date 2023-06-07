@@ -1,10 +1,6 @@
 		incdir	"include"
 
 		include	"hw.i"
-		include	"funcdef.i"
-		include	"exec/exec_lib.i"
-		include	"exec/memory.i"
-
 		include	"debug.i"
 		include	"macros.i"
 
@@ -25,6 +21,10 @@
 		xref	Cos
 		xref	SqrtTab
 		xref	DivTab
+
+		xref	AllocChip
+		xref	AllocPublic
+		xref	Free
 
 
 		rsreset
