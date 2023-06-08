@@ -9,7 +9,7 @@
 _start:
 		include	"PhotonsMiniWrapper1.04.i"
 
-MUSIC_ENABLE = 0
+MUSIC_ENABLE = 1
 DMASET = DMAF_SETCLR!DMAF_MASTER!DMAF_RASTER!DMAF_COPPER!DMAF_BLITTER
 INTSET = INTF_SETCLR!INTF_INTEN!INTF_VERTB|INTF_COPER
 RANDOM_SEED = $a162b2c9
@@ -17,56 +17,8 @@ LERPS_WORDS_LEN = 4
 
 DIVS_RANGE = $7ff
 
-********************************************************************************
-; Memory
-
 CHIP_BUFFER_SIZE = 1024*270
 PUBLIC_BUFFER_SIZE = 1024*240
-
-AllocPublicOffset dc.l	0
-AllocChipOffset	dc.l	0
-
-; TODO: limit check?
-; TODO: bi-directional?
-
-; d0 = bytes
-; returns a0 = address
-AllocChip:
-		move.l	AllocChipOffset(pc),a0
-		add.l	d0,AllocChipOffset
-		rts
-
-AllocChipAligned:
-		move.l	AllocChipOffset(pc),a0
-		move.l	a0,d1
-		move.l	d1,d2					; d2 = start address
-		add.l	d0,d1					; d1 = end address
-; compare upper word
-		swap	d1
-		swap	d2
-		cmp.w	d1,d2
-		beq	.ok
-		; Not ok, need to adjust start
-		swap	d1					; clear lower word of end address
-		clr.w	d1
-		move.l	d1,a0					; update returned address
-		add.l	d0,d1 ; add bytes to new start
-		swap	d1
-.ok
-		; Ok, just swap back and set
-		swap	d1
-		move.l	d1,AllocChipOffset
-		rts
-
-AllocPublic:
-		move.l	AllocPublicOffset(pc),a0
-		add.l	d0,AllocPublicOffset
-		rts
-
-Free:
-		move.l	#PublicBuffer,AllocPublicOffset
-		move.l	#ChipBuffer,AllocChipOffset
-		rts
 
 
 ********************************************************************************
@@ -80,8 +32,6 @@ Demo:
 		move.l	a0,cop1lc(a6)
 
 		move.w	#DMASET,dmacon(a6)
-
-		bsr	Free
 
 ;-------------------------------------------------------------------------------
 Precalc:
@@ -102,10 +52,9 @@ StartMusic:
 
 ;-------------------------------------------------------------------------------
 Effects:
-
-		jsr	Tunnel_Effect
 		jsr	Girl_Effect
 		jsr	Tentacles_Effect
+		jsr	Tunnel_Effect
 		jsr	Rotate_Effect
 		rts						; Exit demo
 
@@ -121,13 +70,14 @@ MainInterrupt:
 		btst	#INTB_VERTB,intreqr+1(a6)
 		beq.s	.notvb
 ; Increment frame counter:
-		lea	VBlank(pc),a0
-		addq.l	#1,(a0)
+		lea	Vars(pc),a5
+		addq.l	#1,VBlank-Vars(a5)
+		addq.l	#1,CurrFrame-Vars(a5)
 ; Process active lerps
 		bsr	LerpWordsStep
 
 ; Call effect interrupt if Installed
-		move.l	InterruptRoutine,d0
+		move.l	VbiRoutine(pc),d0
 		beq	.noInt
 		move.l	d0,a0
 		jsr	(a0)
@@ -151,20 +101,92 @@ MainInterrupt:
 		movem.l	(sp)+,d0-a6
 		rte
 
-
 ********************************************************************************
-InstallInterrupt:
-		move.l	a0,InterruptRoutine
-		rts
-
-
+; Start a new effect
+;-------------------------------------------------------------------------------
+; a0 - Copper
+; a1 - Vbi (or 0)
+;-------------------------------------------------------------------------------
+StartEffect:
+		move.l	a1,VbiRoutine
 ********************************************************************************
 InstallCopper:
 		move.l	a0,d0
 		swap.w	d0
-		lea	Cop1Lc+2,a1
+		lea	Cop2Lc+2,a1
 		move.w	d0,(a1)
 		move.w	a0,4(a1)
+		rts
+
+********************************************************************************
+ResetFrameCounter:
+		clr.l	CurrFrame
+		rts
+
+********************************************************************************
+; Memory
+********************************************************************************
+
+; TODO: limit check?
+; TODO: bi-directional?
+
+********************************************************************************
+; Allocate chip RAM
+;-------------------------------------------------------------------------------
+; d0 = bytes
+; returns a0 = address
+;-------------------------------------------------------------------------------
+AllocChip:
+		move.l	AllocChipOffs(pc),a0
+		add.l	d0,AllocChipOffs
+		rts
+
+********************************************************************************
+; Allocate chip RAM within a single high word offset.
+; Used so we can update just the lower word in copperlist.
+;-------------------------------------------------------------------------------
+; d0 = bytes
+; returns a0 = address
+;-------------------------------------------------------------------------------
+AllocChipAligned:
+		move.l	AllocChipOffs(pc),a0
+		move.l	a0,d1
+		move.l	d1,d2					; d2 = start address
+		add.l	d0,d1					; d1 = end address
+; compare upper word
+		swap	d1
+		swap	d2
+		cmp.w	d1,d2
+		beq	.ok
+		; Not ok, need to adjust start
+		swap	d1					; clear lower word of end address
+		clr.w	d1
+		move.l	d1,a0					; update returned address
+		add.l	d0,d1					; add bytes to new start
+		swap	d1
+.ok
+		; Ok, just swap back and set
+		swap	d1
+		move.l	d1,AllocChipOffs
+		rts
+
+********************************************************************************
+; Allocate public RAM
+;-------------------------------------------------------------------------------
+; d0 = bytes
+; returns a0 = address
+;-------------------------------------------------------------------------------
+AllocPublic:
+		move.l	AllocPublicOffs(pc),a0
+		add.l	d0,AllocPublicOffs
+		rts
+
+********************************************************************************
+; Free allocated RAM
+;-------------------------------------------------------------------------------
+Free:
+		move.l	#PublicBuffer,AllocPublicOffs
+		move.l	#ChipBuffer,AllocChipOffs
 		rts
 
 
@@ -362,17 +384,19 @@ DoLerpCol:
 		or.w	d4,d7
 		rts
 
-		; Include generic LSP player
-		include	"LightSpeedPlayer.i"
-
 ********************************************************************************
 Vars:
 ********************************************************************************
 
-VBlank:		dc.l	0
+VBlank		dc.l	0
+CurrFrame	dc.l	0
+VbiRoutine	dc.l	0
+AllocPublicOffs	dc.l	0
+AllocChipOffs	dc.l	0
 
-InterruptRoutine:
-		dc.l	0
+
+		; Include generic LSP player
+		include	"LightSpeedPlayer.i"
 
 
 ********************************************************************************
@@ -381,8 +405,6 @@ Data:
 
 LSPMusic:	incbin	"data/funky_shuffler.lsmusic"
 		even
-		printt	Data
-		printv	*-Data
 
 
 *******************************************************************************
@@ -396,12 +418,11 @@ LSPBank:	incbin	"data/funky_shuffler.lsbank"
 MainCop:
 		dc.w	fmode,0
 		ifne	MUSIC_ENABLE
-		dc.l	(10<<24)|($09fffe)			; wait scanline 10
 		dc.l	$009c8000|(1<<4)			; fire copper interrupt
-		dc.l	((10+11)<<24)|($09fffe)			; wait scanline 10+11
+		dc.l	(11<<24)|($09fffe)			; wait scanline 11
 CopDma:		dc.w	dmacon,$8000
 		endc
-Cop1Lc:		dc.w	cop2lc,0				; Address of installed copper
+Cop2Lc:		dc.w	cop2lc,0				; Address of installed copper
 		dc.w	cop2lc+2,0
 		dc.w	copjmp2,0				; Jump to installed copper
 

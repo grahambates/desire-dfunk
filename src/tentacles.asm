@@ -49,22 +49,13 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 
 
 ********************************************************************************
-Tentacles_Vbi:
-********************************************************************************
-		move.l	VBlank,d7
-		sub.l	StartFrame(pc),d7
-		move.l	d7,CurrFrame
-		rts
-
-
-********************************************************************************
 Tentacles_Effect:
 ********************************************************************************
-		move.l	VBlank,StartFrame
-		lea	Cop,a0
-		jsr	InstallCopper
-		lea	Tentacles_Vbi,a0
-		jsr	InstallInterrupt
+		jsr	ResetFrameCounter
+		jsr	Free
+		lea	BlankCop,a0
+		sub.l	a1,a1
+		jsr	StartEffect
 
 		; Allocate screen memory
 		move.l	#SCREEN_BW*BPLS*SCREEN_H*2,d0
@@ -78,7 +69,7 @@ Tentacles_Effect:
 		clr.l	bltdmod(a6)
 		move.w	#(SCREEN_H*(BPLS-1))<<6!(SCREEN_BW/2),bltsize(a6)
 		WAIT_BLIT
-		move.w	#(SCREEN_H)<<6!(SCREEN_BW/2),bltsize(a6)
+		move.w	#SCREEN_H<<6!(SCREEN_BW/2),bltsize(a6)
 
 		; Sprites
 
@@ -107,14 +98,16 @@ Tentacles_Effect:
 		lea	8(a0),a0
 		dbf	d7,.spr
 
-		lea	custom,a6
-
 		move.w	#$357,color17(a6)
 		move.w	#$fff,color18(a6)
 		move.w	#$00f,color19(a6)
 		move.w	#$357,color21(a6)
 		move.w	#$fff,color22(a6)
 		move.w	#$00f,color23(a6)
+
+		lea	Cop,a0
+		sub.l	a1,a1
+		jsr	StartEffect
 
 Frame:
 		; Horizontal scroll position frame frame count
@@ -274,7 +267,7 @@ Frame:
 		move.w	d5,d3					; d3 = color
 		; add.w d7,d3
 		addq	#1,d3
-		jsr	BlitCircleUnsafe
+		jsr	DrawTentacle
 		movem.w	(sp)+,d0-d7
 
 		; Increment angles 360 deg / count
@@ -305,7 +298,7 @@ Frame:
 ; d3.l - colour (bpl offset)
 ; a1 - dest bpl (centered)
 ;-------------------------------------------------------------------------------
-BlitCircleUnsafe:
+DrawTentacle:
 ; Subract radius from coords to center
 		sub.w	d2,d1
 		sub.w	d2,d0
@@ -399,8 +392,6 @@ BlitCircleUnsafe:
 *******************************************************************************
 Vars:
 *******************************************************************************
-StartFrame:	dc.l	0
-CurrFrame:	dc.l	0
 Scale:		dc.w	$100
 Scroll:		dc.w	0
 

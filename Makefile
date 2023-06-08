@@ -2,18 +2,7 @@ vasm_sources := $(wildcard src/*.asm)
 vasm_objects := $(addprefix obj/, $(patsubst %.asm,%.o,$(notdir $(vasm_sources))))
 objects := $(vasm_objects)
 deps := $(objects:.o=.d)
-data := data/girl-head.BPL data/girl-body.BPL
-
-# dude_images := $(wildcard assets/dude_walking_16_frames/*.iff)
-# dude_images_png := $(addprefix data/dude_walking_16_frames/, $(patsubst %.iff,%.png,$(notdir $(dude_images))))
-# dude_images_raw := $(addprefix data/dude_walking_16_frames/raw/, $(patsubst %.iff,%.raw,$(notdir $(dude_images))))
-
-# data/dude_walking_16_frames/%.png : assets/dude_walking_16_frames/%.iff
-# 	convert -extent 96x160 -gravity SouthWest -background "#000000" $< $@
-
-# data/dude_walking_16_frames/raw/%.raw : data/dude_walking_16_frames/%.png
-# 	 ~/amiga/bin/amigeconv -f bitplane -d 3 $< $@
-
+data := data/girl-head.BPL data/girl-body.BPL obj/tables_shade1.o data/tex.rgb
 
 program = out/a
 OUT = $(program)
@@ -73,5 +62,36 @@ data/girl-head.BPL : assets/girl-head.png
 	$(KINGCON) $< data/girl-head -F=3 -I -M
 data/girl-body.BPL : assets/girl-body.png
 	$(KINGCON) $< data/girl-body -F=3 -I
+
+# dude_images := $(wildcard assets/dude_walking_16_frames/*.iff)
+# dude_images_png := $(addprefix data/dude_walking_16_frames/, $(patsubst %.iff,%.png,$(notdir $(dude_images))))
+# dude_images_raw := $(addprefix data/dude_walking_16_frames/raw/, $(patsubst %.iff,%.raw,$(notdir $(dude_images))))
+
+# data/dude_walking_16_frames/%.png : assets/dude_walking_16_frames/%.iff
+# 	convert -extent 96x160 -gravity SouthWest -background "#000000" $< $@
+
+# data/dude_walking_16_frames/raw/%.raw : data/dude_walking_16_frames/%.png
+# 	 ~/amiga/bin/amigeconv -f bitplane -d 3 $< $@
+
+
+tex = assets/bokeh-bright.jpg
+
+data/tex-pal.png: $(tex) Makefile
+	convert $< -depth 4 $@
+
+data/tex.png: $(tex) data/tex-pal.png
+	convert $< -resize 64x64 -dither FloydSteinberg -remap data/tex-pal.png $@
+
+data/tex.rgba: data/tex.png
+	convert $^ -depth 4 $@
+
+data/tex.rgb: data/tex.rgba
+	amigatools shiftrgba $^ $@
+
+data/tables_shade1.i: scripts/table_shade.js
+	node $^ -v 122 -u 82 --routine=false --aspect=0.75 > $@
+
+obj/tables_shade1.o: data/tables_shade1.i
+	$(VASM) -Fbin -quiet $(INCLUDE) -no-opt -o $@ $^
 
 .PHONY: all clean dist

@@ -35,9 +35,7 @@ const argv = require("yargs/yargs")(process.argv.slice(2)).options({
 const { dstWidth, dstHeight, srcWidth, srcHeight, routine, aspect } = argv;
 
 const shades = 16;
-const shadeDist = 1.5;
-const shadeOffset = .4;
-const uRept = 4;
+const uRept = 2;
 const vScale = 2;
 
 // https://devlog-martinsh.blogspot.com/2011/03/glsl-8x8-bayer-matrix-dithering.html

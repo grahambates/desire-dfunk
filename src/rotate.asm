@@ -48,6 +48,11 @@ DIW_YSTOP = DIW_YSTRT+DIW_H
 ********************************************************************************
 Rotate_Effect:
 ********************************************************************************
+		jsr	Free
+		lea BlankCop,a0
+		sub.l a1,a1
+		jsr StartEffect
+
 		; Allocate and clear screen memory
 		move.l	#SCREEN_SIZE,d0
 		; screen 1
@@ -86,23 +91,21 @@ Rotate_Effect:
 		move.l	a0,LerpPointsTmp
 		jsr	AllocPublic
 		move.l	a0,LerpPointsOut
-		move.l #Point_SIZEOF*POINTS_COUNT*2,d0
+		move.l	#Point_SIZEOF*POINTS_COUNT*2,d0
 		jsr	AllocPublic
 		move.l	a0,LerpPointsIncs
 
 		bsr	Rotate_Precalc
 
-		move.l	VBlank,StartFrame
-
-		lea	Rotate_Vbi(pc),a0
-		jsr	InstallInterrupt
-		lea	Cop,a0
-		jsr	InstallCopper
-
 		move.l	SpherePoints(pc),DrawPoints
 
 		lea	Pal,a0
 		bsr	LoadPalette
+
+		lea	Cop,a0
+		lea	Rotate_Vbi(pc),a1
+		jsr	StartEffect
+		jsr	ResetFrameCounter
 
 ********************************************************************************
 Frame:
@@ -372,7 +375,7 @@ SMCNext		move.l	(sp)+,a0
 ********************************************************************************
 Rotate_Vbi:
 ********************************************************************************
-
+; Set bpl ptrs
 		move.l	ViewBuffer(pc),a0
 		lea	bpl0pt+custom,a1
 		rept	BPLS
@@ -380,12 +383,9 @@ Rotate_Vbi:
 		lea	SCREEN_BPL(a0),a0
 		endr
 
-		move.l	VBlank,d7
-		sub.l	StartFrame(pc),d7
-		move.l	d7,CurrFrame
-
 ;-------------------------------------------------------------------------------
 Script:
+		move.l	CurrFrame,d7
 ; Start lerp1:
 		cmp.w	#1,d7
 		bne	.endLerp0
@@ -779,8 +779,6 @@ ViewClearList:	dc.l	ClearList1
 DrawBuffer:	dc.l	0
 ViewBuffer:	dc.l	0
 
-StartFrame:	dc.l	0
-CurrFrame:	dc.l	0
 Zoom:		dc.w	0
 ZoomBase:	dc.w	2000
 

@@ -2,7 +2,7 @@
 		include	_main.i
 		include	girl.i
 
-GIRL_END_FRAME = $1ff
+GIRL_END_FRAME = $ff
 
 DIW_W = 320
 DIW_H = 256
@@ -36,22 +36,14 @@ Girl_Vbi:
 		move.l	a0,(a1)+
 		lea	SCREEN_BPL(a0),a0
 		endr
-
-		move.l	VBlank,d7
-		sub.l	StartFrame(pc),d7
-		move.l	d7,CurrFrame
 		rts
 
 
 ********************************************************************************
 Girl_Effect:
 ********************************************************************************
-		move.l	VBlank,StartFrame
-
-		lea	Cop,a0
-		jsr	InstallCopper
-		lea	Girl_Vbi,a0
-		jsr	InstallInterrupt
+		jsr ResetFrameCounter
+		jsr Free
 
 		move.l	#SCREEN_SIZE,d0
 		jsr	AllocChip
@@ -62,6 +54,9 @@ Girl_Effect:
 		move.l	a0,ViewBuffer
 		bsr	ClearScreen
 
+		lea	Cop,a0
+		lea	Girl_Vbi,a1
+		jsr	StartEffect
 
 ;-------------------------------------------------------------------------------
 Frame:
@@ -111,7 +106,6 @@ Frame:
 		cmp.l	#GIRL_END_FRAME,CurrFrame
 		blt	Frame
 
-		jsr	Free
 		rts
 
 HEAD_W = 160
@@ -220,8 +214,7 @@ DX = BODY_W/16-1
 ********************************************************************************
 Vars:
 ********************************************************************************
-StartFrame:	dc.l	0
-CurrFrame:	dc.l	0
+
 DrawBuffer:	dc.l	0
 ViewBuffer:	dc.l	0
 

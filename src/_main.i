@@ -13,9 +13,12 @@
 		xref	WaitEOF
 
 		xref	VBlank
+		xref	CurrFrame
 
-		xref	InstallInterrupt
+		xref	StartEffect
 		xref	InstallCopper
+		xref	ResetFrameCounter
+		xref	BlankCop
 
 		xref	Sin
 		xref	Cos

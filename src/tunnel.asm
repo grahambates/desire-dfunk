@@ -2,25 +2,70 @@
 		include	"_main.i"
 		include	"tunnel.i"
 
+TUNNEL_END_FRAME = $1ff
+
+SRC_W = 64
+SRC_H = 64
+DEST_W = 82
+DEST_H = 122
+ROW_BW = 492
+CHUNKY_H = 90
+CHUNKY_W = 50
+
+PAN_X = (DEST_W-CHUNKY_W)/2
+PAN_Y = (DEST_H-CHUNKY_H)/2
+
+SRC_SIZE = SRC_W*SRC_H*2
+SHADES = 14
+
+; Display window:
+DIW_W = 112
+DIW_H = 272
+DIW_XSTRT = $71
+
+BPLS = 4
+
+DMA_SET = DMAF_SETCLR!DMAF_MASTER!DMAF_RASTER!DMAF_COPPER
+
+;-------------------------------------------------------------------------------
+; Derived
+
+COLORS = 1<<BPLS
+
+DIW_BW = DIW_W/16*2
+DIW_YSTRT = ($158-DIW_H)/2
+DIW_YSTOP = DIW_YSTRT+DIW_H
+DIW_XSTOP = DIW_XSTRT+DIW_W
+DIW_STRT = ((DIW_YSTRT+1)<<8)!DIW_XSTRT
+DIW_STOP = (DIW_YSTRT+1+DIW_H-256)<<8+DIW_XSTOP
+DDF_STRT = ((DIW_XSTRT-17)>>1)+$20&$00fc
+DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)+$20&$00fc
+
+		rsreset
+CopC_OddCols	rs.l	CHUNKY_W/2
+CopC_Wait	rs.l	1
+CopC_EvenCols	rs.l	CHUNKY_W/2
+CopC_Bg		rs.l	1
+CopC_Loc	rs.l	1
+CopC_Skip	rs.l	1
+CopC_Jmp	rs.l	1
+CopC_SIZEOF	rs.b	0
+
 
 ********************************************************************************
 Tunnel_Effect:
-		move.l	0,a0
-		jsr	InstallInterrupt
+		jsr	Free
+		lea	BlankCop,a0
+		sub.l	a1,a1
+		jsr	StartEffect
 
 		move.l	#SRC_SIZE*2*SHADES,d0
 		jsr	AllocPublic
 		move.l	a0,Shades
 
-		move.l	#CopTemplateE-CopTemplate,d0
+		move.l	#CopTemplateE-CopTemplate+CopC_SIZEOF*CHUNKY_H+4,d0
 		jsr	AllocChipAligned
 		move.l	a0,Cop
-		jsr	InstallCopper
-
-		lea	CopTemplate,a1
-		move.w	#(CopTemplateE-CopTemplate)/4-1,d7
-.cp		move.l	(a1)+,(a0)+
-		dbf	d7,.cp
 
 		bsr	InitChunky
 		bsr	InitShades
@@ -34,16 +79,33 @@ Tunnel_Effect:
 		lea	SRC_SIZE*2(a1),a1
 		addq	#1,d0
 		endr
-.mainLoop:
+
+		move.l	Cop,a0
+		sub.l	a1,a1
+		jsr	StartEffect
+		jsr	ResetFrameCounter
+Frame:
 		bsr	Update
 		bsr	Draw
 
 		lea	custom,a6
 		jsr	WaitEOF
-		btst	#6,ciaa
-		bne.b	.mainLoop
-.exit		rts
 
+		cmp.l	#TUNNEL_END_FRAME,CurrFrame
+		blt	Frame
+
+		clr.l	spr0data(a6)
+		clr.l	spr1data(a6)
+		clr.l	spr2data(a6)
+		clr.l	spr3data(a6)
+		clr.l	spr4data(a6)
+		clr.l	spr5data(a6)
+		clr.l	spr6data(a6)
+		clr.l	spr7data(a6)
+
+		rts
+
+NullSprite: dc.l 0
 
 ********************************************************************************
 * Routines:
@@ -51,7 +113,77 @@ Tunnel_Effect:
 
 ********************************************************************************
 InitChunky:
-		move.l Cop,a2
+; Copy copper template
+		lea	CopTemplate,a1
+		move.w	#(CopTemplateE-CopTemplate)/4-1,d7
+.cp		move.l	(a1)+,(a0)+
+		dbf	d7,.cp
+
+		move.w	#DIW_YSTRT+1,d0
+		move.w	#CHUNKY_H-1,d7
+.row
+		move.l	a0,a1					; Store address for jump
+		addq	#8,a1
+
+		addq	#3,d0
+		cmp.w	#$fd,d0
+		bne	.ok
+		subq	#1,d0
+.ok
+		move.l	#color02<<16,(a0)+			;CopC_OddCols
+		; skip 3
+		move.l	#color04<<16,(a0)+
+		move.l	#color05<<16,(a0)+
+		move.l	#color06<<16,(a0)+
+		move.l	#color07<<16,(a0)+
+		move.l	#color08<<16,(a0)+
+		move.l	#color09<<16,(a0)+
+		move.l	#color10<<16,(a0)+
+		move.l	#color11<<16,(a0)+
+		move.l	#color12<<16,(a0)+
+		move.l	#color13<<16,(a0)+
+		move.l	#color14<<16,(a0)+
+		move.l	#color15<<16,(a0)+
+		; skip 16
+		move.l	#color17<<16,(a0)+
+		move.l	#color18<<16,(a0)+
+		move.l	#color19<<16,(a0)+
+		; skip 20
+		move.l	#color21<<16,(a0)+
+		move.l	#color22<<16,(a0)+
+		move.l	#color23<<16,(a0)+
+		; skip 24
+		move.l	#color25<<16,(a0)+
+		move.l	#color26<<16,(a0)+
+		move.l	#color27<<16,(a0)+
+		; skip 28
+		move.l	#color29<<16,(a0)+
+		move.l	#color30<<16,(a0)+
+		move.l	#color31<<16,(a0)+
+
+		move.w	#$80,d1					;CopC_Wait
+		and.w	d0,d1
+		move.b	d1,(a0)+
+		move.b	#$5d,(a0)+
+		move.w	#$805c,(a0)+
+
+		move.w	#CHUNKY_W/2-1,d6
+.evenCol	move.l	#color00<<16,(a0)+
+		dbf	d6,.evenCol
+
+		move.l	#color00<<16!0,(a0)+			;CopC_Bg
+		move.w	#(cop2lc+2),(a0)+			;CopC_Loc
+		move.w	a1,(a0)+
+		move.b	d0,(a0)+				;CopC_Skip
+		move.b	#31,(a0)+
+		move.w	#$ffff,(a0)+
+		move.l	#copjmp2<<16,(a0)+			;CopC_Jmp
+		dbf	d7,.row
+
+		; end copper
+		move.l	#-2,(a0)+
+
+		move.l	Cop,a2
 ;-------------------------------------------------------------------------------
 ; Sprites
 		lea	Sprites,a0
@@ -78,15 +210,6 @@ InitChunky:
 		lea	14(a0),a0
 		lea	8(a1),a1
 		dbf	d0,.bpls
-;-------------------------------------------------------------------------------
-; Jmp locs
-		lea	CopChunky+CopC_Wait-CopTemplate(a2),a0
-		move.l	a0,cop2lc+custom
-		move.w	#CHUNKY_H-1,d0
-.loc:
-		move.w	a0,CopC_Loc-CopC_Wait+2(a0)
-		lea	CopC_SIZEOF(a0),a0
-		dbf	d0,.loc
 
 		rts
 
@@ -222,8 +345,8 @@ Draw:
 ;-------------------------------------------------------------------------------
 		move.l	Cop(pc),a1
 		move.l	sp,.stack				; Free up a7 register for an extra shade - this means we can't use jsr
-		lea	CopChunky+CopC_EvenCols+2-CopTemplate(a1),a0
-		lea	CopChunky+CopC_OddCols+2-CopTemplate(a1),a1
+		lea	CopChunky+CopC_EvenCols+2(a1),a0
+		lea	CopChunky+CopC_OddCols+2(a1),a1
 		lea	DrawTbl,a2
 
 		move.l	Shades(pc),a3
@@ -277,6 +400,10 @@ Draw:
 		add.l	d0,a2
 
 ;-------------------------------------------------------------------------------
+		move.l	CurrFrame,d0
+		lsr.w	#1,d0
+		cmp.w	#CHUNKY_H-1,d0
+		ble	.l
 		moveq	#CHUNKY_H-1,d0
 .l
 		move.w	CHUNKY_W*6(a2),d1			; stash instructions before SMC
@@ -329,98 +456,29 @@ ChunkyImage:
 ; Main copper list:
 CopTemplate:
 		COP_MOVE 0,fmode
-
 		COP_MOVE DIW_STRT,diwstrt
 		COP_MOVE DIW_STOP,diwstop
 		COP_MOVE DDF_STRT,ddfstrt
 		COP_MOVE DDF_STOP,ddfstop
-
 		COP_MOVE DMAF_SETCLR!DMAF_SPRITE,dmacon
-
 		COP_MOVE -DIW_BW,bpl1mod
 		COP_MOVE -DIW_BW,bpl2mod
-
 		COP_MOVE BPLS<<12!$200,bplcon0
 		COP_MOVE $33,bplcon1
 		COP_MOVE 0,bplcon2
-
 CopSprPt:
 		rept	8*2
 		COP_MOVE 0,sprpt+REPTN*2
 		endr
-
 CopBplPt:
 		rept	BPLS*2
 		COP_MOVE 0,bpl0pt+REPTN*2
 		endr
-
 		COP_WAIT DIW_YSTRT,$ae
 		COP_MOVE DMAF_SPRITE,dmacon
-
-;--------------------------------------------------------------------------------
-;Copper chunky display
-
-		rsreset
-CopC_OddCols	rs.l	CHUNKY_W/2
-CopC_Wait	rs.l	1
-CopC_EvenCols	rs.l	CHUNKY_W/2
-CopC_Bg		rs.l	1
-CopC_Loc	rs.l	1
-CopC_Skip	rs.l	1
-CopC_Jmp	rs.l	1
-CopC_SIZEOF	rs.b	0
-
-CopChunky:
-.y		set	DIW_YSTRT+1
-		rept	CHUNKY_H
-		ifeq	.y-$fd
-.y		set	.y+2
-		else
-.y		set	.y+3
-		endc
-
-		COP_MOVE 0,color02				;CopC_OddCols
-		COP_MOVE 0,color04
-		COP_MOVE 0,color05
-		COP_MOVE 0,color06
-		COP_MOVE 0,color07
-		COP_MOVE 0,color08
-		COP_MOVE 0,color09
-		COP_MOVE 0,color10
-		COP_MOVE 0,color11
-		COP_MOVE 0,color12
-		COP_MOVE 0,color13
-		COP_MOVE 0,color14
-		COP_MOVE 0,color15
-		COP_MOVE 0,color17
-		COP_MOVE 0,color18
-		COP_MOVE 0,color19
-		COP_MOVE 0,color21
-		COP_MOVE 0,color22
-		COP_MOVE 0,color23
-		COP_MOVE 0,color25
-		COP_MOVE 0,color26
-		COP_MOVE 0,color27
-		COP_MOVE 0,color29
-		COP_MOVE 0,color30
-		COP_MOVE 0,color31
-
-		dc.w	(.y&$80)<<8!$5d,$805c			;CopC_Wait
-
-		rept	CHUNKY_W/2
-		COP_MOVE 0,color00				;CopC_EvenCols
-		endr
-
-		COP_MOVE $123,color00				;CopC_Bg
-
-		COP_MOVE 0,cop2lc+2				;CopC_Loc
-		COP_SKIP .y,$30					;CopC_Skip
-		COP_MOVE 0,copjmp2				;CopC_Jmp
-
-		endr						;/CHUNKY_H
-
-		COP_END
 CopTemplateE:
+
+CopChunky = CopTemplateE-CopTemplate
 
 
 *******************************************************************************
@@ -432,7 +490,7 @@ RGBTbl:		ds.b	16*16
 RGBTbl4:	ds.b	16*16
 
 *******************************************************************************
-	data_c
+		data_c
 *******************************************************************************
 
 SPR_STRT = DIW_YSTRT<<8!DIW_XSTRT+$1e
