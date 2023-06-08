@@ -2,6 +2,7 @@ vasm_sources := $(wildcard src/*.asm)
 vasm_objects := $(addprefix obj/, $(patsubst %.asm,%.o,$(notdir $(vasm_sources))))
 objects := $(vasm_objects)
 deps := $(objects:.o=.d)
+data := data/girl-head.BPL data/girl-body.BPL
 
 # dude_images := $(wildcard assets/dude_walking_16_frames/*.iff)
 # dude_images_png := $(addprefix data/dude_walking_16_frames/, $(patsubst %.iff,%.png,$(notdir $(dude_images))))
@@ -17,7 +18,8 @@ deps := $(objects:.o=.d)
 program = out/a
 OUT = $(program)
 CC = m68k-amiga-elf-gcc
-VASM = vasmm68k_mot
+VASM = ~/amiga/bin/vasmm68k_mot
+KINGCON = ~/amiga/bin/kingcon
 DEBUG = 1
 
 CCFLAGS = -g -MP -MMD -m68000 -Ofast -nostdlib -Wextra -Wno-unused-function -Wno-volatile-register-var -fomit-frame-pointer -fno-tree-loop-distribution -flto -fwhole-program -fno-exceptions
@@ -58,7 +60,7 @@ clean:
 
 # -include $(deps)
 
-$(vasm_objects): obj/%.o : src/%.asm
+$(vasm_objects): obj/%.o : src/%.asm $(data)
 	$(info )
 	$(info Assembling $<)
 	@$(VASM) $(VASMFLAGS) -o $@ $(CURDIR)/$<
@@ -68,8 +70,8 @@ $(deps): obj/%.d : src/%.asm
 	$(VASM) $(VASMFLAGS) -depend=make -o $(patsubst %.d,%.o,$@) $(CURDIR)/$< > $@
 
 data/girl-head.BPL : assets/girl-head.png
-	~/amiga/bin/kingcon $< data/girl-head -F=3 -I -M
+	$(KINGCON) $< data/girl-head -F=3 -I -M
 data/girl-body.BPL : assets/girl-body.png
-	~/amiga/bin/kingcon $< data/girl-body -F=3 -I
+	$(KINGCON) $< data/girl-body -F=3 -I
 
 .PHONY: all clean dist
