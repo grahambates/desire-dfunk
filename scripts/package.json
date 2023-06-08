@@ -1,0 +1,14 @@
+{
+  "name": "scripts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "table.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "gigabates <hello@grahambates.com>",
+  "license": "MIT",
+  "dependencies": {
+    "yargs": "^17.2.1"
+  }
+}

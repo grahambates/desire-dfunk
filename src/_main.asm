@@ -9,7 +9,7 @@
 _start:
 		include	"PhotonsMiniWrapper1.04.i"
 
-MUSIC_ENABLE = 1
+MUSIC_ENABLE = 0
 DMASET = DMAF_SETCLR!DMAF_MASTER!DMAF_RASTER!DMAF_COPPER!DMAF_BLITTER
 INTSET = INTF_SETCLR!INTF_INTEN!INTF_VERTB|INTF_COPER
 RANDOM_SEED = $a162b2c9
@@ -20,8 +20,8 @@ DIVS_RANGE = $7ff
 ********************************************************************************
 ; Memory
 
-CHIP_BUFFER_SIZE = 1024*350
-PUBLIC_BUFFER_SIZE = 1024*300
+CHIP_BUFFER_SIZE = 1024*270
+PUBLIC_BUFFER_SIZE = 1024*240
 
 AllocPublicOffset dc.l	0
 AllocChipOffset	dc.l	0
@@ -34,6 +34,28 @@ AllocChipOffset	dc.l	0
 AllocChip:
 		move.l	AllocChipOffset(pc),a0
 		add.l	d0,AllocChipOffset
+		rts
+
+AllocChipAligned:
+		move.l	AllocChipOffset(pc),a0
+		move.l	a0,d1
+		move.l	d1,d2					; d2 = start address
+		add.l	d0,d1					; d1 = end address
+; compare upper word
+		swap	d1
+		swap	d2
+		cmp.w	d1,d2
+		beq	.ok
+		; Not ok, need to adjust start
+		swap	d1					; clear lower word of end address
+		clr.w	d1
+		move.l	d1,a0					; update returned address
+		add.l	d0,d1 ; add bytes to new start
+		swap	d1
+.ok
+		; Ok, just swap back and set
+		swap	d1
+		move.l	d1,AllocChipOffset
 		rts
 
 AllocPublic:
@@ -80,10 +102,11 @@ StartMusic:
 
 ;-------------------------------------------------------------------------------
 Effects:
+
+		jsr	Tunnel_Effect
 		jsr	Girl_Effect
 		jsr	Tentacles_Effect
 		jsr	Rotate_Effect
-		; jsr 	Tunnel_Effect
 		rts						; Exit demo
 
 
@@ -358,8 +381,8 @@ Data:
 
 LSPMusic:	incbin	"data/funky_shuffler.lsmusic"
 		even
-		printt Data
-		printv *-Data
+		printt	Data
+		printv	*-Data
 
 
 *******************************************************************************

@@ -1,8 +1,3 @@
-; TODO:
-; - colour screw up after long run time: stuck on purple / yellow
-; - optimise logsteps (deltas?)
-; - generate sin wave
-
 		incdir	src
 		include	"_main.i"
 		include	"tunnel.i"
@@ -10,16 +5,22 @@
 
 ********************************************************************************
 Tunnel_Effect:
-		lea	Cop,a0
-		jsr	InstallCopper
 		move.l	0,a0
 		jsr	InstallInterrupt
 
 		move.l	#SRC_SIZE*2*SHADES,d0
-		printt Shades
-		printv SRC_SIZE*2*SHADES
 		jsr	AllocPublic
 		move.l	a0,Shades
+
+		move.l	#CopTemplateE-CopTemplate,d0
+		jsr	AllocChipAligned
+		move.l	a0,Cop
+		jsr	InstallCopper
+
+		lea	CopTemplate,a1
+		move.w	#(CopTemplateE-CopTemplate)/4-1,d7
+.cp		move.l	(a1)+,(a0)+
+		dbf	d7,.cp
 
 		bsr	InitChunky
 		bsr	InitShades
@@ -50,10 +51,11 @@ Tunnel_Effect:
 
 ********************************************************************************
 InitChunky:
+		move.l Cop,a2
 ;-------------------------------------------------------------------------------
 ; Sprites
 		lea	Sprites,a0
-		lea	CopSprPt+2,a1
+		lea	CopSprPt+2-CopTemplate(a2),a1
 		moveq	#8-1,d0
 .spr:
 		move.l	a0,d1
@@ -66,7 +68,7 @@ InitChunky:
 ;-------------------------------------------------------------------------------
 ; Bpls:
 		lea	Bpls,a0
-		lea	CopBplPt+2,a1
+		lea	CopBplPt+2-CopTemplate(a2),a1
 		moveq	#BPLS-1,d0
 .bpls:
 		move.l	a0,d1
@@ -78,7 +80,7 @@ InitChunky:
 		dbf	d0,.bpls
 ;-------------------------------------------------------------------------------
 ; Jmp locs
-		lea	CopChunky+CopC_Wait,a0
+		lea	CopChunky+CopC_Wait-CopTemplate(a2),a0
 		move.l	a0,cop2lc+custom
 		move.w	#CHUNKY_H-1,d0
 .loc:
@@ -218,9 +220,10 @@ Update:
 ********************************************************************************
 Draw:
 ;-------------------------------------------------------------------------------
+		move.l	Cop(pc),a1
 		move.l	sp,.stack				; Free up a7 register for an extra shade - this means we can't use jsr
-		lea	CopChunky+CopC_EvenCols+2,a0
-		lea	CopChunky+CopC_OddCols+2,a1
+		lea	CopChunky+CopC_EvenCols+2-CopTemplate(a1),a0
+		lea	CopChunky+CopC_OddCols+2-CopTemplate(a1),a1
 		lea	DrawTbl,a2
 
 		move.l	Shades(pc),a3
@@ -307,6 +310,7 @@ PanX:		dc.w	0
 PanY:		dc.w	0
 
 Shades:		dc.l	0
+Cop:		dc.l	0
 
 ********************************************************************************
 Data:
@@ -316,30 +320,14 @@ Data:
 
 DrawTbl:
 		incbin	"obj/tables_shade1.o"
-		printt DrawTbl
-		printv	*-DrawTbl
 
 ChunkyImage:
 		incbin	"data/tex.rgb"
 		incbin	"data/tex.rgb"
-		printt ChunkyImage
-		printv	*-ChunkyImage
-
-*******************************************************************************
-		bss
-*******************************************************************************
-
-; Lookup tables for RGB fade
-RGBTbl:		ds.b	16*16
-RGBTbl4:	ds.b	16*16
-
-*******************************************************************************
-		data_c
-*******************************************************************************
 
 ;--------------------------------------------------------------------------------
 ; Main copper list:
-Cop:
+CopTemplate:
 		COP_MOVE 0,fmode
 
 		COP_MOVE DIW_STRT,diwstrt
@@ -370,7 +358,7 @@ CopBplPt:
 		COP_MOVE DMAF_SPRITE,dmacon
 
 ;--------------------------------------------------------------------------------
-; Copper chunky display
+;Copper chunky display
 
 		rsreset
 CopC_OddCols	rs.l	CHUNKY_W/2
@@ -391,7 +379,7 @@ CopChunky:
 .y		set	.y+3
 		endc
 
-		COP_MOVE 0,color02				; CopC_OddCols
+		COP_MOVE 0,color02				;CopC_OddCols
 		COP_MOVE 0,color04
 		COP_MOVE 0,color05
 		COP_MOVE 0,color06
@@ -417,21 +405,35 @@ CopChunky:
 		COP_MOVE 0,color30
 		COP_MOVE 0,color31
 
-		dc.w	(.y&$80)<<8!$5d,$805c			; CopC_Wait
+		dc.w	(.y&$80)<<8!$5d,$805c			;CopC_Wait
 
 		rept	CHUNKY_W/2
-		COP_MOVE 0,color00				; CopC_EvenCols
+		COP_MOVE 0,color00				;CopC_EvenCols
 		endr
 
-		COP_MOVE 0,color00				; CopC_Bg
+		COP_MOVE $123,color00				;CopC_Bg
 
-		COP_MOVE 0,cop2lc+2				; CopC_Loc
-		COP_SKIP .y,$30					; CopC_Skip
-		COP_MOVE 0,copjmp2				; CopC_Jmp
+		COP_MOVE 0,cop2lc+2				;CopC_Loc
+		COP_SKIP .y,$30					;CopC_Skip
+		COP_MOVE 0,copjmp2				;CopC_Jmp
 
-		endr						; /CHUNKY_H
+		endr						;/CHUNKY_H
 
 		COP_END
+CopTemplateE:
+
+
+*******************************************************************************
+bss
+*******************************************************************************
+
+; Lookup tables for RGB fade
+RGBTbl:		ds.b	16*16
+RGBTbl4:	ds.b	16*16
+
+*******************************************************************************
+	data_c
+*******************************************************************************
 
 SPR_STRT = DIW_YSTRT<<8!DIW_XSTRT+$1e
 SPR_END = (DIW_YSTRT+CHUNKY_H*4)&$ff<<8!$03
@@ -462,6 +464,3 @@ Bpls:
 		dc.w	$0f00,$f0f0,$f0f0,$0000,$0000,$f0f0,$f0f0
 		dc.w	$0000,$0000,$0000,$f0f0,$f0f0,$f0f0,$f0f0
 ;                        0420  4050  6070  8090  a0b0  c0d0  e0f0
-*******************************************************************************
-		bss_c
-*******************************************************************************
