@@ -1,0 +1,40 @@
+
+	xdef	Tunnel_Effect
+
+SRC_W = 64
+SRC_H = 64
+DEST_W = 140
+DEST_H = 200
+ROW_BW = 840
+
+CHUNKY_H = 90
+CHUNKY_W = 50
+
+PAN_X = (DEST_W-CHUNKY_W)/2
+PAN_Y = (DEST_H-CHUNKY_H)/2
+
+SRC_SIZE = SRC_W*SRC_H*2
+SHADES = 14
+
+; Display window:
+DIW_W = 112
+DIW_H = 272
+DIW_XSTRT = $71
+
+BPLS = 4
+
+DMA_SET = DMAF_SETCLR!DMAF_MASTER!DMAF_RASTER!DMAF_COPPER
+
+;-------------------------------------------------------------------------------
+; Derived
+
+COLORS = 1<<BPLS
+
+DIW_BW = DIW_W/16*2
+DIW_YSTRT = ($158-DIW_H)/2
+DIW_YSTOP = DIW_YSTRT+DIW_H
+DIW_XSTOP = DIW_XSTRT+DIW_W
+DIW_STRT = ((DIW_YSTRT+1)<<8)!DIW_XSTRT
+DIW_STOP = (DIW_YSTRT+1+DIW_H-256)<<8+DIW_XSTOP
+DDF_STRT = ((DIW_XSTRT-17)>>1)+$20&$00fc
+DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)+$20&$00fc

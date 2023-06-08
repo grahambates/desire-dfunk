@@ -13,6 +13,7 @@ deps := $(objects:.o=.d)
 # data/dude_walking_16_frames/raw/%.raw : data/dude_walking_16_frames/%.png
 # 	 ~/amiga/bin/amigeconv -f bitplane -d 3 $< $@
 
+
 program = out/a
 OUT = $(program)
 CC = m68k-amiga-elf-gcc
@@ -65,5 +66,10 @@ $(vasm_objects): obj/%.o : src/%.asm
 $(deps): obj/%.d : src/%.asm
 	$(info Building dependencies for $<)
 	$(VASM) $(VASMFLAGS) -depend=make -o $(patsubst %.d,%.o,$@) $(CURDIR)/$< > $@
+
+data/girl-head.BPL : assets/girl-head.png
+	~/amiga/bin/kingcon $< data/girl-head -F=3 -I -M
+data/girl-body.BPL : assets/girl-body.png
+	~/amiga/bin/kingcon $< data/girl-body -F=3 -I
 
 .PHONY: all clean dist

@@ -3,8 +3,8 @@
 		include	zcircles.i
 		include	tentacles.i
 
-; TENTACLES_END_FRAME = 32*32
-TENTACLES_END_FRAME = 32*8
+TENTACLES_END_FRAME = 32*32
+; TENTACLES_END_FRAME = 32*8
 
 OUTER_COUNT = 7
 INNER_COUNT = 7
@@ -47,16 +47,38 @@ DIW_STOP = ((DIW_YSTOP-256)<<8)!(DIW_XSTOP-256)
 DDF_STRT = ((DIW_XSTRT-17)>>1)&$00fc-SCROLL*8
 DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 
-Fade		dc.w	0
 
+********************************************************************************
+Tentacles_Vbi:
+********************************************************************************
+		move.l	VBlank,d7
+		sub.l	StartFrame(pc),d7
+		move.l	d7,CurrFrame
+		rts
+
+
+********************************************************************************
 Tentacles_Effect:
+********************************************************************************
+		move.l	VBlank,StartFrame
 		lea	Cop,a0
 		jsr	InstallCopper
+		lea	Tentacles_Vbi,a0
+		jsr	InstallInterrupt
 
 		; Allocate screen memory
 		move.l	#SCREEN_BW*BPLS*SCREEN_H*2,d0
 		jsr	AllocChip
 		move.l	a0,Screen
+
+		; clear screen
+		WAIT_BLIT
+		move.l	a0,bltdpt(a6)
+		move.l	#$01000000,bltcon0(a6)
+		clr.l	bltdmod(a6)
+		move.w	#(SCREEN_H*(BPLS-1))<<6!(SCREEN_BW/2),bltsize(a6)
+		WAIT_BLIT
+		move.w	#(SCREEN_H)<<6!(SCREEN_BW/2),bltsize(a6)
 
 		; Sprites
 
@@ -96,7 +118,7 @@ Tentacles_Effect:
 
 Frame:
 		; Horizontal scroll position frame frame count
-		move.l	VBlank,d0
+		move.l	CurrFrame,d0
 
 ; Fade in
 		cmp.w	#64,d0
@@ -131,7 +153,7 @@ Frame:
 		dbf	d7,.col
 .endFade
 
-		move.l	VBlank,d6
+		move.l	CurrFrame,d6
 
 		moveq	#15,d0					; last 4 bits go in bplcon1 and save later for adjustment
 		and.w	d6,d0
@@ -181,7 +203,7 @@ Frame:
 		add.w	#28+SCREEN_BW*128,a1
 
 ; Scale value from sum of sines:
-		move.w	VBlank+2,d6
+		move.w	CurrFrame+2,d6
 		add.w	#$130,d6
 
 		lsl.w	#2,d6
@@ -207,12 +229,6 @@ Frame:
 		move.w	(a3,d6.w),d6
 		asr.w	#5,d6
 
-; Outer rotation:
-		; move.w	VBlank+2,d7
-		; lsr.w	#7,d7
-		; cmp.w #OUTER_COUNT-1,d7
-		; ble .l0
-
 		moveq	#OUTER_COUNT-1,d7
 .l0
 		; x = sin(a)
@@ -227,7 +243,7 @@ Frame:
 		move.w	(a3,d4.w),d1
 
 ; d4 = inner start angle
-		move.w	VBlank+2,d4
+		move.w	CurrFrame+2,d4
 		lsl.w	#4,d4
 
 ; Inner rotation:
@@ -269,7 +285,7 @@ Frame:
 		add.w	#($400/OUTER_COUNT)*2,d6
 		dbf	d7,.l0
 
-		cmp.l	#TENTACLES_END_FRAME,VBlank
+		cmp.l	#TENTACLES_END_FRAME,CurrFrame
 		blt	Frame
 
 		move.w	#DMAF_SPRITE,dmacon(a6)
@@ -380,8 +396,14 @@ BlitCircleUnsafe:
 .nope		rts
 
 
+*******************************************************************************
+Vars:
+*******************************************************************************
+StartFrame:	dc.l	0
+CurrFrame:	dc.l	0
 Scale:		dc.w	$100
 Scroll:		dc.w	0
+
 Pal:
 		dc.w	$123,$f06,$f58,$f79,$f9a,$fbc,$ecd,$ded
 		dc.w	$744,$f5b,$f7c,$f9d,$fbd,$fde,$fef,$fff

@@ -4,11 +4,12 @@
 		include	"rotate.i"
 		include	"zcircles.i"
 		include	"tunnel.i"
+		include	"girl.i"
 
 _start:
 		include	"PhotonsMiniWrapper1.04.i"
 
-MUSIC_ENABLE = 0
+MUSIC_ENABLE = 1
 DMASET = DMAF_SETCLR!DMAF_MASTER!DMAF_RASTER!DMAF_COPPER!DMAF_BLITTER
 INTSET = INTF_SETCLR!INTF_INTEN!INTF_VERTB|INTF_COPER
 RANDOM_SEED = $a162b2c9
@@ -79,9 +80,10 @@ StartMusic:
 
 ;-------------------------------------------------------------------------------
 Effects:
-		jsr 	Tunnel_Effect
+		jsr	Girl_Effect
 		jsr	Tentacles_Effect
 		jsr	Rotate_Effect
+		; jsr 	Tunnel_Effect
 		rts						; Exit demo
 
 
@@ -371,9 +373,9 @@ LSPBank:	incbin	"data/funky_shuffler.lsbank"
 MainCop:
 		dc.w	fmode,0
 		ifne	MUSIC_ENABLE
-		dc.l	(20<<24)|($09fffe)			; wait scanline 20
+		dc.l	(10<<24)|($09fffe)			; wait scanline 10
 		dc.l	$009c8000|(1<<4)			; fire copper interrupt
-		dc.l	((20+11)<<24)|($09fffe)			; wait scanline 50+11
+		dc.l	((10+11)<<24)|($09fffe)			; wait scanline 10+11
 CopDma:		dc.w	dmacon,$8000
 		endc
 Cop1Lc:		dc.w	cop2lc,0				; Address of installed copper
