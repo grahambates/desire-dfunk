@@ -76,9 +76,6 @@ Rotate_Effect:
 		sub.l	a1,a1
 		jsr	StartEffect
 
-		lea Script,a0
-		jsr Commander_Init
-
 		; Allocate and clear screen memory
 		move.l	#SCREEN_SIZE,d0
 		; screen 1
@@ -132,6 +129,9 @@ Rotate_Effect:
 		lea	Rotate_Vbi(pc),a1
 		jsr	StartEffect
 		jsr	ResetFrameCounter
+
+		lea Script,a0
+		jsr Commander_Init
 
 ********************************************************************************
 Frame:
