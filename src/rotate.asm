@@ -692,7 +692,8 @@ SwapBuffers:
 
 ********************************************************************************
 LoadPalette:
-		lea	color(a6),a1
+		lea	color01(a6),a1
+		addq 	#2,a0
 		move.w	#32/2-1,d0
 .col		move.l	(a0)+,(a1)+
 		dbf	d0,.col

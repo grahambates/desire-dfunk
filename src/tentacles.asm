@@ -44,6 +44,11 @@ DIW_STOP = ((DIW_YSTOP-256)<<8)!(DIW_XSTOP-256)
 DDF_STRT = ((DIW_XSTRT-17)>>1)&$00fc-SCROLL*8
 DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 
+Script:
+	dc.l $20,CmdLerpWord,128,5,SpriteX
+	dc.l TENTACLES_END_FRAME-(1<<5)-$20,CmdLerpWord,64,5,SpriteX
+	dc.l 0,0
+
 
 ********************************************************************************
 Tentacles_Effect:
@@ -53,6 +58,9 @@ Tentacles_Effect:
 		lea	BlankCop,a0
 		sub.l	a1,a1
 		jsr	StartEffect
+
+		lea Script,a0
+		jsr Commander_Init
 
 		; Allocate screen memory
 		move.l	#SCREEN_BW*BPLS*SCREEN_H*2,d0
@@ -105,11 +113,6 @@ Tentacles_Effect:
 		sub.l	a1,a1
 		jsr	StartEffect
 
-		move.w #128,d0
-		move.w #5,d1
-		lea SpriteX(pc),a1
-		jsr LerpWord
-
 Frame:
 
 ; Position sprite:
@@ -145,14 +148,6 @@ Frame:
 		jsr	LerpPal
 		bra	.loadPal
 .noFadeIn
-
-		cmp.w	#TENTACLES_END_FRAME-64,d0
-		bne .noSpriteOut
-		move.w #64,d0
-		move.w #5,d1
-		lea SpriteX(pc),a1
-		jsr LerpWord
-.noSpriteOut
 
 ; Fade out
 		cmp.w	#TENTACLES_END_FRAME-64,d0
@@ -429,8 +424,9 @@ Pal:
 		dc.w	$744,$f5b,$f7c,$f9d,$fbd,$fde,$fef,$fff
 
 PalStart:
-		dc.w	$123,$123,$123,$123,$123,$123,$123,$123
-		dc.w	$123,$123,$123,$123,$123,$123,$123,$123
+		rept 16
+		dc.w	$123
+		endr
 
 Screen:		dc.l	0
 

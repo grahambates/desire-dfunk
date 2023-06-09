@@ -2,13 +2,14 @@
 		include	"tunnel.i"
 
 TUNNEL_END_FRAME = $3ff
+BG_COL = $123
 
 SRC_W = 64
 SRC_H = 64
 DEST_W = 82
 DEST_H = 122
 ROW_BW = 492
-CHUNKY_H = 90
+CHUNKY_H = 90-2
 CHUNKY_W = 50
 
 PAN_X = (DEST_W-CHUNKY_W)/2
@@ -32,7 +33,7 @@ DMA_SET = DMAF_SETCLR!DMAF_MASTER!DMAF_RASTER!DMAF_COPPER
 COLORS = 1<<BPLS
 
 DIW_BW = DIW_W/16*2
-DIW_YSTRT = ($158-DIW_H)/2
+DIW_YSTRT = ($158-DIW_H)/2+6
 DIW_YSTOP = DIW_YSTRT+DIW_H
 DIW_XSTOP = DIW_XSTRT+DIW_W
 DIW_STRT = ((DIW_YSTRT+1)<<8)!DIW_XSTRT
@@ -137,36 +138,36 @@ InitChunky:
 		bne	.ok
 		subq	#1,d0
 .ok
-		move.l	#color02<<16!$123,(a0)+			;CopC_OddCols
+		move.l	#color02<<16!BG_COL,(a0)+			;CopC_OddCols
 		; skip 3
-		move.l	#color04<<16!$123,(a0)+
-		move.l	#color05<<16!$123,(a0)+
-		move.l	#color06<<16!$123,(a0)+
-		move.l	#color07<<16!$123,(a0)+
-		move.l	#color08<<16!$123,(a0)+
-		move.l	#color09<<16!$123,(a0)+
-		move.l	#color10<<16!$123,(a0)+
-		move.l	#color11<<16!$123,(a0)+
-		move.l	#color12<<16!$123,(a0)+
-		move.l	#color13<<16!$123,(a0)+
-		move.l	#color14<<16!$123,(a0)+
-		move.l	#color15<<16!$123,(a0)+
+		move.l	#color04<<16!BG_COL,(a0)+
+		move.l	#color05<<16!BG_COL,(a0)+
+		move.l	#color06<<16!BG_COL,(a0)+
+		move.l	#color07<<16!BG_COL,(a0)+
+		move.l	#color08<<16!BG_COL,(a0)+
+		move.l	#color09<<16!BG_COL,(a0)+
+		move.l	#color10<<16!BG_COL,(a0)+
+		move.l	#color11<<16!BG_COL,(a0)+
+		move.l	#color12<<16!BG_COL,(a0)+
+		move.l	#color13<<16!BG_COL,(a0)+
+		move.l	#color14<<16!BG_COL,(a0)+
+		move.l	#color15<<16!BG_COL,(a0)+
 		; skip 16
-		move.l	#color17<<16!$123,(a0)+
-		move.l	#color18<<16!$123,(a0)+
-		move.l	#color19<<16!$123,(a0)+
+		move.l	#color17<<16!BG_COL,(a0)+
+		move.l	#color18<<16!BG_COL,(a0)+
+		move.l	#color19<<16!BG_COL,(a0)+
 		; skip 20
-		move.l	#color21<<16!$123,(a0)+
-		move.l	#color22<<16!$123,(a0)+
-		move.l	#color23<<16!$123,(a0)+
+		move.l	#color21<<16!BG_COL,(a0)+
+		move.l	#color22<<16!BG_COL,(a0)+
+		move.l	#color23<<16!BG_COL,(a0)+
 		; skip 24
-		move.l	#color25<<16!$123,(a0)+
-		move.l	#color26<<16!$123,(a0)+
-		move.l	#color27<<16!$123,(a0)+
+		move.l	#color25<<16!BG_COL,(a0)+
+		move.l	#color26<<16!BG_COL,(a0)+
+		move.l	#color27<<16!BG_COL,(a0)+
 		; skip 28
-		move.l	#color29<<16!$123,(a0)+
-		move.l	#color30<<16!$123,(a0)+
-		move.l	#color31<<16!$123,(a0)+
+		move.l	#color29<<16!BG_COL,(a0)+
+		move.l	#color30<<16!BG_COL,(a0)+
+		move.l	#color31<<16!BG_COL,(a0)+
 
 		move.w	#$80,d1					;CopC_Wait
 		and.w	d0,d1
@@ -175,10 +176,10 @@ InitChunky:
 		move.w	#$805c,(a0)+
 
 		move.w	#CHUNKY_W/2-1,d6
-.evenCol	move.l	#color00<<16!$123,(a0)+
+.evenCol	move.l	#color00<<16!BG_COL,(a0)+
 		dbf	d6,.evenCol
 
-		move.l	#color00<<16!$123,(a0)+			;CopC_Bg
+		move.l	#color00<<16!BG_COL,(a0)+			;CopC_Bg
 		move.w	#(cop2lc+2),(a0)+			;CopC_Loc
 		move.w	a1,(a0)+
 		move.b	d0,(a0)+				;CopC_Skip
@@ -417,7 +418,7 @@ Draw:
 		add.l	d1,a6
 		add.l	d1,a7
 
-		move.w #$123,d3
+		move.w #BG_COL,d3
 		move.w	Top(pc),d0
 		bra 	.nextClear
 .l0
