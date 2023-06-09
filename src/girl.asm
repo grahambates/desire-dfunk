@@ -1,5 +1,4 @@
-		incdir	src
-		include	_main.i
+		include	src/_main.i
 		include	girl.i
 
 GIRL_END_FRAME = $3ff

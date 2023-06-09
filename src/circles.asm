@@ -1,6 +1,4 @@
-		incdir	src
-		include	_main.i
-		include	zcircles.i
+		include	src/_main.i
 
 MAX_CLEAR = 100*2+2
 DIW_BW = CIRCLES_DIW_W/8

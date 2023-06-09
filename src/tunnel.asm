@@ -1,5 +1,4 @@
-		incdir	src
-		include	"_main.i"
+		include	"src/_main.i"
 		include	"tunnel.i"
 
 TUNNEL_END_FRAME = $1ff

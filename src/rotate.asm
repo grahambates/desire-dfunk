@@ -1,7 +1,5 @@
-		incdir	src
-		include	_main.i
+		include	src/_main.i
 		include	rotate.i
-		include	zcircles.i
 
 DIW_W = CIRCLES_DIW_W
 DIW_H = CIRCLES_DIW_H

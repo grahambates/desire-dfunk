@@ -1,2 +1,2 @@
-	xdef Rotate_Precalc
-	xdef Rotate_Effect
+	xref Rotate_Precalc
+	xref Rotate_Effect
