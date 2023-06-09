@@ -1,7 +1,7 @@
 		include	src/_main.i
 		include	girl.i
 
-GIRL_END_FRAME = $3ff
+GIRL_END_FRAME = $ff
 
 DIW_W = 320
 DIW_H = 256

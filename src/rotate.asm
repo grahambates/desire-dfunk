@@ -709,7 +709,7 @@ DrawBuffer:	dc.l	0
 ViewBuffer:	dc.l	0
 
 Zoom:		dc.w	0
-ZoomBase:	dc.w	2000
+ZoomBase:	dc.w	1500
 
 DrawPoints:	dc.l	0
 

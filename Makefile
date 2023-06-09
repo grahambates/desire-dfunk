@@ -10,6 +10,7 @@ OUT = $(program)
 CC = m68k-amiga-elf-gcc
 VASM = ~/amiga/bin/vasmm68k_mot
 KINGCON = ~/amiga/bin/kingcon
+AMIGATOOLS = /Users/batesgw1/.nvm/versions/node/v16.17.0/bin/amigatools
 DEBUG = 1
 
 CCFLAGS = -g -MP -MMD -m68000 -Ofast -nostdlib -Wextra -Wno-unused-function -Wno-volatile-register-var -fomit-frame-pointer -fno-tree-loop-distribution -flto -fwhole-program -fno-exceptions
@@ -85,12 +86,12 @@ data/tex.rgba: data/tex.png
 	convert $^ -depth 4 $@
 
 data/tex.rgb: data/tex.rgba
-	amigatools shiftrgba $^ $@
+	$(AMIGATOOLS) shiftrgba $^ $@
 
 data/tables_shade1.i: scripts/table_shade.js
 	node $^ -v 122 -u 82 --routine=false --aspect=0.75 > $@
 
 obj/tables_shade1.o: data/tables_shade1.i
-	$(VASM) -Fbin -quiet $(INCLUDE) -no-opt -o $@ $^
+	$(VASM) -Fbin -quiet -no-opt -o $@ $^
 
 .PHONY: all clean dist
