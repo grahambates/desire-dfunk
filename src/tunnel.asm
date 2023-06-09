@@ -130,36 +130,36 @@ InitChunky:
 		bne	.ok
 		subq	#1,d0
 .ok
-		move.l	#color02<<16,(a0)+			;CopC_OddCols
+		move.l	#color02<<16!$123,(a0)+			;CopC_OddCols
 		; skip 3
-		move.l	#color04<<16,(a0)+
-		move.l	#color05<<16,(a0)+
-		move.l	#color06<<16,(a0)+
-		move.l	#color07<<16,(a0)+
-		move.l	#color08<<16,(a0)+
-		move.l	#color09<<16,(a0)+
-		move.l	#color10<<16,(a0)+
-		move.l	#color11<<16,(a0)+
-		move.l	#color12<<16,(a0)+
-		move.l	#color13<<16,(a0)+
-		move.l	#color14<<16,(a0)+
-		move.l	#color15<<16,(a0)+
+		move.l	#color04<<16!$123,(a0)+
+		move.l	#color05<<16!$123,(a0)+
+		move.l	#color06<<16!$123,(a0)+
+		move.l	#color07<<16!$123,(a0)+
+		move.l	#color08<<16!$123,(a0)+
+		move.l	#color09<<16!$123,(a0)+
+		move.l	#color10<<16!$123,(a0)+
+		move.l	#color11<<16!$123,(a0)+
+		move.l	#color12<<16!$123,(a0)+
+		move.l	#color13<<16!$123,(a0)+
+		move.l	#color14<<16!$123,(a0)+
+		move.l	#color15<<16!$123,(a0)+
 		; skip 16
-		move.l	#color17<<16,(a0)+
-		move.l	#color18<<16,(a0)+
-		move.l	#color19<<16,(a0)+
+		move.l	#color17<<16!$123,(a0)+
+		move.l	#color18<<16!$123,(a0)+
+		move.l	#color19<<16!$123,(a0)+
 		; skip 20
-		move.l	#color21<<16,(a0)+
-		move.l	#color22<<16,(a0)+
-		move.l	#color23<<16,(a0)+
+		move.l	#color21<<16!$123,(a0)+
+		move.l	#color22<<16!$123,(a0)+
+		move.l	#color23<<16!$123,(a0)+
 		; skip 24
-		move.l	#color25<<16,(a0)+
-		move.l	#color26<<16,(a0)+
-		move.l	#color27<<16,(a0)+
+		move.l	#color25<<16!$123,(a0)+
+		move.l	#color26<<16!$123,(a0)+
+		move.l	#color27<<16!$123,(a0)+
 		; skip 28
-		move.l	#color29<<16,(a0)+
-		move.l	#color30<<16,(a0)+
-		move.l	#color31<<16,(a0)+
+		move.l	#color29<<16!$123,(a0)+
+		move.l	#color30<<16!$123,(a0)+
+		move.l	#color31<<16!$123,(a0)+
 
 		move.w	#$80,d1					;CopC_Wait
 		and.w	d0,d1
@@ -168,10 +168,10 @@ InitChunky:
 		move.w	#$805c,(a0)+
 
 		move.w	#CHUNKY_W/2-1,d6
-.evenCol	move.l	#color00<<16,(a0)+
+.evenCol	move.l	#color00<<16!$123,(a0)+
 		dbf	d6,.evenCol
 
-		move.l	#color00<<16!0,(a0)+			;CopC_Bg
+		move.l	#color00<<16!$123,(a0)+			;CopC_Bg
 		move.w	#(cop2lc+2),(a0)+			;CopC_Loc
 		move.w	a1,(a0)+
 		move.b	d0,(a0)+				;CopC_Skip

@@ -76,7 +76,6 @@ Tentacles_Effect:
 		lea	CopSprPt+2,a0
 		lea	Sprite,a1
 		move.l	a1,a2
-
 		moveq	#4-1,d7
 .sprSlice:
 		move.w	(a1)+,d0
@@ -100,16 +99,40 @@ Tentacles_Effect:
 
 		move.w	#$357,color17(a6)
 		move.w	#$fff,color18(a6)
-		move.w	#$00f,color19(a6)
+		move.w	#$123,color19(a6)
 		move.w	#$357,color21(a6)
 		move.w	#$fff,color22(a6)
-		move.w	#$00f,color23(a6)
+		move.w	#$123,color23(a6)
 
 		lea	Cop,a0
 		sub.l	a1,a1
 		jsr	StartEffect
 
+		move.w #128,d0
+		move.w #5,d1
+		lea SpriteX(pc),a1
+		jsr LerpWord
+
 Frame:
+
+; Position sprite:
+		move.w	SpriteX(pc),d3
+		lea	Sprite,a1
+		move.l	a1,a2
+		moveq	#4-1,d7
+.sprSlice:
+		move.w	(a1)+,d0				; offset
+		lea	(a2,d0.w),a3				; sprite struct
+		moveq	#1,d1
+		and.w	d3,d1
+		bset	#1,d1
+		move.w	d3,d2
+		lsr.w	#1,d2
+		move.b	d2,1(a3)
+		move.b	d1,3(a3)
+		add.w	#16,d3
+		dbf	d7,.sprSlice
+
 		; Horizontal scroll position frame frame count
 		move.l	CurrFrame,d0
 
@@ -125,6 +148,14 @@ Frame:
 		jsr	LerpPal
 		bra	.loadPal
 .noFadeIn
+
+		cmp.w	#TENTACLES_END_FRAME-64,d0
+		bne .noSpriteOut
+		move.w #64,d0
+		move.w #5,d1
+		lea SpriteX(pc),a1
+		jsr LerpWord
+.noSpriteOut
 
 ; Fade out
 		cmp.w	#TENTACLES_END_FRAME-64,d0
@@ -193,7 +224,7 @@ Frame:
 		move.w	#(SCREEN_H)<<6!1,bltsize(a6)
 
 		; Offset a1 to center/right of screen:
-		add.w	#28+SCREEN_BW*128,a1
+		add.w	#30+SCREEN_BW*128,a1
 
 ; Scale value from sum of sines:
 		move.w	CurrFrame+2,d6
@@ -392,6 +423,7 @@ DrawTentacle:
 *******************************************************************************
 Vars:
 *******************************************************************************
+SpriteX:	dc.w	64
 Scale:		dc.w	$100
 Scroll:		dc.w	0
 
@@ -433,7 +465,7 @@ CopScroll:	dc.w	bplcon1,0
 		dc.l	-2
 
 Sprite:
-		incbin	"assets/foo.spr"
+		incbin	data/DFunk-vert.SPR
 
 NullSprite:
 		dc.l	0

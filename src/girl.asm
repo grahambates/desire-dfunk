@@ -2,7 +2,7 @@
 		include	_main.i
 		include	girl.i
 
-GIRL_END_FRAME = $ff
+GIRL_END_FRAME = $3ff
 
 DIW_W = 320
 DIW_H = 256
@@ -64,7 +64,14 @@ Frame:
 		exg	a0,a1
 		movem.l	a0-a1,DrawBuffer
 
-		bsr	ClearScreen
+		; Just clear needed area
+		WAIT_BLIT
+		move.l a0,a1
+		add.l 	#SCREEN_BW*BPLS*(70+HEAD_H-CC_H)+2,a1
+		move.l	a1,bltdpt(a6)
+		move.l	#$01000000,bltcon0(a6)
+		move.w	#SCREEN_BW-HEAD_BW,bltdmod(a6)
+		move.w	#(CC_H*BPLS)<<6!(HEAD_BW/2),bltsize(a6)
 
 		; Shoulders pos
 		lea	Cos,a4
@@ -103,6 +110,7 @@ Frame:
 		bsr	BlitHead
 
 		jsr	WaitEOF
+		move.w	#DMAF_BLITHOG,dmacon(a6) ; unhog the blitter
 		cmp.l	#GIRL_END_FRAME,CurrFrame
 		blt	Frame
 
@@ -143,16 +151,35 @@ BlitHead:
 		lsl	#2,d1					; offset for bltcon table
 		lsr.w	#3,d0					; byte offset
 		add.w	d0,a0
+		move.w #DMAF_SETCLR!DMAF_BLITHOG,dmacon(a6) ; hog the blitter
 		WAIT_BLIT
 		move.l	.bltcon(pc,d1.w),bltcon0(a6)
 		move.l	#(SCREEN_BW-HEAD_BW)<<16!HEAD_BW,bltcmod(a6)
 		move.l	#HEAD_BW<<16!(SCREEN_BW-HEAD_BW),bltamod(a6)
+		; movem.l	a0-a2,bltcpth(a6)
+
+CC_H = 40
+		move.l	a1,bltapth(a6)
+		move.l	a0,bltdpth(a6)
+		move.w	#((HEAD_H-CC_H)*BPLS)<<6!(HEAD_BW/2),bltsize(a6)
+		WAIT_BLIT
+		add.l #(HEAD_H-CC_H)*BPLS*SCREEN_BW,a0
+		add.l #(HEAD_H-CC_H)*BPLS*HEAD_BW*2,a1
+		add.l #(HEAD_H-CC_H)*BPLS*HEAD_BW*2,a2
+		move.l	.bltconb(pc,d1.w),bltcon0(a6)
 		movem.l	a0-a2,bltcpth(a6)
 		move.l	a0,bltdpth(a6)
-		move.w	#(HEAD_H*BPLS)<<6!(HEAD_BW/2),bltsize(a6)
+		move.w	#(40*BPLS)<<6!(HEAD_BW/2),bltsize(a6)
 		rts
+
 ; Table for combined minterm and shifts for bltcon0/bltcon1
-.bltcon:	dc.l	$0fca0000,$1fca1000,$2fca2000,$3fca3000
+.bltcon:	dc.l	$09f00000,$19f01000,$29f02000,$39f03000
+		dc.l	$49f04000,$59f05000,$69f06000,$79f07000
+		dc.l	$89f08000,$99f09000,$a9f0a000,$b9f0b000
+		dc.l	$c9f0c000,$d9f0d000,$e9f0e000,$f9f0f000
+
+		; Table for combined minterm and shifts for bltcon0/bltcon1
+.bltconb:	dc.l	$0fca0000,$1fca1000,$2fca2000,$3fca3000
 		dc.l	$4fca4000,$5fca5000,$6fca6000,$7fca7000
 		dc.l	$8fca8000,$9fca9000,$afcaa000,$bfcab000
 		dc.l	$cfcac000,$dfcad000,$efcae000,$ffcaf000

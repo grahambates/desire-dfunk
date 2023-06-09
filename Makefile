@@ -2,7 +2,7 @@ vasm_sources := $(wildcard src/*.asm)
 vasm_objects := $(addprefix obj/, $(patsubst %.asm,%.o,$(notdir $(vasm_sources))))
 objects := $(vasm_objects)
 deps := $(objects:.o=.d)
-data := data/girl-head.BPL data/girl-body.BPL obj/tables_shade1.o data/tex.rgb
+data := data/girl-head.BPL data/girl-body.BPL obj/tables_shade1.o data/tex.rgb data/DFunk-vert.BPL
 
 program = out/a
 OUT = $(program)
@@ -62,6 +62,9 @@ data/girl-head.BPL : assets/girl-head.png
 	$(KINGCON) $< data/girl-head -F=3 -I -M
 data/girl-body.BPL : assets/girl-body.png
 	$(KINGCON) $< data/girl-body -F=3 -I
+
+data/DFunk-vert.BPL : assets/DFunk-vert.png
+	$(KINGCON) $< data/DFunk-vert -F=s16 -SX=128
 
 # dude_images := $(wildcard assets/dude_walking_16_frames/*.iff)
 # dude_images_png := $(addprefix data/dude_walking_16_frames/, $(patsubst %.iff,%.png,$(notdir $(dude_images))))
