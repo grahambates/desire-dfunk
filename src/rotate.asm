@@ -70,6 +70,8 @@ Script:
 Rotate_Effect:
 ********************************************************************************
 		jsr	Free
+		jsr	ResetFrameCounter
+
 		lea	BlankCop,a0
 		sub.l	a1,a1
 		jsr	StartEffect
@@ -126,7 +128,6 @@ Rotate_Effect:
 		lea	Cop,a0
 		lea	Rotate_Vbi(pc),a1
 		jsr	StartEffect
-		jsr	ResetFrameCounter
 
 		lea Script,a0
 		jsr Commander_Init
