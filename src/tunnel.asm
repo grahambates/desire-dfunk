@@ -51,11 +51,8 @@ CopC_Jmp	rs.l	1
 CopC_SIZEOF	rs.b	0
 
 Script:
-		; dc.l	$80,CmdMoveIW,1,XSpeed
-		; dc.l	$140,CmdMoveIW,-1,XSpeed
-		; dc.l	$180,CmdLerpWord,2,4,XSpeed
-		; dc.l	$1c0,CmdLerpWord,-2,4,XSpeed
-		; dc.l	$200,CmdLerpWord,1,4,XSpeed
+		dc.l	$0,CmdLerpWord,0,6,Top
+		dc.l	TUNNEL_END_FRAME-(1<<6),CmdLerpWord,CHUNKY_H,6,Top
 		dc.l	0,0
 
 
@@ -292,7 +289,6 @@ FadeRGB:
 Update:
 ;-------------------------------------------------------------------------------
 		lea	Vars(pc),a5
-
 		lea	Sin,a0
 		lea	Cos,a1
 
@@ -301,34 +297,34 @@ Update:
 		lsl	#1,d0
 		and.w	#$7fe,d0
 		move.w	(a1,d0),d1
-		ext.l d1
-		lsl.l #4,d1
-		swap  d1
-		addq #1,d1
-		move.w d1,YSpeed
+		ext.l	d1
+		lsl.l	#4,d1
+		swap	d1
+		addq	#1,d1
+		move.w	d1,YSpeed
 
-ADJ=$800-$40
+ADJ = $800-$40
 
 ; set X speed
 		move.l	VBlank,d1
-		add.l #ADJ,d1
+		add.l	#ADJ,d1
 		lsl	#3,d1
 		and.w	#$7fe,d1
 		move.w	(a1,d1),d1
 
 		move.l	VBlank,d0
-		add.l #ADJ,d0
+		add.l	#ADJ,d0
 		lsl	#2,d0
 		and.w	#$7fe,d0
 		move.w	(a0,d0),d0
-		add.l d0,d1
+		add.l	d0,d1
 
-		ext.l d1
-		lsl.l #2,d1
-		add.l #$8000,d1
-		swap  d1
+		ext.l	d1
+		lsl.l	#2,d1
+		add.l	#$8000,d1
+		swap	d1
 
-		move.w d1,XSpeed
+		move.w	d1,XSpeed
 
 ; Texture offset:
 ; Offset X
@@ -420,69 +416,12 @@ Draw:
 		add.l	d1,a5
 		add.l	d1,a6
 		add.l	d1,a7
-;-------------------------------------------------------------------------------
-; Panning:
-		move.w	PanX(pc),d0
-		btst	#0,d0
-		beq	.isEven
-		exg	a0,a1
-		subq	#4,a1
-.isEven
-; Draw row start += PanX*6
-		move.w	d0,d1
-		add.w	d1,d1
-		add.w	d0,d1
-		add.w	d1,d1
-		lea	(a2,d1),a2
-; Copper ptr -= (PanX>>1)*4
-		asr.w	d0
-		add.w	d0,d0
-		add.w	d0,d0
-		sub.l	d0,a0
-		sub.l	d0,a1
-		move.l	d0,PanOffs				; store
 
-		move.w	PanY(pc),d0
-		mulu	#ROW_BW,d0
-		add.l	d0,a2
-
-;-------------------------------------------------------------------------------
-		move.l	CurrFrame,d0
-		lsr.w	#1,d0
-		cmp.w	#CHUNKY_H-1,d0
-		ble	.l
-		moveq	#CHUNKY_H-1,d0
-.l
-		move.w	CHUNKY_W*6(a2),d1			; stash instructions before SMC
-		move.l	CHUNKY_W*6+2(a2),d2
-		move.w	#$4ef9,CHUNKY_W*6(a2)			; insert `jmp .ret`
-		move.l	#.ret,CHUNKY_W*6+2(a2)
-		jmp	(a2)
-.ret
-		move.w	d1,CHUNKY_W*6(a2)			; restore originl instructions
-		move.l	d2,CHUNKY_W*6+2(a2)
-		lea	CopC_SIZEOF(a0),a0
-		lea	CopC_SIZEOF(a1),a1
-		lea	ROW_BW(a2),a2
-		dbf	d0,.l
-
-		move.l	PanOffs,d0
-		add.l	d0,a0
-		add.l	d0,a1
-
-; 		move.w #$123,d3
-; 		moveq	#20-1,d0
-; .l0		bsr	ClearRow
-; 		lea	CopC_SIZEOF(a0),a0
-; 		lea	CopC_SIZEOF(a1),a1
-; 		dbf	d0,.l0
-
-		move.l	.stack,sp
-		rts
-
-.stack		dc.l	1
-
-ClearRow:
+		move.w #$123,d3
+		move.w	Top(pc),d0
+		bra 	.nextClear
+.l0
+		move.w	d3,0(a1)
 		move.w	d3,0(a0)
 		move.w	d3,4(a1)
 		move.w	d3,4(a0)
@@ -532,13 +471,66 @@ ClearRow:
 		move.w	d3,92(a0)
 		move.w	d3,96(a1)
 		move.w	d3,96(a0)
+		lea	CopC_SIZEOF(a0),a0
+		lea	CopC_SIZEOF(a1),a1
+.nextClear	dbf	d0,.l0
+
+;-------------------------------------------------------------------------------
+; Panning:
+	move.w	PanX(pc),d0
+	btst	#0,d0
+	beq	.isEven
+	exg	a0,a1
+	subq	#4,a1
+.isEven
+
+; Draw row start += PanX*6
+		move.w	d0,d1
+		add.w	d1,d1
+		add.w	d0,d1
+		add.w	d1,d1
+		lea	(a2,d1),a2
+; Copper ptr -= (PanX>>1)*4
+		asr.w	d0
+		add.w	d0,d0
+		add.w	d0,d0
+		sub.l	d0,a0
+		sub.l	d0,a1
+		move.l	d0,PanOffs				; store
+
+		move.w	PanY(pc),d0
+		mulu	#ROW_BW,d0
+		add.l	d0,a2
+
+;-------------------------------------------------------------------------------
+		moveq	#CHUNKY_H,d0
+		sub.w	Top(pc),d0
+		bra .next
+.l
+		move.w	CHUNKY_W*6(a2),d1			; stash instructions before SMC
+		move.l	CHUNKY_W*6+2(a2),d2
+		move.w	#$4ef9,CHUNKY_W*6(a2)			; insert `jmp .ret`
+		move.l	#.ret,CHUNKY_W*6+2(a2)
+		jmp	(a2)
+.ret
+		move.w	d1,CHUNKY_W*6(a2)			; restore originl instructions
+		move.l	d2,CHUNKY_W*6+2(a2)
+		lea	CopC_SIZEOF(a0),a0
+		lea	CopC_SIZEOF(a1),a1
+		lea	ROW_BW(a2),a2
+.next		dbf	d0,.l
+
+		move.l	.stack,sp
 		rts
+
+.stack		dc.l	1
 
 
 ********************************************************************************
 Vars:
 ********************************************************************************
 
+Top:		dc.w	CHUNKY_H
 XSpeed:		dc.w	0
 YSpeed:		dc.w	1
 X:		dc.w	0
