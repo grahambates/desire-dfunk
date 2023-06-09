@@ -3,8 +3,7 @@ vasm_objects := $(addprefix obj/, $(patsubst %.asm,%.o,$(notdir $(vasm_sources))
 objects := $(vasm_objects)
 deps := $(objects:.o=.d)
 dude_images := $(wildcard assets/dude_walking_16_frames/*.png)
-dude_images_raw := $(addprefix data/dude_walking_16_frames/, $(patsubst %.png,%.raw,$(notdir $(dude_images))))
-data := data/girl-head.BPL data/girl-body.BPL obj/tables_shade1.o data/tex.rgb data/DFunk-vert.BPL $(dude_images_raw)
+data := data/girl-head.BPL data/girl-body.BPL obj/tables_shade1.o data/tex.rgb data/DFunk-vert.BPL data/dude_walking.BPL
 
 program = out/a
 OUT = $(program)
@@ -71,9 +70,8 @@ data/DFunk-vert.BPL : assets/DFunk-vert.png
 # data/dude_walking_16_frames/%.png : assets/dude_walking_16_frames/%.iff
 # 	convert -extent 96x150 -gravity SouthWest -background "#000000" $< $@
 
-data/dude_walking_16_frames/%.raw : assets/dude_walking_16_frames/%.png
-	 ~/amiga/bin/amigeconv -f bitplane -d 3 $< $@
-
+data/dude_walking.BPL : $(dude_images)
+	$(KINGCON) assets/dude_walking_16_frames-b/dude_walking_b_1.png data/dude_walking -A -F=3
 
 tex = assets/bokeh-bright.jpg
 

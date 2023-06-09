@@ -52,8 +52,8 @@ StartMusic:
 
 ;-------------------------------------------------------------------------------
 Effects:
-		; jsr	Girl_Effect
-		; jsr	Tentacles_Effect
+		jsr	Girl_Effect
+		jsr	Tentacles_Effect
 		jsr	Tunnel_Effect
 		jsr	Rotate_Effect
 		rts						; Exit demo
@@ -467,19 +467,4 @@ DivTab:		ds.w	DIVS_RANGE
 LerpWordsState:	ds.b	Lerp_SIZEOF*LERPS_WORDS_LEN
 
 	section anim,data
-	incbin data/dude_walking_16_frames/dude_walking_b_01.raw
-	incbin data/dude_walking_16_frames/dude_walking_b_02.raw
-	incbin data/dude_walking_16_frames/dude_walking_b_03.raw
-	incbin data/dude_walking_16_frames/dude_walking_b_04.raw
-	incbin data/dude_walking_16_frames/dude_walking_b_05.raw
-	incbin data/dude_walking_16_frames/dude_walking_b_06.raw
-	incbin data/dude_walking_16_frames/dude_walking_b_07.raw
-	incbin data/dude_walking_16_frames/dude_walking_b_08.raw
-	incbin data/dude_walking_16_frames/dude_walking_b_09.raw
-	incbin data/dude_walking_16_frames/dude_walking_b_10.raw
-	incbin data/dude_walking_16_frames/dude_walking_b_11.raw
-	incbin data/dude_walking_16_frames/dude_walking_b_12.raw
-	incbin data/dude_walking_16_frames/dude_walking_b_13.raw
-	incbin data/dude_walking_16_frames/dude_walking_b_14.raw
-	incbin data/dude_walking_16_frames/dude_walking_b_15.raw
-	incbin data/dude_walking_16_frames/dude_walking_b_16.raw
+	; incbin foo.BPL
