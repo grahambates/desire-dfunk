@@ -1,7 +1,7 @@
 		include	"src/_main.i"
 		include	"tunnel.i"
 
-TUNNEL_END_FRAME = $1ff
+TUNNEL_END_FRAME = $3ff
 
 SRC_W = 64
 SRC_H = 64
@@ -50,9 +50,18 @@ CopC_Skip	rs.l	1
 CopC_Jmp	rs.l	1
 CopC_SIZEOF	rs.b	0
 
+Script:
+		; dc.l	$80,CmdMoveIW,1,XSpeed
+		; dc.l	$140,CmdMoveIW,-1,XSpeed
+		; dc.l	$180,CmdLerpWord,2,4,XSpeed
+		; dc.l	$1c0,CmdLerpWord,-2,4,XSpeed
+		; dc.l	$200,CmdLerpWord,1,4,XSpeed
+		dc.l	0,0
+
 
 ********************************************************************************
 Tunnel_Effect:
+		jsr	ResetFrameCounter
 		jsr	Free
 		lea	BlankCop,a0
 		sub.l	a1,a1
@@ -73,16 +82,18 @@ Tunnel_Effect:
 		move.l	Shades(pc),a1
 		moveq	#1,d0
 
-		rept	14
-		bsr.w	FadeRGB
+		moveq	#14-1,d7
+.f		bsr.w	FadeRGB
 		lea	SRC_SIZE*2(a1),a1
 		addq	#1,d0
-		endr
+		dbf	d7,.f
 
 		move.l	Cop,a0
 		sub.l	a1,a1
 		jsr	StartEffect
-		jsr	ResetFrameCounter
+
+		lea	Script,a0
+		jsr	Commander_Init
 Frame:
 		bsr	Update
 		bsr	Draw
@@ -104,7 +115,7 @@ Frame:
 
 		rts
 
-NullSprite: dc.l 0
+NullSprite:	dc.l	0
 
 ********************************************************************************
 * Routines:
@@ -281,6 +292,44 @@ FadeRGB:
 Update:
 ;-------------------------------------------------------------------------------
 		lea	Vars(pc),a5
+
+		lea	Sin,a0
+		lea	Cos,a1
+
+; set Y speed
+		move.l	VBlank,d0
+		lsl	#1,d0
+		and.w	#$7fe,d0
+		move.w	(a1,d0),d1
+		ext.l d1
+		lsl.l #4,d1
+		swap  d1
+		addq #1,d1
+		move.w d1,YSpeed
+
+ADJ=$800-$40
+
+; set X speed
+		move.l	VBlank,d1
+		add.l #ADJ,d1
+		lsl	#3,d1
+		and.w	#$7fe,d1
+		move.w	(a1,d1),d1
+
+		move.l	VBlank,d0
+		add.l #ADJ,d0
+		lsl	#2,d0
+		and.w	#$7fe,d0
+		move.w	(a0,d0),d0
+		add.l d0,d1
+
+		ext.l d1
+		lsl.l #2,d1
+		add.l #$8000,d1
+		swap  d1
+
+		move.w d1,XSpeed
+
 ; Texture offset:
 ; Offset X
 		move.w	X-Vars(a5),d0
@@ -304,17 +353,14 @@ Update:
 .noWrapY	move.w	d0,Y-Vars(a5)
 
 ; Panning:
-		lea	Sin,a0
-		lea	Cos,a1
-
 		move.l	VBlank,d0
-		lsl #3,d0
+		lsl	#3,d0
 		and.w	#$7fe,d0
 		move.w	(a0,d0),d1
 		asr.w	d1
 
 		move.l	VBlank,d0
-		lsl #2,d0
+		lsl	#2,d0
 		muls	#5,d0
 		and.w	#$7fe,d0
 		move.w	(a1,d0),d0
@@ -322,7 +368,7 @@ Update:
 		add.w	d0,d1
 
 		move.l	VBlank,d0
-		lsl #3,d0
+		lsl	#3,d0
 		and.w	#$7fe,d0
 		move.w	(a0,d0),d0
 
@@ -339,7 +385,7 @@ Update:
 
 		rts
 
-
+PanOffs:	dc.l	0
 ********************************************************************************
 Draw:
 ;-------------------------------------------------------------------------------
@@ -394,6 +440,7 @@ Draw:
 		add.w	d0,d0
 		sub.l	d0,a0
 		sub.l	d0,a1
+		move.l	d0,PanOffs				; store
 
 		move.w	PanY(pc),d0
 		mulu	#ROW_BW,d0
@@ -419,18 +466,81 @@ Draw:
 		lea	ROW_BW(a2),a2
 		dbf	d0,.l
 
+		move.l	PanOffs,d0
+		add.l	d0,a0
+		add.l	d0,a1
+
+; 		move.w #$123,d3
+; 		moveq	#20-1,d0
+; .l0		bsr	ClearRow
+; 		lea	CopC_SIZEOF(a0),a0
+; 		lea	CopC_SIZEOF(a1),a1
+; 		dbf	d0,.l0
+
 		move.l	.stack,sp
 		rts
 
 .stack		dc.l	1
+
+ClearRow:
+		move.w	d3,0(a0)
+		move.w	d3,4(a1)
+		move.w	d3,4(a0)
+		move.w	d3,8(a1)
+		move.w	d3,8(a0)
+		move.w	d3,12(a1)
+		move.w	d3,12(a0)
+		move.w	d3,16(a1)
+		move.w	d3,16(a0)
+		move.w	d3,20(a1)
+		move.w	d3,20(a0)
+		move.w	d3,24(a1)
+		move.w	d3,24(a0)
+		move.w	d3,28(a1)
+		move.w	d3,28(a0)
+		move.w	d3,32(a1)
+		move.w	d3,32(a0)
+		move.w	d3,36(a1)
+		move.w	d3,36(a0)
+		move.w	d3,40(a1)
+		move.w	d3,40(a0)
+		move.w	d3,44(a1)
+		move.w	d3,44(a0)
+		move.w	d3,48(a1)
+		move.w	d3,48(a0)
+		move.w	d3,52(a1)
+		move.w	d3,52(a0)
+		move.w	d3,56(a1)
+		move.w	d3,56(a0)
+		move.w	d3,60(a1)
+		move.w	d3,60(a0)
+		move.w	d3,64(a1)
+		move.w	d3,64(a0)
+		move.w	d3,68(a1)
+		move.w	d3,68(a0)
+		move.w	d3,72(a1)
+		move.w	d3,72(a0)
+		move.w	d3,76(a1)
+		move.w	d3,76(a0)
+		move.w	d3,80(a1)
+		move.w	d3,80(a0)
+		move.w	d3,84(a1)
+		move.w	d3,84(a0)
+		move.w	d3,88(a1)
+		move.w	d3,88(a0)
+		move.w	d3,92(a1)
+		move.w	d3,92(a0)
+		move.w	d3,96(a1)
+		move.w	d3,96(a0)
+		rts
 
 
 ********************************************************************************
 Vars:
 ********************************************************************************
 
-XSpeed:		dc.w	1
-YSpeed:		dc.w	3
+XSpeed:		dc.w	0
+YSpeed:		dc.w	1
 X:		dc.w	0
 Y:		dc.w	0
 PanX:		dc.w	0
