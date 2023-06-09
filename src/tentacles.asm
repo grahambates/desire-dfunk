@@ -4,7 +4,6 @@
 		include	tentacles.i
 
 TENTACLES_END_FRAME = 32*32
-; TENTACLES_END_FRAME = 32*8
 
 OUTER_COUNT = 7
 INNER_COUNT = 7

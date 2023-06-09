@@ -305,34 +305,35 @@ Update:
 .noWrapY	move.w	d0,Y-Vars(a5)
 
 ; Panning:
-		lea	Sin16(pc),a0
-		lea	Cos16(pc),a1
+		lea	Sin,a0
+		lea	Cos,a1
 
 		move.l	VBlank,d0
-		add.w	d0,d0
-		and.w	#$1fe,d0
+		lsl #3,d0
+		and.w	#$7fe,d0
 		move.w	(a0,d0),d1
 		asr.w	d1
 
 		move.l	VBlank,d0
+		lsl #2,d0
 		muls	#5,d0
-		and.w	#$1fe,d0
+		and.w	#$7fe,d0
 		move.w	(a1,d0),d0
 		asr.w	d0
 		add.w	d0,d1
 
 		move.l	VBlank,d0
-		add.w	d0,d0
-		and.w	#$1fe,d0
+		lsl #3,d0
+		and.w	#$7fe,d0
 		move.w	(a0,d0),d0
 
 ; Pan X
-		muls	#PAN_X,d0
+		muls	#PAN_X*2,d0
 		FP2I	d0
 		add.w	#PAN_X,d0
 		move.w	d0,PanX-Vars(a5)
 ; Pan Y
-		muls	#PAN_Y,d1
+		muls	#PAN_Y*2,d1
 		FP2I	d1
 		add.w	#PAN_Y,d1
 		move.w	d1,PanY-Vars(a5)
@@ -442,8 +443,6 @@ Cop:		dc.l	0
 ********************************************************************************
 Data:
 ********************************************************************************
-
-		include	"data/sincos16.i"
 
 DrawTbl:
 		incbin	"obj/tables_shade1.o"

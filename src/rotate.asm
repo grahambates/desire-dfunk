@@ -49,9 +49,9 @@ DIW_YSTOP = DIW_YSTRT+DIW_H
 Rotate_Effect:
 ********************************************************************************
 		jsr	Free
-		lea BlankCop,a0
-		sub.l a1,a1
-		jsr StartEffect
+		lea	BlankCop,a0
+		sub.l	a1,a1
+		jsr	StartEffect
 
 		; Allocate and clear screen memory
 		move.l	#SCREEN_SIZE,d0
