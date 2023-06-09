@@ -20,16 +20,30 @@
 		xref	ResetFrameCounter
 		xref	BlankCop
 
+		; Tables
 		xref	Sin
 		xref	Cos
 		xref	SqrtTab
 		xref	DivTab
 
+		; Memory
 		xref	AllocChip
 		xref	AllocChipAligned
 		xref	AllocPublic
 		xref	Free
 
+		; Commander
+		xdef	Commander_Init
+		xdef	CmdMoveIL
+		xdef	CmdMoveIW
+		xdef	CmdMoveIB
+		xdef	CmdAddIL
+		xdef	CmdAddIW
+		xdef	CmdAddIB
+		xdef	CmdSubIL
+		xdef	CmdSubIW
+		xdef	CmdSubIB
+		xdef	CmdLerpWord
 
 		rsreset
 Lerp_Count	rs.w	1

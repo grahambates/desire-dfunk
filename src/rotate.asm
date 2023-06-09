@@ -44,6 +44,29 @@ DIW_YSTRT = ($158-DIW_H)/2
 DIW_XSTOP = DIW_XSTRT+DIW_W
 DIW_YSTOP = DIW_YSTRT+DIW_H
 
+Script:
+	dc.l 0,CmdLerpWord,200,7,ZoomBase
+	; Cube
+	dc.l $180,CmdLerpPoints,SpherePoints,CubePoints
+	; ; Particles
+	dc.l $380,CmdLerpPoints,CubePoints,Particles
+	dc.l $380,CmdLerpWord,150,6,ZoomBase
+	; Start movement
+	dc.l $380+LERP_POINTS_LENGTH+1,CmdLerpWord,$200,4,ParticlesSpeedX
+	dc.l $380+LERP_POINTS_LENGTH+1,CmdLerpWord,$400,4,ParticlesSpeedY
+	dc.l $380+LERP_POINTS_LENGTH+1,CmdLerpWord,$400,4,ParticlesSpeedZ
+	; Stop movement
+	dc.l $380+LERP_POINTS_LENGTH+1,CmdLerpWord,0,7,ParticlesSpeedX
+	dc.l $380+LERP_POINTS_LENGTH+1,CmdLerpWord,0,7,ParticlesSpeedY
+	dc.l $380+LERP_POINTS_LENGTH+1,CmdLerpWord,0,7,ParticlesSpeedZ
+	; Logo
+	dc.l $580,CmdLerpPoints,Particles,LogoPoints
+	; Sphere
+	dc.l $680,CmdLerpPoints,LogoPoints,SpherePoints
+	; ; Zoom out
+	; dc.l $780,CmdLerpWord,1000,8,ZoomBase
+	dc.l 0,0
+
 
 ********************************************************************************
 Rotate_Effect:
@@ -52,6 +75,9 @@ Rotate_Effect:
 		lea	BlankCop,a0
 		sub.l	a1,a1
 		jsr	StartEffect
+
+		lea Script,a0
+		jsr Commander_Init
 
 		; Allocate and clear screen memory
 		move.l	#SCREEN_SIZE,d0
@@ -365,10 +391,6 @@ SMCNext		move.l	(sp)+,a0
 		move.l	#0,(clear)+				; End clear list
 
 		bra	Frame
-
-		; Free memory
-		jsr	Free
-
 		rts
 
 
@@ -382,105 +404,6 @@ Rotate_Vbi:
 		move.l	a0,(a1)+
 		lea	SCREEN_BPL(a0),a0
 		endr
-
-;-------------------------------------------------------------------------------
-Script:
-		move.l	CurrFrame,d7
-; Start lerp1:
-		cmp.w	#1,d7
-		bne	.endLerp0
-		move.w	#200,d0
-		move.w	#7,d1
-		move.l	#ZoomBase,a1
-		pea	.endScript
-		jsr	LerpWord
-.endLerp0
-
-; Start lerp1:
-		cmp.w	#$180,d7
-		bne	.endLerp1
-		move.l	SpherePoints(pc),a0
-		move.l	CubePoints(pc),a1
-		pea	.endScript
-		bsr	LerpPoints
-.endLerp1
-; Start lerp2:
-		cmp.w	#$380,d7
-		bne	.endLerp2
-		move.l	CubePoints(pc),a0
-		move.l	Particles(pc),a1
-		pea	.endScript
-		bsr	LerpPoints
-
-		move.w	#150,d0
-		move.w	#6,d1
-		move.l	#ZoomBase,a1
-		jsr	LerpWord
-.endLerp2
-; Zoom / scroll speed tween:
-		cmp.w	#$380+LERP_POINTS_LENGTH+1,d7
-		bne	.endZoom
-
-		move.w	#$200,d0
-		move.w	#4,d1
-		move.l	#ParticlesSpeedX,a1
-		jsr	LerpWord
-
-		move.w	#$400,d0
-		move.w	#4,d1
-		move.l	#ParticlesSpeedY,a1
-		jsr	LerpWord
-
-		move.w	#$400,d0
-		move.w	#4,d1
-		move.l	#ParticlesSpeedZ,a1
-		jsr	LerpWord
-
-		move.l	Particles(pc),DrawPoints
-		bra	.endScript
-.endZoom
-
-		cmp.w	#$500,d7
-		bne	.endStop
-		move.w	#0,d0
-		move.w	#7,d1
-		move.l	#ParticlesSpeedX,a1
-		jsr	LerpWord
-
-		move.w	#0,d0
-		move.w	#7,d1
-		move.l	#ParticlesSpeedY,a1
-		jsr	LerpWord
-
-		move.w	#0,d0
-		move.w	#7,d1
-		move.l	#ParticlesSpeedZ,a1
-		jsr	LerpWord
-		bra	.endScript
-.endStop
-;
-		cmp.w	#$580,d7
-		bne	.endLerp3
-		move.l	Particles(pc),a0
-		move.l	LogoPoints(pc),a1
-		pea	.endScript
-		bsr	LerpPoints
-.endLerp3
-		cmp.w	#$680,d7
-		bne	.endLerp4
-		move.l	LogoPoints(pc),a0
-		move.l	SpherePoints(pc),a1
-		pea	.endScript
-		bsr	LerpPoints
-.endLerp4
-		cmp.w	#$780,d7
-		bne	.endLerp5
-		move.w	#1000,d0
-		move.w	#8,d1
-		move.l	#ZoomBase,a1
-.endLerp5
-
-.endScript
 		rts
 
 
@@ -749,6 +672,14 @@ LERP_UNROLL = 4
 .done		rts
 
 LerpPointsRemaining: dc.w 0
+
+********************************************************************************
+; LerpPoints for commander
+CmdLerpPoints:
+	movem.l (a5)+,a0-a1
+	move.l (a0),a0
+	move.l (a1),a1
+	jmp LerpPoints
 
 
 ********************************************************************************
