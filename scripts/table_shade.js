@@ -38,6 +38,8 @@ const shades = 16;
 const uRept = 2;
 const vScale = 2;
 
+const out = []
+
 // https://devlog-martinsh.blogspot.com/2011/03/glsl-8x8-bayer-matrix-dithering.html
 const bayer8 = [
   [0, 32, 8, 40, 2, 34, 10, 42] /* 8x8 Bayer ordered dithering  */,
@@ -133,14 +135,18 @@ for (let j = 0; j < dstHeight; j++) {
 
     const adjust = bayer8[i % 8][j % 8] / shades / 2;
     //const adjust = bayer4[i % 4][j % 4] / shades / 2;
-    const src = srcs[round((b + adjust) * (shades - 1))];
+
+    const shade = round((b + adjust) * (shades - 1))
+    const src = srcs[shade];
 
     const o = (i >> 1) * 4;
-    if (i % 2) {
-      console.log(` move.w ${src},${o}(a0)`);
-    } else {
-      console.log(` move.w ${src},${o}(a1)`);
-    }
+
+    out.push('$' + ((o/4) + (shade << 12)).toString(16))
+    // if (i % 2) {
+    //   console.log(` move.w ${src},${o}(a0)`);
+    // } else {
+    //   console.log(` move.w ${src},${o}(a1)`);
+    // }
   }
   if (routine) {
     console.log(` lea CopC_SIZEOF(a0),a0`);
@@ -150,3 +156,5 @@ for (let j = 0; j < dstHeight; j++) {
 if (routine) {
   console.log(` rts`);
 }
+
+console.log(' dc.w ' + out.join(','))
