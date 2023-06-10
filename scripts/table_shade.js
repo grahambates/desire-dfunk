@@ -141,7 +141,7 @@ for (let j = 0; j < dstHeight; j++) {
 
     const o = (i >> 1) * 4;
 
-    out.push('$' + ((o/4) + (shade << 12)).toString(16))
+    out.push('$' + ((offs/4) + (shade << 12)).toString(16))
     // if (i % 2) {
     //   console.log(` move.w ${src},${o}(a0)`);
     // } else {

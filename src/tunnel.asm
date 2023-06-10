@@ -127,10 +127,10 @@ NullSprite:	dc.l	0
 ********************************************************************************
 InitDrawTable:
 		lea	DrawTblDat,a1
-		move.w	#CHUNKY_H-1,d7
+		move.w	#DEST_H-1,d7
 .y
 		moveq	#0,d5
-		move.w	#CHUNKY_W-1,d6
+		move.w	#DEST_W-1,d6
 .x
 		move.w	(a1)+,d0
 		move.w	#$3368,d1
@@ -141,6 +141,7 @@ InitDrawTable:
 ; Source Offset
 		move.w	#$7ff,d2
 		and.w	d0,d2
+		lsl	#2,d2
 
 ; Shade
 		lsl.l	#4,d0
@@ -148,7 +149,7 @@ InitDrawTable:
 		and.w	#$f,d0
 
 ; TODO:
-		move.w	#4,d0					; fixed for now
+		move.w	#7,d0					; fixed for now
 		add.w	d0,d1
 
 ; Dest offset
