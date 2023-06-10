@@ -1,7 +1,7 @@
 		include	"src/_main.i"
 		include	"tunnel.i"
 
-TUNNEL_END_FRAME = $3ff
+TUNNEL_END_FRAME = $380
 BG_COL = $123
 
 SRC_W = 64
@@ -297,7 +297,7 @@ Update:
 		move.l	VBlank,d0
 		lsl	#1,d0
 		and.w	#$7fe,d0
-		move.w	(a1,d0),d1
+		move.w	(a0,d0),d1
 		ext.l	d1
 		lsl.l	#4,d1
 		swap	d1
