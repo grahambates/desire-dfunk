@@ -54,16 +54,16 @@ Script:
 	dc.l $300+LERP_POINTS_LENGTH+1,CmdLerpWord,$400,5,ParticlesSpeedY
 	dc.l $300+LERP_POINTS_LENGTH+1,CmdLerpWord,$400,3,ParticlesSpeedZ
 	; Stop movement
-	dc.l $500-(1<<3),CmdLerpWord,0,3,ParticlesSpeedX
-	dc.l $500-(1<<3),CmdLerpWord,0,3,ParticlesSpeedY
-	dc.l $500-(1<<3),CmdLerpWord,0,3,ParticlesSpeedZ
+	dc.l $480-(1<<3),CmdLerpWord,0,3,ParticlesSpeedX
+	dc.l $480-(1<<3),CmdLerpWord,0,3,ParticlesSpeedY
+	dc.l $480-(1<<3),CmdLerpWord,0,3,ParticlesSpeedZ
 	; Logo
-	dc.l $580,CmdLerpPoints,Particles,LogoPoints
+	dc.l $480+LERP_POINTS_LENGTH,CmdLerpPoints,Particles,LogoPoints
 	; Hearts
 	; dc.l $700,CmdLerpPoints,LogoPoints,HeartPoints
 	dc.l $680,CmdLerpPoints,LogoPoints,SpherePoints
 	; ; Zoom out
-	dc.l $740,CmdLerpWord,1000,8,ZoomBase
+	dc.l $700,CmdLerpWord,1000,8,ZoomBase
 	dc.l 0,0
 
 SetParticles:
