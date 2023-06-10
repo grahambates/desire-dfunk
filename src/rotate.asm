@@ -15,7 +15,7 @@ ZOOM_SHIFT = 8
 ; FIXED_ZOOM = 300
 
 POINTS_COUNT = 64
-LERP_POINTS_SHIFT = 7
+LERP_POINTS_SHIFT = 5
 LERP_POINTS_LENGTH = 1<<LERP_POINTS_SHIFT
 
 PROFILE = 0
@@ -42,7 +42,7 @@ DIW_XSTOP = DIW_XSTRT+DIW_W
 DIW_YSTOP = DIW_YSTRT+DIW_H
 
 Script:
-	dc.l 0,CmdLerpWord,200,7,ZoomBase
+	dc.l 0,CmdLerpWord,250,7,ZoomBase
 	; Cube
 	dc.l $180,CmdLerpPoints,SpherePoints,CubePoints
 	; ; Particles
@@ -200,7 +200,7 @@ SetRotation:
 		and.w	#SIN_MASK,d6
 		; z
 		move.w	d4,d7
-		add.w	d7,d7
+		muls	#3,d7
 		and.w	#SIN_MASK,d7
 
 		; move.w	#0,d5
@@ -324,7 +324,7 @@ r		equr	d6
 
 		move.l	DrawPoints,points
 		move.l	DrawBuffer,draw
-		lea	DIW_BW/2+SCREEN_H/2*SCREEN_BW(draw),draw ; centered with top/left padding
+		lea	DIW_BW/2+DIW_H/2*SCREEN_BW(draw),draw ; centered with top/left padding
 		move.l	DrawClearList,clear
 		lea	MulsTable+256*127+128,multbl			; start at middle of table (0x)
 
@@ -494,7 +494,7 @@ InitParticles:
 		and.w	#3,d0
 		move.w	d0,d1
 		jsr	Random32
-		and.w	#3,d0
+		and.w	#7,d0
 		add.w	d1,d0
 		add.w	#1,d0
 		move.w	d0,(a0)+
