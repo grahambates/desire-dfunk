@@ -35,8 +35,8 @@ Demo:
 
 ;-------------------------------------------------------------------------------
 ; Effects
-		jsr	Girl_Effect
-		jsr	Tentacles_Effect
+		; jsr	Girl_Effect
+		; jsr	Tentacles_Effect
 		jsr	Tunnel_Effect
 		jsr	Rotate_Effect
 		rts						; Exit demo

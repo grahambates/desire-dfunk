@@ -69,6 +69,11 @@ Tunnel_Effect:
 		jsr	AllocPublic
 		move.l	a0,Shades
 
+		move.l	#(DrawTblDatE-DrawTblDat)*3,d0
+		jsr	AllocPublic
+		move.l	a0,DrawTbl
+		bsr	InitDrawTable
+
 		move.l	#CopTemplateE-CopTemplate+CopC_SIZEOF*CHUNKY_H+4,d0
 		jsr	AllocChipAligned
 		move.l	a0,Cop
@@ -120,6 +125,47 @@ NullSprite:	dc.l	0
 ********************************************************************************
 
 ********************************************************************************
+InitDrawTable:
+		lea	DrawTblDat,a1
+		move.w	#CHUNKY_H-1,d7
+.y
+		moveq	#0,d5
+		move.w	#CHUNKY_W-1,d6
+.x
+		move.w	(a1)+,d0
+		move.w	#$3368,d1
+		btst	#0,d5
+		beq	.odd
+		sub.w	#$200,d1
+.odd
+; Source Offset
+		move.w	#$7ff,d2
+		and.w	d0,d2
+
+; Shade
+		lsl.l	#4,d0
+		swap	d0
+		and.w	#$f,d0
+
+; TODO:
+		move.w	#4,d0					; fixed for now
+		add.w	d0,d1
+
+; Dest offset
+		move.w	d5,d4
+		lsr	d4
+		lsl	#2,d4
+
+		move.w	d1,(a0)+
+		move.w	d2,(a0)+
+		move.w	d4,(a0)+
+
+		addq	#1,d5
+		dbf	d6,.x
+		dbf	d7,.y
+		rts
+
+********************************************************************************
 InitChunky:
 ; Copy copper template
 		lea	CopTemplate,a1
@@ -138,7 +184,7 @@ InitChunky:
 		bne	.ok
 		subq	#1,d0
 .ok
-		move.l	#color02<<16!BG_COL,(a0)+			;CopC_OddCols
+		move.l	#color02<<16!BG_COL,(a0)+		;CopC_OddCols
 		; skip 3
 		move.l	#color04<<16!BG_COL,(a0)+
 		move.l	#color05<<16!BG_COL,(a0)+
@@ -179,7 +225,7 @@ InitChunky:
 .evenCol	move.l	#color00<<16!BG_COL,(a0)+
 		dbf	d6,.evenCol
 
-		move.l	#color00<<16!BG_COL,(a0)+			;CopC_Bg
+		move.l	#color00<<16!BG_COL,(a0)+		;CopC_Bg
 		move.w	#(cop2lc+2),(a0)+			;CopC_Loc
 		move.w	a1,(a0)+
 		move.b	d0,(a0)+				;CopC_Skip
@@ -390,7 +436,7 @@ Draw:
 		move.l	sp,.stack				; Free up a7 register for an extra shade - this means we can't use jsr
 		lea	CopChunky+CopC_EvenCols+2(a1),a0
 		lea	CopChunky+CopC_OddCols+2(a1),a1
-		lea	DrawTbl,a2
+		move.l	DrawTbl,a2
 
 		move.l	Shades(pc),a3
 		move.l	a3,a4
@@ -418,9 +464,9 @@ Draw:
 		add.l	d1,a6
 		add.l	d1,a7
 
-		move.w #BG_COL,d3
+		move.w	#BG_COL,d3
 		move.w	Top(pc),d0
-		bra 	.nextClear
+		bra	.nextClear
 .l0
 		move.w	d3,0(a1)
 		move.w	d3,0(a0)
@@ -478,11 +524,11 @@ Draw:
 
 ;-------------------------------------------------------------------------------
 ; Panning:
-	move.w	PanX(pc),d0
-	btst	#0,d0
-	beq	.isEven
-	exg	a0,a1
-	subq	#4,a1
+		move.w	PanX(pc),d0
+		btst	#0,d0
+		beq	.isEven
+		exg	a0,a1
+		subq	#4,a1
 .isEven
 
 ; Draw row start += PanX*6
@@ -506,7 +552,7 @@ Draw:
 ;-------------------------------------------------------------------------------
 		moveq	#CHUNKY_H,d0
 		sub.w	Top(pc),d0
-		bra .next
+		bra	.next
 .l
 		move.w	CHUNKY_W*6(a2),d1			; stash instructions before SMC
 		move.l	CHUNKY_W*6+2(a2),d2
@@ -541,13 +587,15 @@ PanY:		dc.w	0
 
 Shades:		dc.l	0
 Cop:		dc.l	0
+DrawTbl:	dc.l	0
 
 ********************************************************************************
 Data:
 ********************************************************************************
 
-DrawTbl:
+DrawTblDat:
 		incbin	"obj/tables_shade1.o"
+DrawTblDatE:
 
 ChunkyImage:
 		incbin	"data/tex.rgb"
