@@ -42,10 +42,10 @@ DIW_XSTOP = DIW_XSTRT+DIW_W
 DIW_YSTOP = DIW_YSTRT+DIW_H
 
 Script:
-	dc.l 0,CmdLerpWord,250,7,ZoomBase
+	dc.l 0,CmdLerpWord,200,7,ZoomBase
 	; Cube
 	dc.l $180,CmdLerpPoints,SpherePoints,CubePoints
-	; ; Particles
+	; Particles
 	dc.l $300,CmdLerpPoints,CubePoints,Particles
 	dc.l $300,CmdLerpWord,150,6,ZoomBase
 	; Start movement

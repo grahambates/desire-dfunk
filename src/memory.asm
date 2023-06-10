@@ -1,7 +1,8 @@
+		include	src/_main.i
 		include	src/memory.i
 
-CHIP_BUFFER_SIZE = 1024*240
-PUBLIC_BUFFER_SIZE = 1024*240
+CHIP_BUFFER_SIZE = 1024*200
+PUBLIC_BUFFER_SIZE = 1024*290
 
 ********************************************************************************
 ; Memory
@@ -9,6 +10,13 @@ PUBLIC_BUFFER_SIZE = 1024*240
 
 ; TODO: limit check?
 ; TODO: bi-directional?
+
+OutOfChip:
+	move.w #$ff0,color00(a6)
+	bra OutOfChip
+OutOfPublic:
+	move.w #$00f,color00(a6)
+	bra OutOfPublic
 
 ********************************************************************************
 ; Allocate chip RAM
@@ -19,6 +27,11 @@ PUBLIC_BUFFER_SIZE = 1024*240
 AllocChip:
 		move.l	AllocChipOffs(pc),a0
 		add.l	d0,AllocChipOffs
+		move.l d0,d1
+		add.l a0,d1
+		cmp.l #ChipBufferE,d1
+		bgt OutOfChip
+		move.l d1,AllocChipOffs
 		rts
 
 ********************************************************************************
@@ -47,6 +60,8 @@ AllocChipAligned:
 .ok
 ; Ok, just swap back and set
 		swap	d1
+		cmp.l #ChipBufferE,d1
+		bgt OutOfChip
 		move.l	d1,AllocChipOffs
 		rts
 
@@ -58,7 +73,11 @@ AllocChipAligned:
 ;-------------------------------------------------------------------------------
 AllocPublic:
 		move.l	AllocPublicOffs(pc),a0
-		add.l	d0,AllocPublicOffs
+		move.l d0,d1
+		add.l a0,d1
+		cmp.l #PublicBufferE,d1
+		bgt OutOfPublic
+		move.l d1,AllocPublicOffs
 		rts
 
 ********************************************************************************

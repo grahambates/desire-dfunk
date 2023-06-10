@@ -8,14 +8,14 @@ Tables_Precalc:
 ;-------------------------------------------------------------------------------
 ; Populate square root lookup table
 ;-------------------------------------------------------------------------------
-		lea	SqrtTab,a0
-		moveq	#0,d0
-.loop0:		move.w	d0,d1
-		add.w	d1,d1
-.loop1:		move.b	d0,(a0)+
-		dbf	d1,.loop1
-		addq.b	#1,d0
-		bcc.s	.loop0
+; 		lea	SqrtTab,a0
+; 		moveq	#0,d0
+; .loop0:		move.w	d0,d1
+; 		add.w	d1,d1
+; .loop1:		move.b	d0,(a0)+
+; 		dbf	d1,.loop1
+; 		addq.b	#1,d0
+; 		bcc.s	.loop0
 
 ;-------------------------------------------------------------------------------
 ; Populate sin table
@@ -87,7 +87,7 @@ InitMulsTbl:
 *******************************************************************************
 
 ; Precalced sqrt LUT data
-SqrtTab:	ds.b	$100*$100
+; SqrtTab:	ds.b	$100*$100
 
 ; FP 2/14
 ; +-16384
