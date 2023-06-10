@@ -148,9 +148,12 @@ InitDrawTable:
 		swap	d0
 		and.w	#$f,d0
 
-; TODO:
-		move.w	#7,d0					; fixed for now
-		add.w	d0,d1
+		lsl.w #2,d0
+		move.l .shadeLut(pc,d0.w),d0
+
+		add.w d0,d2
+		swap d0
+		add.w d0,d1
 
 ; Dest offset
 		move.w	d5,d4
@@ -165,6 +168,26 @@ InitDrawTable:
 		dbf	d6,.x
 		dbf	d7,.y
 		rts
+
+.shadeLut:
+		; TODO - need to add special case for '#0'
+		dc.w	3,-32768
+		dc.w	3,-32768
+		dc.w	3,-16384
+		dc.w	3,0
+		dc.w	3,16384
+		dc.w	4,-32768
+		dc.w	4,-16384
+		dc.w	4,0
+		dc.w	4,16384
+		dc.w	5,-32768
+		dc.w	5,-16384
+		dc.w	5,0
+		dc.w	5,16384
+		dc.w	6,0
+		dc.w	6,16384
+		; TODO does this mean we no longer need to hijack sp?
+		dc.w	7,0
 
 ********************************************************************************
 InitChunky:
