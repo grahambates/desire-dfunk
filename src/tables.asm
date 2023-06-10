@@ -1,6 +1,7 @@
-		include src/tables.i
+		include	src/tables.i
 
 DIVS_RANGE = $7ff
+MULSCALE = 160
 
 ********************************************************************************
 Tables_Precalc:
@@ -59,8 +60,27 @@ Tables_Precalc:
 		cmp.w	#DIVS_RANGE,d7
 		ble	.l
 
-		rts
+********************************************************************************
+; Populate multiplication lookup table
+; [-127 to 127] * [-127 to 127] / 128
+;-------------------------------------------------------------------------------
+InitMulsTbl:
+		lea	MulsTable,a0
+		move.w	#-127,d0				; d0 = x = -127-127
+		move.w	#256-1,d7
+.loop1		moveq	#-127,d1				; d1 = y = -127-127
+		move.w	#256-1,d6
+.loop2		move.w	d0,d2					; d2 = x
+		muls.w	d1,d2					; d2 = x*y
+; asr.w	#7,d2					; d2 = (x*y)/128
+		divs	#MULSCALE,d2
+		move.b	d2,(a0)+				; write to table
+		addq	#1,d1
+		dbf	d6,.loop2
+		addq	#1,d0
+		dbf	d7,.loop1
 
+		rts
 
 *******************************************************************************
 		bss
@@ -76,3 +96,4 @@ Sin:		ds.w	256
 Cos:		ds.w	1024
 
 DivTab:		ds.w	DIVS_RANGE
+MulsTable:	ds.b	256*256

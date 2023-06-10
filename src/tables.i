@@ -3,3 +3,4 @@
 		xdef	Cos
 		xdef	SqrtTab
 		xdef	DivTab
+		xdef	MulsTable

@@ -109,52 +109,52 @@ for (let j = 0; j < dstHeight; j++) {
       offs += srcHeight * srcWidth * 2;
     }
 
-    const srcs = [
-      "#0",
+    // const srcs = [
+    //   "#0",
 
-      `${offs}-32768(a3)`,
-      `${offs}-16384(a3)`,
-      `${offs}(a3)`,
-      `${offs}+16384(a3)`,
+    //   `${offs}-32768(a3)`,
+    //   `${offs}-16384(a3)`,
+    //   `${offs}(a3)`,
+    //   `${offs}+16384(a3)`,
 
-      `${offs}-32768(a4)`,
-      `${offs}-16384(a4)`,
-      `${offs}(a4)`,
-      `${offs}+16384(a4)`,
+    //   `${offs}-32768(a4)`,
+    //   `${offs}-16384(a4)`,
+    //   `${offs}(a4)`,
+    //   `${offs}+16384(a4)`,
 
-      `${offs}-32768(a5)`,
-      `${offs}-16384(a5)`,
-      `${offs}(a5)`,
-      `${offs}+16384(a5)`,
+    //   `${offs}-32768(a5)`,
+    //   `${offs}-16384(a5)`,
+    //   `${offs}(a5)`,
+    //   `${offs}+16384(a5)`,
 
-      `${offs}(a6)`,
-      `${offs}+16384(a6)`,
+    //   `${offs}(a6)`,
+    //   `${offs}+16384(a6)`,
 
-      `${offs}(a7)`,
-    ];
+    //   `${offs}(a7)`,
+    // ];
 
     const adjust = bayer8[i % 8][j % 8] / shades / 2;
     //const adjust = bayer4[i % 4][j % 4] / shades / 2;
 
     const shade = round((b + adjust) * (shades - 1))
-    const src = srcs[shade];
+    // const src = srcs[shade];
 
-    const o = (i >> 1) * 4;
+    // const o = (i >> 1) * 4;
 
-    out.push('$' + ((offs/4) + (shade << 12)).toString(16))
+    out.push('$' + (Math.round(offs/4) + (shade << 12)).toString(16))
     // if (i % 2) {
     //   console.log(` move.w ${src},${o}(a0)`);
     // } else {
     //   console.log(` move.w ${src},${o}(a1)`);
     // }
   }
-  if (routine) {
-    console.log(` lea CopC_SIZEOF(a0),a0`);
-    console.log(` lea CopC_SIZEOF(a1),a1`);
-  }
+  // if (routine) {
+  //   console.log(` lea CopC_SIZEOF(a0),a0`);
+  //   console.log(` lea CopC_SIZEOF(a1),a1`);
+  // }
 }
-if (routine) {
-  console.log(` rts`);
-}
+// if (routine) {
+//   console.log(` rts`);
+// }
 
 console.log(' dc.w ' + out.join(','))
