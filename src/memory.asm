@@ -1,7 +1,7 @@
 		include	src/memory.i
 
 CHIP_BUFFER_SIZE = 1024*270
-PUBLIC_BUFFER_SIZE = 1024*240
+PUBLIC_BUFFER_SIZE = 1024*270
 
 ********************************************************************************
 ; Memory

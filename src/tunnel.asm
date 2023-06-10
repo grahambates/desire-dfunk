@@ -52,8 +52,8 @@ CopC_Jmp	rs.l	1
 CopC_SIZEOF	rs.b	0
 
 Script:
-		dc.l	$0,CmdLerpWord,0,6,Top
-		dc.l	TUNNEL_END_FRAME-(1<<6),CmdLerpWord,CHUNKY_H,6,Top
+		dc.l	$0,CmdLerpWord,0,4,Top
+		dc.l	TUNNEL_END_FRAME-(1<<6),CmdLerpWord,CHUNKY_H,4,Top
 		dc.l	0,0
 
 

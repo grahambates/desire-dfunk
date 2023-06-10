@@ -1,12 +1,12 @@
 		include	src/_main.i
 		include	girl.i
 
-GIRL_END_FRAME = $ff
+GIRL_END_FRAME = $2ff
 
 DIW_W = 320
 DIW_H = 256
 SCREEN_W = DIW_W
-SCREEN_H = DIW_H+12
+SCREEN_H = DIW_H*2
 BPLS = 3
 
 ;-------------------------------------------------------------------------------
@@ -26,6 +26,11 @@ DIW_STOP = ((DIW_YSTOP-256)<<8)!(DIW_XSTOP-256)
 DDF_STRT = ((DIW_XSTRT-17)>>1)&$00fc
 DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 
+Script:
+	dc.l 0,CmdLerpWord,0,8,YPos
+	dc.l GIRL_END_FRAME-(1<<3),CmdLerpWord,100,3,YPos
+	dc.l 0,0
+
 ********************************************************************************
 Girl_Vbi:
 ********************************************************************************
@@ -43,6 +48,9 @@ Girl_Effect:
 ********************************************************************************
 		jsr ResetFrameCounter
 		jsr Free
+
+		lea Script,a0
+		jsr Commander_Init
 
 		move.l	#SCREEN_SIZE,d0
 		jsr	AllocChip
@@ -64,13 +72,15 @@ Frame:
 		movem.l	a0-a1,DrawBuffer
 
 		; Just clear needed area
-		WAIT_BLIT
-		move.l a0,a1
-		add.l 	#SCREEN_BW*BPLS*(70+HEAD_H-CC_H)+2,a1
-		move.l	a1,bltdpt(a6)
-		move.l	#$01000000,bltcon0(a6)
-		move.w	#SCREEN_BW-HEAD_BW,bltdmod(a6)
-		move.w	#(CC_H*BPLS)<<6!(HEAD_BW/2),bltsize(a6)
+		; WAIT_BLIT
+		; move.l a0,a1
+		; add.l 	#SCREEN_BW*BPLS*(70+HEAD_H-CC_H)+2,a1
+		; move.l	a1,bltdpt(a6)
+		; move.l	#$01000000,bltcon0(a6)
+		; move.w	#SCREEN_BW-HEAD_BW,bltdmod(a6)
+		; move.w	#(CC_H*BPLS)<<6!(HEAD_BW/2),bltsize(a6)
+
+		bsr	ClearScreen
 
 		; Shoulders pos
 		lea	Cos,a4
@@ -104,7 +114,8 @@ Frame:
 		swap	d0
 		add.w	#25,d0
 
-		move.w	#70,d1
+		move.w	YPos(pc),d1
+		add.w	#70,d1
 		move.l	DrawBuffer(pc),a0
 		bsr	BlitHead
 
@@ -129,7 +140,7 @@ ClearScreen:
 		move.l	a0,bltdpt(a6)
 		move.l	#$01000000,bltcon0(a6)
 		clr.l	bltdmod(a6)
-		move.w	#(SCREEN_H*BPLS)<<6!(SCREEN_BW/2),bltsize(a6)
+		move.w	#(DIW_H*BPLS)<<6!(SCREEN_BW/2),bltsize(a6)
 		rts
 
 ********************************************************************************
@@ -191,7 +202,10 @@ CC_H = 40
 ; d1.w = y1
 ; d2.w = y2
 BlitBody:
-		add.w	#(DIW_H-BODY_H)*SCREEN_BW*BPLS,a0	; fixed position
+		move.w	#DIW_H-BODY_H,d3
+		add.w	YPos(pc),d3
+		muls	#SCREEN_BW*BPLS,d3
+		add.l	d3,a0
 		lea	Body,a1
 
 		WAIT_BLIT
@@ -243,6 +257,7 @@ Vars:
 
 DrawBuffer:	dc.l	0
 ViewBuffer:	dc.l	0
+YPos: dc.w 20
 
 
 ********************************************************************************

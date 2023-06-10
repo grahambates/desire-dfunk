@@ -47,23 +47,28 @@ Script:
 	; Cube
 	dc.l $180,CmdLerpPoints,SpherePoints,CubePoints
 	; ; Particles
-	dc.l $380,CmdLerpPoints,CubePoints,Particles
-	dc.l $380,CmdLerpWord,150,6,ZoomBase
+	dc.l $300,CmdLerpPoints,CubePoints,Particles
+	dc.l $300,CmdLerpWord,150,6,ZoomBase
 	; Start movement
-	dc.l $380+LERP_POINTS_LENGTH+1,CmdLerpWord,$200,4,ParticlesSpeedX
-	dc.l $380+LERP_POINTS_LENGTH+1,CmdLerpWord,$400,4,ParticlesSpeedY
-	dc.l $380+LERP_POINTS_LENGTH+1,CmdLerpWord,$400,4,ParticlesSpeedZ
+	dc.l $300+LERP_POINTS_LENGTH+1,SetParticles
+	dc.l $300+LERP_POINTS_LENGTH+1,CmdLerpWord,$200,3,ParticlesSpeedX
+	dc.l $300+LERP_POINTS_LENGTH+1,CmdLerpWord,$400,5,ParticlesSpeedY
+	dc.l $300+LERP_POINTS_LENGTH+1,CmdLerpWord,$400,3,ParticlesSpeedZ
 	; Stop movement
-	dc.l $380+LERP_POINTS_LENGTH+1,CmdLerpWord,0,7,ParticlesSpeedX
-	dc.l $380+LERP_POINTS_LENGTH+1,CmdLerpWord,0,7,ParticlesSpeedY
-	dc.l $380+LERP_POINTS_LENGTH+1,CmdLerpWord,0,7,ParticlesSpeedZ
+	dc.l $580-(1<<3),CmdLerpWord,0,3,ParticlesSpeedX
+	dc.l $580-(1<<3),CmdLerpWord,0,3,ParticlesSpeedY
+	dc.l $580-(1<<3),CmdLerpWord,0,3,ParticlesSpeedZ
 	; Logo
 	dc.l $580,CmdLerpPoints,Particles,LogoPoints
-	; Sphere
-	dc.l $680,CmdLerpPoints,LogoPoints,SpherePoints
+	; Hearts
+	dc.l $700,CmdLerpPoints,LogoPoints,HeartPoints
 	; ; Zoom out
 	; dc.l $780,CmdLerpWord,1000,8,ZoomBase
 	dc.l 0,0
+
+SetParticles:
+	move.l Particles,DrawPoints
+	rts
 
 
 ********************************************************************************
@@ -109,6 +114,8 @@ Rotate_Effect:
 		jsr	AllocPublic
 		move.l	a0,SpherePoints
 		jsr	AllocPublic
+		move.l	a0,HeartPoints
+		jsr	AllocPublic
 		move.l	a0,LogoPoints
 		jsr	AllocPublic
 		move.l	a0,LerpPointsTmp
@@ -121,6 +128,7 @@ Rotate_Effect:
 		bsr	Rotate_Precalc
 
 		move.l	SpherePoints(pc),DrawPoints
+		; move.l	HeartPoints(pc),DrawPoints
 
 		lea	Pal,a0
 		bsr	LoadPalette
@@ -413,6 +421,7 @@ Rotate_Precalc:
 		bsr	InitParticles
 		bsr	InitCube
 		bsr	InitSphere
+		bsr	InitHeart
 		bsr	InitLogo
 		bsr	BuildPalette
 		rts
@@ -572,6 +581,28 @@ InitSphere:
 		dbf	d7,.l0
 		rts
 
+********************************************************************************
+InitHeart:
+	lea	HeartPointsData(pc),a0
+	move.l	HeartPoints(pc),a1
+	moveq	#POINTS_COUNT-1,d7
+.l0
+	move.b	(a0)+,d0
+	move.b	(a0)+,d1
+	move.b	(a0)+,d2
+	lsl.w	#8,d0
+	lsl.w	#8,d1
+	lsl.w	#8,d2
+	move.w	d0,(a1)+
+	move.w	d1,(a1)+
+	move.w	d2,(a1)+
+	jsr	Random32
+	and.w	#3,d0
+	addq	#2,d0
+	move.w	d0,(a1)+
+	dbf	d7,.l0
+	rts
+
 
 ********************************************************************************
 InitLogo:
@@ -726,6 +757,7 @@ MulsTable:	dc.l	0
 Particles:	dc.l	0
 CubePoints:	dc.l	0
 SpherePoints:	dc.l	0
+HeartPoints:	dc.l	0
 LogoPoints:	dc.l	0
 LerpPointsTmp:	dc.l	0
 LerpPointsOut:	dc.l	0
@@ -884,6 +916,73 @@ SpherePointsData:
 		dc.b	-13,-113,-41
 		dc.b	-13,-117,27
 		dc.b	0,-120,-0
+
+HeartPointsData:
+	dc.b 8,40,-68
+	dc.b -8,46,-68
+	dc.b 20,51,-55
+	dc.b 6,65,-56
+	dc.b -4,72,-48
+	dc.b -18,56,-55
+	dc.b -15,70,-41
+	dc.b -3,55,64
+	dc.b -8,35,69
+	dc.b 9,41,67
+	dc.b 1,19,67
+	dc.b -18,18,60
+	dc.b -21,48,55
+	dc.b -13,69,46
+	dc.b 5,67,53
+	dc.b 19,55,55
+	dc.b 17,24,61
+	dc.b -14,-16,36
+	dc.b -4,-40,14
+	dc.b 19,0,46
+	dc.b 5,-9,50
+	dc.b -6,74,-24
+	dc.b -7,62,0
+	dc.b 8,73,-24
+	dc.b 17,68,-43
+	dc.b 23,61,-29
+	dc.b -29,25,-35
+	dc.b -23,12,-47
+	dc.b -25,-26,-3
+	dc.b -24,39,-53
+	dc.b -24,57,-41
+	dc.b -30,13,0
+	dc.b -24,58,-23
+	dc.b 9,-17,-40
+	dc.b 1,17,-66
+	dc.b 18,17,-59
+	dc.b -12,15,-63
+	dc.b -12,-19,-36
+	dc.b 10,65,10
+	dc.b -6,74,22
+	dc.b 18,51,1
+	dc.b 18,69,37
+	dc.b 6,75,33
+	dc.b -17,69,29
+	dc.b -18,52,1
+	dc.b -29,30,37
+	dc.b -24,42,0
+	dc.b -26,54,33
+	dc.b -26,6,36
+	dc.b 28,18,39
+	dc.b 24,42,52
+	dc.b 26,56,36
+	dc.b 27,44,-43
+	dc.b 26,9,-39
+	dc.b 6,63,-3
+	dc.b 26,-20,-1
+	dc.b 30,7,0
+	dc.b 19,-35,-7
+	dc.b 25,39,1
+	dc.b -4,-47,-3
+	dc.b -16,-40,-5
+	dc.b -17,-36,8
+	dc.b 14,-40,7
+	dc.b 8,-44,-6
+
 
 
 LogoPointsData:

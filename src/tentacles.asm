@@ -1,7 +1,7 @@
 		include	src/_main.i
 		include	tentacles.i
 
-TENTACLES_END_FRAME = 32*16
+TENTACLES_END_FRAME = 32*32
 
 OUTER_COUNT = 7
 INNER_COUNT = 7
@@ -45,7 +45,7 @@ DDF_STRT = ((DIW_XSTRT-17)>>1)&$00fc-SCROLL*8
 DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 
 Script:
-	dc.l $20,CmdLerpWord,128,5,SpriteX
+	dc.l $60,CmdLerpWord,128,5,SpriteX
 	dc.l TENTACLES_END_FRAME-(1<<5)-$20,CmdLerpWord,64,5,SpriteX
 	dc.l 0,0
 
@@ -55,9 +55,9 @@ Tentacles_Effect:
 ********************************************************************************
 		jsr	ResetFrameCounter
 		jsr	Free
-		lea	BlankCop,a0
-		sub.l	a1,a1
-		jsr	StartEffect
+		; lea	BlankCop,a0
+		; sub.l	a1,a1
+		; jsr	StartEffect
 
 		lea Script,a0
 		jsr Commander_Init
@@ -153,7 +153,7 @@ Frame:
 		cmp.w	#TENTACLES_END_FRAME-64,d0
 		blt	.endFade
 		lea	Pal,a0
-		lea	PalStart,a1
+		lea	PalEnd,a1
 		lea	PalOut,a2
 		sub.w	#TENTACLES_END_FRAME-64,d0
 		lsl	#8,d0
@@ -425,8 +425,13 @@ Pal:
 
 PalStart:
 		rept 16
-		dc.w	$123
+		dc.w	$90c
 		endr
+
+PalEnd:
+	rept 16
+	dc.w	$123
+	endr
 
 Screen:		dc.l	0
 
