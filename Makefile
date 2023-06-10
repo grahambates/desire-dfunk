@@ -3,7 +3,7 @@ vasm_objects := $(addprefix obj/, $(patsubst %.asm,%.o,$(notdir $(vasm_sources))
 objects := $(vasm_objects)
 deps := $(objects:.o=.d)
 dude_images := $(wildcard assets/dude_walking_16_frames/*.png)
-data := data/girl-head.BPL data/girl-body.BPL obj/tables_shade1.o data/tex.rgb data/DFunk-vert.BPL data/dude_walking.BPL
+data := data/girl-head.BPL data/girl-body.BPL obj/tables_shade1.o data/tex.rgb data/DFunk-vert.BPL data/dude_walking.BPL data/credit-gigabates.BPL data/credit-maze.BPL data/credit-steffest.BPL
 
 program = out/a
 OUT = $(program)
@@ -64,6 +64,13 @@ data/girl-head.BPL : assets/girl-head.png
 	$(KINGCON) $< data/girl-head -F=3 -I -M
 data/girl-body.BPL : assets/girl-body.png
 	$(KINGCON) $< data/girl-body -F=3 -I
+
+data/credit-gigabates.BPL : assets/credit-gigabates.png
+	$(KINGCON) $< data/credit-gigabates -F=1
+data/credit-maze.BPL : assets/credit-maze.png
+	$(KINGCON) $< data/credit-maze -F=1
+data/credit-steffest.BPL : assets/credit-steffest.png
+	$(KINGCON) $< data/credit-steffest -F=1
 
 data/DFunk-vert.BPL : assets/DFunk-vert.png
 	$(KINGCON) $< data/DFunk-vert -F=s16 -SX=128

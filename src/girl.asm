@@ -1,7 +1,20 @@
 		include	src/_main.i
 		include	girl.i
 
-GIRL_END_FRAME = $2ff
+GIRL_END_FRAME = $200
+
+HEAD_W = 160
+HEAD_H = 159
+HEAD_BW = HEAD_W/8
+
+BODY_W = 192
+BODY_H = 51
+BODY_BW = BODY_W/8
+
+CRED_H = 33
+CRED_1_W = 160
+CRED_2_W = 80
+CRED_3_W = 144
 
 DIW_W = 320
 DIW_H = 256
@@ -27,30 +40,38 @@ DDF_STRT = ((DIW_XSTRT-17)>>1)&$00fc
 DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 
 Script:
-	dc.l 0,CmdLerpWord,0,8,YPos
-	dc.l GIRL_END_FRAME-(1<<3),CmdLerpWord,100,3,YPos
-	dc.l 0,0
+		dc.l	0,CmdLerpWord,0,8,YPos
+		dc.l	GIRL_END_FRAME-(1<<3),CmdLerpWord,100,3,YPos
+		dc.l	0,0
 
 ********************************************************************************
 Girl_Vbi:
 ********************************************************************************
 		move.l	ViewBuffer(pc),a0
-		lea	bpl0pt+custom,a1
-		rept	BPLS
-		move.l	a0,(a1)+
-		lea	SCREEN_BPL(a0),a0
-		endr
+
+		; pf1
+		move.l a0,bpl0pt(a6)
+		lea SCREEN_BPL(a0),a0
+		move.l a0,bpl2pt(a6)
+		lea SCREEN_BPL(a0),a0
+		move.l a0,bpl4pt(a6)
+
+		; pf1
+		lea CredScreen,a1
+		move.l a1,bpl1pt(a6)
+		add.l #SCREEN_BW,a1
+		move.l a1,bpl3pt(a6)
 		rts
 
 
 ********************************************************************************
 Girl_Effect:
 ********************************************************************************
-		jsr ResetFrameCounter
-		jsr Free
+		jsr	ResetFrameCounter
+		jsr	Free
 
-		lea Script,a0
-		jsr Commander_Init
+		lea	Script,a0
+		jsr	Commander_Init
 
 		move.l	#SCREEN_SIZE,d0
 		jsr	AllocChip
@@ -82,7 +103,21 @@ Frame:
 
 		bsr	ClearScreen
 
+		cmp.l #$80,CurrFrame
+		ble .noCred3
+		bsr BlitCred3
+.noCred3
+		cmp.l #$100,CurrFrame
+		ble .noCred2
+		bsr BlitCred2
+.noCred2
+		cmp.l #$180,CurrFrame
+		ble .noCred1
+		bsr BlitCred1
+.noCred1
+
 		; Shoulders pos
+		move.l DrawBuffer,a0
 		lea	Cos,a4
 		move.w	VBlank+2,d1
 		lsl.w	#5,d1
@@ -91,14 +126,14 @@ Frame:
 		ext.l	d1
 		lsl.l	#5,d1
 		swap	d1
-		neg.w d1
+		neg.w	d1
 
 		move.w	#0,d2					; y2
 
-		tst.w d1
-		bge .pos
-		neg.w d1
-		exg d1,d2
+		tst.w	d1
+		bge	.pos
+		neg.w	d1
+		exg	d1,d2
 .pos
 
 		bsr	BlitBody
@@ -120,19 +155,11 @@ Frame:
 		bsr	BlitHead
 
 		jsr	WaitEOF
-		move.w	#DMAF_BLITHOG,dmacon(a6) ; unhog the blitter
+		move.w	#DMAF_BLITHOG,dmacon(a6)		; unhog the blitter
 		cmp.l	#GIRL_END_FRAME,CurrFrame
 		blt	Frame
 
 		rts
-
-HEAD_W = 160
-HEAD_H = 159
-HEAD_BW = HEAD_W/8
-
-BODY_W = 192
-BODY_H = 51
-BODY_BW = BODY_W/8
 
 ********************************************************************************
 ClearScreen:
@@ -161,7 +188,7 @@ BlitHead:
 		lsl	#2,d1					; offset for bltcon table
 		lsr.w	#3,d0					; byte offset
 		add.w	d0,a0
-		move.w #DMAF_SETCLR!DMAF_BLITHOG,dmacon(a6) ; hog the blitter
+		move.w	#DMAF_SETCLR!DMAF_BLITHOG,dmacon(a6)	; hog the blitter
 		WAIT_BLIT
 		move.l	.bltcon(pc,d1.w),bltcon0(a6)
 		move.l	#(SCREEN_BW-HEAD_BW)<<16!HEAD_BW,bltcmod(a6)
@@ -173,9 +200,9 @@ CC_H = 40
 		move.l	a0,bltdpth(a6)
 		move.w	#((HEAD_H-CC_H)*BPLS)<<6!(HEAD_BW/2),bltsize(a6)
 		WAIT_BLIT
-		add.l #(HEAD_H-CC_H)*BPLS*SCREEN_BW,a0
-		add.l #(HEAD_H-CC_H)*BPLS*HEAD_BW*2,a1
-		add.l #(HEAD_H-CC_H)*BPLS*HEAD_BW*2,a2
+		add.l	#(HEAD_H-CC_H)*BPLS*SCREEN_BW,a0
+		add.l	#(HEAD_H-CC_H)*BPLS*HEAD_BW*2,a1
+		add.l	#(HEAD_H-CC_H)*BPLS*HEAD_BW*2,a2
 		move.l	.bltconb(pc,d1.w),bltcon0(a6)
 		movem.l	a0-a2,bltcpth(a6)
 		move.l	a0,bltdpth(a6)
@@ -193,6 +220,46 @@ CC_H = 40
 		dc.l	$4fca4000,$5fca5000,$6fca6000,$7fca7000
 		dc.l	$8fca8000,$9fca9000,$afcaa000,$bfcab000
 		dc.l	$cfcac000,$dfcad000,$efcae000,$ffcaf000
+
+
+BlitCred3:
+		WAIT_BLIT
+		lea CredScreen+SCREEN_BW*25+2,a1
+		lea Cred3,a0
+		move.l #$09f00000,bltcon0(a6)
+		move.l #-1,bltafwm(a6)
+		clr.w bltamod(a6)
+		move.w #SCREEN_BW-CRED_3_W/8,bltdmod(a6)
+		move.l a0,bltapt(a6)
+		move.l a1,bltdpt(a6)
+		move.w #(CRED_H<<6)!(CRED_3_W/16),bltsize(a6)
+		rts
+
+BlitCred1:
+		WAIT_BLIT
+		lea CredScreen+SCREEN_BW*90+20,a1
+		lea Cred1,a0
+		move.l #$09f00000,bltcon0(a6)
+		move.l #-1,bltafwm(a6)
+		clr.w bltamod(a6)
+		move.w #SCREEN_BW-CRED_1_W/8,bltdmod(a6)
+		move.l a0,bltapt(a6)
+		move.l a1,bltdpt(a6)
+		move.w #(CRED_H<<6)!(CRED_1_W/16),bltsize(a6)
+		rts
+
+BlitCred2:
+		WAIT_BLIT
+		lea CredScreen+SCREEN_BW*170+28,a1
+		lea Cred2,a0
+		move.l #$09f00000,bltcon0(a6)
+		move.l #-1,bltafwm(a6)
+		clr.w bltamod(a6)
+		move.w #SCREEN_BW-CRED_2_W/8,bltdmod(a6)
+		move.l a0,bltapt(a6)
+		move.l a1,bltdpt(a6)
+		move.w #(CRED_H<<6)!(CRED_2_W/16),bltsize(a6)
+		rts
 
 
 ********************************************************************************
@@ -257,7 +324,7 @@ Vars:
 
 DrawBuffer:	dc.l	0
 ViewBuffer:	dc.l	0
-YPos: dc.w 20
+YPos:		dc.w	25
 
 
 ********************************************************************************
@@ -270,12 +337,16 @@ Cop:
 		dc.w	ddfstrt,DDF_STRT
 		dc.w	ddfstop,DDF_STOP
 		dc.w	bpl1mod,DIW_MOD
-		dc.w	bpl2mod,DIW_MOD
-		dc.w	bplcon0,BPLS<<12!$200
+		dc.w	bpl2mod,0
+		dc.w	bplcon0,(BPLS+2)<<12!$200!(1<<10)
 		dc.w	color00,$90c
 		dc.w	color01,$323
 		dc.w	color02,$666
 		dc.w	color03,$eca
+
+		dc.w	color09,$000
+		dc.w	color10,$fff
+		dc.w	color11,$fff
 		dc.l	-2
 
 ; Image
@@ -283,3 +354,11 @@ Head:
 		incbin	data/girl-head.BPL
 Body:
 		incbin	data/girl-body.BPL
+
+Cred1:		incbin	data/credit-gigabates.BPL
+Cred2:		incbin	data/credit-maze.BPL
+Cred3:		incbin	data/credit-steffest.BPL
+
+	bss_c
+
+CredScreen: ds.b SCREEN_BW*SCREEN_H

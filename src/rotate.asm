@@ -61,7 +61,8 @@ Script:
 	; Logo
 	dc.l $580,CmdLerpPoints,Particles,LogoPoints
 	; Hearts
-	dc.l $700,CmdLerpPoints,LogoPoints,HeartPoints
+	; dc.l $700,CmdLerpPoints,LogoPoints,HeartPoints
+	dc.l $700,CmdLerpPoints,LogoPoints,SpherePoints
 	; ; Zoom out
 	; dc.l $780,CmdLerpWord,1000,8,ZoomBase
 	dc.l 0,0
