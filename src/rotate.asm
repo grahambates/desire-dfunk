@@ -188,15 +188,15 @@ SetRotation:
 		add.w	#$200,d5
 		and.w	#$7fe,d5
 		move.w	(a0,d5.w),d5
-		lsr	#5,d5
+		lsr	#4,d5
 		and.w	#SIN_MASK,d5
 		; y
 		move.w	d4,d6
-		; lsl	#1,d6
-		; and.w	#$7fe,d6
-		; move.w	(a0,d6.w),d6
-		; lsr	#4,d6
-		muls	#5,d6
+		lsl	#1,d6
+		; add.w	#$200,d6
+		and.w	#$7fe,d6
+		move.w	(a0,d6.w),d6
+		lsr	#4,d6
 		and.w	#SIN_MASK,d6
 		; z
 		move.w	d4,d7
@@ -205,7 +205,7 @@ SetRotation:
 
 		; move.w	#0,d5
 		; move.w	#0,d6
-		; move.w	#0,d7
+		move.w	#0,d7
 
 ;-------------------------------------------------------------------------------
 ; Calculate rotation matrix and apply values to self-modifying code loop
@@ -507,27 +507,32 @@ InitParticles:
 InitCube:
 		move.l	CubePoints(pc),a0
 
-		move.w	#$9a00,d0
+PAD=$30
+RANGE=$100-PAD-PAD
+INC=RANGE/3
+START = -$80+PAD
+
+		move.w	#START<<8,d0
 		moveq	#4-1,d7
 .x
-		move.w	#$9a00,d1
+		move.w	#START<<8,d1
 		moveq	#4-1,d6
 .y
-		move.w	#$9a00,d2
+		move.w	#START<<8,d2
 		moveq	#4-1,d5
 .z
 		move.w	d0,(a0)+
 		move.w	d1,(a0)+
 		move.w	d2,(a0)+
-		move.w	#8,(a0)+				; r
+		move.w	#6,(a0)+				; r
 
-		add.w	#$4400,d2
+		add.w	#INC<<8,d2
 		dbf	d5,.z
 
-		add.w	#$4400,d1
+		add.w	#INC<<8,d1
 		dbf	d6,.y
 
-		add.w	#$4400,d0
+		add.w	#INC<<8,d0
 		dbf	d7,.x
 		rts
 
