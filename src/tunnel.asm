@@ -132,19 +132,21 @@ InitDrawTable:
 		moveq	#0,d5
 		move.w	#DEST_W-1,d6
 .x
-		move.w	(a1)+,d0
 		move.w	#$3368,d1
 		btst	#0,d5
 		beq	.odd
 		sub.w	#$200,d1
 .odd
-; Source Offset
-		move.w	#$7ff,d2
+		; Packed data:
+		; [12:15] : shade (0 - 15)
+		; [0:11] : texture offset (0- 64^2)
+		move.w	(a1)+,d0
+; Texture Offset
+		move.w	#$fff,d2
 		and.w	d0,d2
-		lsl	#2,d2
-
+		add.w	d2,d2
 ; Shade
-		lsl.l	#4,d0
+		lsl.l	#4,d0 ; lsr 12
 		swap	d0
 		and.w	#$f,d0
 		; Special case for shade 0: just write Immediate zero for black
@@ -176,8 +178,7 @@ InitDrawTable:
 		rts
 
 .shadeLut:
-		; TODO - need to add special case for '#0'
-		dc.w	3,-32768
+		dc.w	0,0 ; not used
 		dc.w	3,-32768
 		dc.w	3,-16384
 		dc.w	3,0
