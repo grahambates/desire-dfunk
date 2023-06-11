@@ -82,6 +82,7 @@ data/dude_walking.BPL : $(dude_images)
 	$(KINGCON) assets/dude_walking_16_frames-b/dude_walking_b_1.png data/dude_walking -A -F=3
 
 tex = assets/bokeh-bright.jpg
+# tex = assets/funk.jpg
 
 data/tex-pal.png: $(tex) Makefile
 	convert $< -depth 4 $@

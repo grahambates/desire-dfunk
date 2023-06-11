@@ -147,6 +147,12 @@ InitDrawTable:
 		lsl.l	#4,d0
 		swap	d0
 		and.w	#$f,d0
+		; Special case for shade 0: just write Immediate zero for black
+		bne .notZero
+		move.w #$337c,d1
+		clr.w d2
+		bra .set
+.notZero
 
 		lsl.w #2,d0
 		move.l .shadeLut(pc,d0.w),d0
@@ -159,7 +165,7 @@ InitDrawTable:
 		move.w	d5,d4
 		lsr	d4
 		lsl	#2,d4
-
+.set
 		move.w	d1,(a0)+
 		move.w	d2,(a0)+
 		move.w	d4,(a0)+
@@ -692,6 +698,6 @@ Sprites:
 Bpls:
 		dc.w	$0000,$00f0,$00f0,$00f0,$00f0,$00f0,$00f0
 		dc.w	$00f0,$0000,$f0f0,$0000,$f0f0,$0000,$f0f0
-		dc.w	$0f00,$f0f0,$f0f0,$0000,$0000,$f0f0,$f0f0
+		dc.w	$0000,$f0f0,$f0f0,$0000,$0000,$f0f0,$f0f0
 		dc.w	$0000,$0000,$0000,$f0f0,$f0f0,$f0f0,$f0f0
-;                        0420  4050  6070  8090  a0b0  c0d0  e0f0
+;                        0020  4050  6070  8090  a0b0  c0d0  e0f0

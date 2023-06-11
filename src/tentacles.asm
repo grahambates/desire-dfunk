@@ -199,11 +199,6 @@ Frame:
 		lea	SCREEN_BPL(a2),a2
 		dbf	d7,.l
 
-; Wait for VBL before updating bpl pointers in copper
-		DebugStartIdle
-		jsr	WaitEOF
-		DebugStopIdle
-
 ; Clear word on right of buffer to stop data looping back round:
 		lea	SCREEN_BW-2(a1),a2
 		WAIT_BLIT
@@ -244,6 +239,11 @@ Frame:
 		and.w	#$7fe,d6
 		move.w	(a3,d6.w),d6
 		asr.w	#5,d6
+
+		; Wait for VBL before updating bpl pointers in copper
+		DebugStartIdle
+		jsr	WaitEOF
+		DebugStopIdle
 
 		moveq	#OUTER_COUNT-1,d7
 .l0
