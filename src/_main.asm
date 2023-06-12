@@ -4,6 +4,7 @@
 		include	"rotate.i"
 		include	"tunnel.i"
 		include	"girl.i"
+		include	"dude.i"
 
 _start:
 		include	"PhotonsMiniWrapper1.04.i"
@@ -37,7 +38,8 @@ Demo:
 ; Effects
 		; jsr	Girl_Effect
 		; jsr	Tentacles_Effect
-		jsr	Tunnel_Effect
+		; jsr	Tunnel_Effect
+		jsr	Dude_Effect
 		jsr	Rotate_Effect
 		rts						; Exit demo
 
@@ -185,6 +187,3 @@ BlankCop:
 		dc.w	bplcon0,$200
 		dc.w	color00,$123
 		dc.l	-2
-
-;		section	anim,data
-; incbin foo.BPL

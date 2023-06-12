@@ -85,6 +85,7 @@ InitMulsTbl:
 *******************************************************************************
 		bss
 *******************************************************************************
+BSSData:
 
 ; Precalced sqrt LUT data
 ; SqrtTab:	ds.b	$100*$100
@@ -97,3 +98,6 @@ Cos:		ds.w	1024
 
 DivTab:		ds.w	DIVS_RANGE
 MulsTable:	ds.b	256*256
+
+		printt	"Tables: BSSData"
+		printv	*-BSSData

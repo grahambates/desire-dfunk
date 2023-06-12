@@ -79,7 +79,9 @@ data/DFunk-vert.BPL : assets/DFunk-vert.png
 # 	convert -extent 96x150 -gravity SouthWest -background "#000000" $< $@
 
 data/dude_walking.BPL : $(dude_images)
-	$(KINGCON) assets/dude_walking_16_frames-b/dude_walking_b_1.png data/dude_walking -A -F=3
+	$(KINGCON) assets/dude_walking_16_frames-c/dude_walking_b_1.png data/dude_walking -I -A -F=3
+data/dude-bg.BPL : assets/dude-bg.png
+	$(KINGCON) assets/dude-bg.png data/dude-bg -F=2
 
 tex = assets/bokeh-bright.jpg
 
@@ -96,7 +98,7 @@ data/tex.rgb: data/tex.rgba
 	$(AMIGATOOLS) shiftrgba $^ $@
 
 data/tables_shade1.i: scripts/table_shade.js
-	node $^ -v 122 -u 82 --routine=false --aspect=0.75 > $@
+	node $^ -v 112 -u 82 --routine=false --aspect=0.75 > $@
 
 obj/tables_shade1.o: data/tables_shade1.i
 	$(VASM) -Fbin -quiet -no-opt -o $@ $^

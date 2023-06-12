@@ -7,7 +7,7 @@ BG_COL = $123
 SRC_W = 64
 SRC_H = 64
 DEST_W = 82
-DEST_H = 122
+DEST_H = 112
 ROW_BW = 492
 CHUNKY_H = 90-2
 CHUNKY_W = 50
@@ -660,18 +660,24 @@ CopTemplateE:
 
 CopChunky = CopTemplateE-CopTemplate
 
+		printt "Tunnel: Data"
+		printv *-Data
+
 
 *******************************************************************************
-bss
+		bss
 *******************************************************************************
 
 ; Lookup tables for RGB fade
 RGBTbl:		ds.b	16*16
 RGBTbl4:	ds.b	16*16
 
+
 *******************************************************************************
 		data_c
 *******************************************************************************
+
+ChipData:
 
 SPR_STRT = DIW_YSTRT<<8!DIW_XSTRT+$1e
 SPR_END = (DIW_YSTRT+CHUNKY_H*4)&$ff<<8!$03
@@ -700,5 +706,9 @@ Bpls:
 		dc.w	$0000,$00f0,$00f0,$00f0,$00f0,$00f0,$00f0
 		dc.w	$00f0,$0000,$f0f0,$0000,$f0f0,$0000,$f0f0
 		dc.w	$0000,$f0f0,$f0f0,$0000,$0000,$f0f0,$f0f0
-		dc.w	$0000,$0000,$0000,$f0f0,$f0f0,$f0f0,$f0f0
+		dc.w	$0f00,$0000,$0000,$f0f0,$f0f0,$f0f0,$f0f0
 ;                        0020  4050  6070  8090  a0b0  c0d0  e0f0
+
+
+		printt "Tunnel: ChipData"
+		printv *-ChipData

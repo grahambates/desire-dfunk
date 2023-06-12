@@ -337,6 +337,8 @@ CredScreen:	dc.l	0
 		data_c
 ********************************************************************************
 
+ChipData:
+
 Cop:
 		dc.w	diwstrt,DIW_STRT
 		dc.w	diwstop,DIW_STOP
@@ -353,10 +355,12 @@ Cop:
 		dc.w	color10,$fff
 		dc.w	color11,$fff
 		dc.l	-2
-
 ; Images
 Head:		incbin	data/girl-head.BPL
 Body:		incbin	data/girl-body.BPL
 Cred1:		incbin	data/credit-gigabates.BPL
 Cred2:		incbin	data/credit-maze.BPL
 Cred3:		incbin	data/credit-steffest.BPL
+
+		printt	"Girl:ChipData"
+		printv	*-ChipData
