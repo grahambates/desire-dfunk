@@ -1,7 +1,7 @@
 		include	"src/_main.i"
 		include	"tunnel.i"
 
-TUNNEL_END_FRAME = $380
+TUNNEL_END_FRAME = $400
 BG_COL = $123
 
 SRC_W = 64
@@ -146,22 +146,22 @@ InitDrawTable:
 		and.w	d0,d2
 		add.w	d2,d2
 ; Shade
-		lsl.l	#4,d0 ; lsr 12
+		lsl.l	#4,d0					; lsr 12
 		swap	d0
 		and.w	#$f,d0
 		; Special case for shade 0: just write Immediate zero for black
-		bne .notZero
-		move.w #$337c,d1
-		clr.w d2
-		bra .set
+		bne	.notZero
+		move.w	#$337c,d1
+		clr.w	d2
+		bra	.set
 .notZero
 
-		lsl.w #2,d0
-		move.l .shadeLut(pc,d0.w),d0
+		lsl.w	#2,d0
+		move.l	.shadeLut(pc,d0.w),d0
 
-		add.w d0,d2
-		swap d0
-		add.w d0,d1
+		add.w	d0,d2
+		swap	d0
+		add.w	d0,d1
 
 ; Dest offset
 		move.w	d5,d4
@@ -178,7 +178,7 @@ InitDrawTable:
 		rts
 
 .shadeLut:
-		dc.w	0,0 ; not used
+		dc.w	0,0					; not used
 		dc.w	3,-32768
 		dc.w	3,-16384
 		dc.w	3,0
@@ -660,8 +660,8 @@ CopTemplateE:
 
 CopChunky = CopTemplateE-CopTemplate
 
-		printt "Tunnel: Data"
-		printv *-Data
+		printt	"Tunnel: Data"
+		printv	*-Data
 
 
 *******************************************************************************
@@ -710,5 +710,5 @@ Bpls:
 ;                        0020  4050  6070  8090  a0b0  c0d0  e0f0
 
 
-		printt "Tunnel: ChipData"
-		printv *-ChipData
+		printt	"Tunnel: ChipData"
+		printv	*-ChipData

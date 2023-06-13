@@ -1,7 +1,7 @@
 		include	src/_main.i
 		include	tentacles.i
 
-TENTACLES_END_FRAME = 32*16
+TENTACLES_END_FRAME = 32*24
 
 OUTER_COUNT = 7
 INNER_COUNT = 7
@@ -45,9 +45,9 @@ DDF_STRT = ((DIW_XSTRT-17)>>1)&$00fc-SCROLL*8
 DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 
 Script:
-	dc.l $60,CmdLerpWord,128,5,SpriteX
-	dc.l TENTACLES_END_FRAME-(1<<5)-$20,CmdLerpWord,64,5,SpriteX
-	dc.l 0,0
+		dc.l	$60,CmdLerpWord,128,5,SpriteX
+		dc.l	TENTACLES_END_FRAME-(1<<5)-$20,CmdLerpWord,64,5,SpriteX
+		dc.l	0,0
 
 
 ********************************************************************************
@@ -59,8 +59,8 @@ Tentacles_Effect:
 		; sub.l	a1,a1
 		; jsr	StartEffect
 
-		lea Script,a0
-		jsr Commander_Init
+		lea	Script,a0
+		jsr	Commander_Init
 
 		; Allocate screen memory
 		move.l	#SCREEN_BW*BPLS*SCREEN_H*2,d0
@@ -430,19 +430,19 @@ Pal:
 		dc.w	$744,$f5b,$f7c,$f9d,$fbd,$fde,$fef,$fff
 
 PalStart:
-		rept 16
+		rept	16
 		dc.w	$90c
 		endr
 
 PalEnd:
-	rept 16
-	dc.w	$123
-	endr
+		rept	16
+		dc.w	$123
+		endr
 
 Screen:		dc.l	0
 
-		printt "Tentacles: Data"
-		printv *-Data
+		printt	"Tentacles: Data"
+		printv	*-Data
 
 *******************************************************************************
 		data_c
@@ -478,8 +478,8 @@ Sprite:
 NullSprite:
 		dc.l	0
 
-		printt "Tentacles: ChipData"
-		printv *-ChipData
+		printt	"Tentacles: ChipData"
+		printv	*-ChipData
 
 *******************************************************************************
 		bss

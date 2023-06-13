@@ -1,7 +1,7 @@
 		include	src/_main.i
 		include	image.i
 
-IMAGE_END_FRAME = $1000
+IMAGE_END_FRAME = $200
 
 ; Color indexes
 GRAD_COL = $186
@@ -150,6 +150,7 @@ Image_Vbi:
 ********************************************************************************
 Image_Effect:
 ********************************************************************************
+		jsr	ResetFrameCounter
 		lea	Cop,a0
 		lea	Image_Vbi,a1
 		jsr	StartEffect

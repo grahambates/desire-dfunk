@@ -1,7 +1,7 @@
 		include	src/_main.i
 		include	dude.i
 
-DUDE_END_FRAME = $800
+DUDE_END_FRAME = $100
 
 DUDE_W = 96
 DUDE_BW = DUDE_W/8
