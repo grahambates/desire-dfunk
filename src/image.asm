@@ -3,11 +3,22 @@
 
 IMAGE_END_FRAME = $1000
 
-D_GRAD_START = 21
-D_GRAD_SIZE = 58
-LETTERS_GRAD_START = 77
-LETTERS_GRAD_SIZE = 52
+; Color indexes
+GRAD_COL = $186
+HIGHLIGHT_COL = $196
+LETTERS_COL = $198
 
+; Copper positions
+D_GRAD_Y = 21
+D_GRAD_H = 58
+LETTERS_GRAD_Y = 77
+LETTERS_GRAD_H = 52
+DOT2_Y = 12
+DOT3_Y = 147
+DOT4_Y = 155
+DOT5_Y = 169
+
+; Screen
 DIW_W = 320
 DIW_H = 180
 SCREEN_W = DIW_W
@@ -30,6 +41,141 @@ DIW_STRT = (DIW_YSTRT<<8)!DIW_XSTRT
 DIW_STOP = ((DIW_YSTOP-256)<<8)!(DIW_XSTOP-256)
 DDF_STRT = ((DIW_XSTRT-17)>>1)&$00fc
 DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
+
+
+********************************************************************************
+Image_Vbi:
+********************************************************************************
+; Set bpl ptrs
+		lea	Image,a0
+		lea	bpl0pt+custom,a1
+		rept	BPLS
+		move.l	a0,(a1)+
+		lea	SCREEN_BPL(a0),a0
+		endr
+
+		lea	Cop,a5
+		move.l	CurrFrame,d0
+
+		; bars
+		lea	Bars(pc),a0
+		move.w	d0,d1
+		lsr	#2,d1
+		and.w	#$1e,d1
+		move.w	(a0,d1),d1
+		move.w	d1,TopBorder-Cop(a5)
+		move.w	d1,BottomBorder-Cop(a5)
+
+		; dots
+		move.w	#$30,d2
+		move.w	#$3e,d3
+		move.w	d0,d1
+		lsr	#2,d1
+		and.w	d3,d1
+		lea	DGradientData1(pc),a0
+		add.w	d2,d1
+		and.w	d3,d1
+		move.w	(a0,d1.w),Dot1-Cop(a5)
+		lea	DGradientData2(pc),a0
+		add.w	d2,d1
+		and.w	d3,d1
+		move.w	(a0,d1.w),Dot2-Cop(a5)
+		lea	DGradientData3(pc),a0
+		add.w	d2,d1
+		and.w	d3,d1
+		move.w	(a0,d1.w),Dot3-Cop(a5)
+		lea	DGradientData1(pc),a0
+		add.w	d2,d1
+		and.w	d3,d1
+		move.w	(a0,d1.w),Dot4-Cop(a5)
+		lea	DGradientData4(pc),a0
+		add.w	d2,d1
+		and.w	d3,d1
+		move.w	(a0,d1.w),Dot5-Cop(a5)
+
+		; cycle letters
+		move.w	d0,d1
+		neg.w	d1
+		lsr.l	#4,d1
+		and.w	#3<<1,d1
+		lea	Cols(pc),a0
+		lea	(a0,d1.w),a0
+		lea	LETTERS_COL(a6),a1
+		move.l	(a0)+,(a1)+
+		move.l	(a0)+,(a1)+
+
+		; highlight
+		move.w	#$777,HIGHLIGHT_COL(a6)
+		btst	#6,d0
+		beq	.odd
+		move.w	#$fff,HIGHLIGHT_COL(a6)
+.odd
+
+		; d gradient
+		lea	DGradientData(pc),a0
+		lea	DGradient+2-Cop(a5),a1
+		move.w	#D_GRAD_H-1,d7
+		lsr.w	#1,d0
+.dgrad
+		move.w	d0,d1
+		lsr	#1,d1
+		and.w	#$7e,d1
+		move.w	(a0,d1),(a1)
+		lea	8(a1),a1
+		addq	#1,d0
+		dbf	d7,.dgrad
+
+		; letters gradient
+		lsl	#3,d0
+		and.w	#$7fe,d0
+		lea	Sin,a0
+		move.w	(a0,d0),d0
+		lsr.w	#8,d0
+		lsr.w	#1,d0
+		lea	LGradientData,a0
+		lea	LettersGradient+2,a1
+		lea	Sin,a2
+		move.w	#LETTERS_GRAD_H-1,d7
+.lgrad
+		move.w	d0,d1
+		lsl	#1,d1
+		and.w	#$7e,d1
+		move.w	(a0,d1),(a1)
+		lea	8(a1),a1
+		addq	#1,d0
+		dbf	d7,.lgrad
+
+		rts
+
+********************************************************************************
+Image_Effect:
+********************************************************************************
+		lea	Cop,a0
+		lea	Image_Vbi,a1
+		jsr	StartEffect
+
+		lea	Cop2LcA+2,a0
+		move.l	#CopLoopA,d0
+		move.w	d0,4(a0)
+		swap	d0
+		move.w	d0,(a0)
+
+		lea	Cop2LcB+2,a0
+		move.l	#CopLoopB,d0
+		move.w	d0,4(a0)
+		swap	d0
+		move.w	d0,(a0)
+
+Frame:
+		jsr	WaitEOF
+		cmp.l	#IMAGE_END_FRAME,CurrFrame
+		blt	Frame
+		rts
+
+
+********************************************************************************
+Data:
+********************************************************************************
 
 DGradientData:
 ; https://gradient-blaster.grahambates.com/?points=123@0,a08@16,123@31&steps=32&blendMode=lab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=63
@@ -72,144 +218,9 @@ Bars:
 		dc.w	$b9c,$c9c,$c9b,$c99,$ca9,$cb9,$cc9,$bc9
 		dc.w	$ac9,$9c9,$9cb,$9cc,$9bc,$9ac,$99c,$a9c
 
-********************************************************************************
-Image_Vbi:
-********************************************************************************
-; Set bpl ptrs
-		lea	Image,a0
-		lea	bpl0pt+custom,a1
-		rept	BPLS
-		move.l	a0,(a1)+
-		lea	SCREEN_BPL(a0),a0
-		endr
-
-		move.l	CurrFrame,d0
-
-		; bars
-		lea	Bars,a0
-		move.w	d0,d1
-		lsr	#2,d1
-		and.w	#$1e,d1
-		move.w	(a0,d1),d1
-		move.w	d1,TopBorder
-		move.w	d1,BottomBorder
-
-		; dots
-		move.w	d0,d1
-		lsr	#2,d1
-		and.w	#$3e,d1
-		lea	DGradientData1,a0
-		add.w	#$30,d1
-		and.w	#$3e,d1
-		move.w	(a0,d1.w),Dot1
-		lea	DGradientData2,a0
-		add.w	#$30,d1
-		and.w	#$3e,d1
-		move.w	(a0,d1.w),Dot2
-		lea	DGradientData3,a0
-		add.w	#$30,d1
-		and.w	#$3e,d1
-		move.w	(a0,d1.w),Dot3
-		lea	DGradientData1,a0
-		add.w	#$30,d1
-		and.w	#$3e,d1
-		move.w	(a0,d1.w),Dot4
-		lea	DGradientData4,a0
-		add.w	#$30,d1
-		and.w	#$3e,d1
-		move.w	(a0,d1.w),Dot5
-
-		; cycle letters
-		move.w	d0,d1
-		neg.w	d1
-		lsr.l	#4,d1
-		and.w	#3<<1,d1
-		lea	Cols,a0
-		lea	(a0,d1.w),a0
-		lea	$198(a6),a1
-		move.l	(a0)+,(a1)+
-		move.l	(a0)+,(a1)+
-
-		; highlight
-		move.w	#$777,$196(a6)
-		btst	#6,d0
-		beq	.odd
-		move.w	#$fff,$196(a6)
-.odd
-
-		lea	Cols,a0
-		move.l	CurrFrame,d0
-		neg.w	d0
-		lsr.w	#4,d0
-		and.w	#3<<1,d0
-		lea	(a0,d0.w),a0
-
-		lea	DGradientData,a0
-
-		; d gradient
-		lea	DGradient+2,a1
-		move.w	#D_GRAD_SIZE-1,d7
-		move.l	CurrFrame,d0
-		lsr.w	#1,d0
-.dgrad
-		move.w	d0,d1
-		lsr	#1,d1
-		and.w	#$7e,d1
-		move.w	(a0,d1),(a1)
-		lea	8(a1),a1
-		addq	#1,d0
-		dbf	d7,.dgrad
-
-		; letters gradient
-		lsl	#3,d0
-		and.w	#$7fe,d0
-		lea	Sin,a0
-		move.w	(a0,d0),d0
-		lsr.w	#8,d0
-		lsr.w	#1,d0
-		lea	LGradientData,a0
-		lea	LettersGradient+2,a1
-		lea	Sin,a2
-		move.w	#LETTERS_GRAD_SIZE-1,d7
-.lgrad
-		move.w	d0,d1
-		lsl	#1,d1
-		and.w	#$7e,d1
-		move.w	(a0,d1),(a1)
-		lea	8(a1),a1
-		addq	#1,d0
-		dbf	d7,.lgrad
-
-		rts
-
 Cols:
 		dc.w	$6cf,$d6f,$e71,$ed1
 		dc.w	$6cf,$d6f,$e71,$ed1
-
-********************************************************************************
-Image_Effect:
-********************************************************************************
-		lea	Cop,a0
-		lea	Image_Vbi,a1
-		jsr	StartEffect
-
-		lea	Cop2LcA+2,a0
-		move.l	#CopLoopA,d0
-		move.w	d0,4(a0)
-		swap	d0
-		move.w	d0,(a0)
-
-		lea	Cop2LcB+2,a0
-		move.l	#CopLoopB,d0
-		move.w	d0,4(a0)
-		swap	d0
-		move.w	d0,(a0)
-
-Frame:
-		jsr	WaitEOF
-		cmp.l	#IMAGE_END_FRAME,CurrFrame
-		blt	Frame
-		rts
 
 
 ********************************************************************************
@@ -240,76 +251,73 @@ Cop2LcA		dc.w	cop2lch,0
 		dc.w	cop2lcl,0
 CopLoopA
 		; top loop
-		dc.w	$180,$000
-		dc.w	$180,$111
+		dc.w	color00,$000
+		dc.w	color00,$111
 		COP_WAITH 0,$e0
-		dc.w	$180,$111
-		dc.w	$180,$000
+		dc.w	color00,$111
+		dc.w	color00,$000
 		COP_WAITH 0,$e0
 		COP_SKIPV DIW_YSTRT-1
 		dc.w	copjmp2,0
 		; top border
-		dc.w	$180
+		dc.w	color00
 TopBorder:	dc.w	$fff
 		COP_WAITV DIW_YSTRT
-		dc.w	$180,$000
+		dc.w	color00,$000
 
-		dc.w	$186
+		dc.w	GRAD_COL
 Dot1:		dc.w	$fff
-		COP_WAITV DIW_YSTRT+12
-		dc.w	$186
+		COP_WAITV DIW_YSTRT+DOT2_Y
+		dc.w	GRAD_COL
 Dot2:		dc.w	$f0f
 
-		COP_WAITV DIW_YSTRT+D_GRAD_START
+		COP_WAITV DIW_YSTRT+D_GRAD_Y
 DGradient:
-.y		set	DIW_YSTRT+D_GRAD_START
-		rept	D_GRAD_SIZE
-		dc.w	$186,0
+.y		set	DIW_YSTRT+D_GRAD_Y
+		rept	D_GRAD_H
+		dc.w	GRAD_COL,0
 		COP_WAITH .y,$e0
 .y		set	.y+1
 		endr
 
-		COP_WAITV DIW_YSTRT+LETTERS_GRAD_START
+		COP_WAITV DIW_YSTRT+LETTERS_GRAD_Y
 LettersGradient:
-		rept	LETTERS_GRAD_SIZE
-		dc.w	$186,0
+		rept	LETTERS_GRAD_H
+		dc.w	GRAD_COL,0
 		COP_WAITH $80,$e0
 		endr
 
 		COP_WAITV DIW_YSTRT+147
-		dc.w	$186
+		dc.w	GRAD_COL
 Dot3:		dc.w	$ff0
 		COP_WAITV DIW_YSTRT+155
-		dc.w	$186
+		dc.w	GRAD_COL
 Dot4:		dc.w	$f0f
 		COP_WAITV DIW_YSTRT+169
-		dc.w	$186
+		dc.w	GRAD_COL
 Dot5:		dc.w	$0ff
 
 		; pal fix
 		COP_WAIT $ff,$de
 
-
-
 		; bottom border
 		COP_WAITV DIW_YSTOP+1
-		dc.w	$180
+		dc.w	color00
 BottomBorder:	dc.w	$fff
 		COP_WAITV DIW_YSTOP+2
-		dc.w	$180,$000
+		dc.w	color00,$000
 		; bottom loop
 Cop2LcB		dc.w	cop2lch,0
 		dc.w	cop2lcl,0
 CopLoopB
-		dc.w	$180,$000
-		dc.w	$180,$111
+		dc.w	color00,$000
+		dc.w	color00,$111
 		COP_WAITH $0,$e0
-		dc.w	$180,$111
-		dc.w	$180,$000
+		dc.w	color00,$111
+		dc.w	color00,$000
 		COP_WAITH $0,$e0
 		COP_SKIPV DIW_YSTOP+50
 		dc.w	copjmp2,0
-
 
 		dc.l	-2
 
