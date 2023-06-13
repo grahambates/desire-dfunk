@@ -3,7 +3,7 @@ vasm_objects := $(addprefix obj/, $(patsubst %.asm,%.o,$(notdir $(vasm_sources))
 objects := $(vasm_objects)
 deps := $(objects:.o=.d)
 dude_images := $(wildcard assets/dude_walking_16_frames/*.png)
-data := data/girl-head.BPL data/girl-body.BPL obj/tables_shade1.o data/tex.rgb data/DFunk-vert.BPL data/dude_walking.BPL data/credit-gigabates.BPL data/credit-maze.BPL data/credit-steffest.BPL data/dude-bg.BPL
+data := data/girl-head.BPL data/girl-body.BPL obj/tables_shade1.o data/tex.rgb data/DFunk-vert.BPL data/dude_walking.BPL data/credit-gigabates.BPL data/credit-maze.BPL data/credit-steffest.BPL data/dude-bg.BPL data/dfunk320.BPL
 
 program = out/a
 OUT = $(program)
@@ -60,11 +60,38 @@ $(deps): obj/%.d : src/%.asm
 	$(info Building dependencies for $<)
 	$(VASM) $(VASMFLAGS) -depend=make -o $(patsubst %.d,%.o,$@) $(CURDIR)/$< > $@
 
+
+#-------------------------------------------------------------------------------
+# Data:
+#-------------------------------------------------------------------------------
+
+# Tunnel tables:
+data/tables_shade1.i: scripts/table_shade.js
+	node $^ -v 112 -u 82 --routine=false --aspect=0.75 > $@
+obj/tables_shade1.o: data/tables_shade1.i
+	$(VASM) -Fbin -quiet -no-opt -o $@ $^
+
+
+#-------------------------------------------------------------------------------
+# Images:
+#-------------------------------------------------------------------------------
+
+# Tunnel
+tex = assets/bokeh-bright.jpg
+data/tex-pal.png: $(tex) Makefile
+	convert $< -depth 4 $@
+data/tex.png: $(tex) data/tex-pal.png
+	convert $< -resize 64x64 -dither FloydSteinberg -remap data/tex-pal.png $@
+data/tex.rgba: data/tex.png
+	convert $^ -depth 4 $@
+data/tex.rgb: data/tex.rgba
+	$(AMIGATOOLS) shiftrgba $^ $@
+
+# Girl:
 data/girl-head.BPL : assets/girl-head.png
 	$(KINGCON) $< data/girl-head -F=3 -I -M
 data/girl-body.BPL : assets/girl-body.png
 	$(KINGCON) $< data/girl-body -F=3 -I
-
 data/credit-gigabates.BPL : assets/credit-gigabates.png
 	$(KINGCON) $< data/credit-gigabates -F=1
 data/credit-maze.BPL : assets/credit-maze.png
@@ -72,36 +99,19 @@ data/credit-maze.BPL : assets/credit-maze.png
 data/credit-steffest.BPL : assets/credit-steffest.png
 	$(KINGCON) $< data/credit-steffest -F=1
 
+# Vertical logo for tentacles
 data/DFunk-vert.BPL : assets/DFunk-vert.png
 	$(KINGCON) $< data/DFunk-vert -F=s16 -SX=128
 
-# data/dude_walking_16_frames/%.png : assets/dude_walking_16_frames/%.iff
-# 	convert -extent 96x150 -gravity SouthWest -background "#000000" $< $@
+# Static logo screen
+data/dfunk320.BPL : assets/dfunk320.png
+	$(KINGCON) $< data/dfunk320 -F=4 -C
 
+# Dude walking
 data/dude_walking.BPL : $(dude_images)
 	$(KINGCON) assets/dude_walking_16_frames-c/dude_walking_b_1.png data/dude_walking -I -A -F=3
 data/dude-bg.BPL : assets/dude-walking-bg2.png
 	$(KINGCON) assets/dude-walking-bg2.png data/dude-bg -F=2 -C=8
 
-tex = assets/bokeh-bright.jpg
-# tex = assets/bokeh-bright-2.png
-
-data/tex-pal.png: $(tex) Makefile
-	convert $< -depth 4 $@
-
-data/tex.png: $(tex) data/tex-pal.png
-	convert $< -resize 64x64 -dither FloydSteinberg -remap data/tex-pal.png $@
-
-data/tex.rgba: data/tex.png
-	convert $^ -depth 4 $@
-
-data/tex.rgb: data/tex.rgba
-	$(AMIGATOOLS) shiftrgba $^ $@
-
-data/tables_shade1.i: scripts/table_shade.js
-	node $^ -v 112 -u 82 --routine=false --aspect=0.75 > $@
-
-obj/tables_shade1.o: data/tables_shade1.i
-	$(VASM) -Fbin -quiet -no-opt -o $@ $^
 
 .PHONY: all clean dist

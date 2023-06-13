@@ -9,6 +9,7 @@
   "author": "gigabates <hello@grahambates.com>",
   "license": "MIT",
   "dependencies": {
+    "fast-xml-parser": "^4.2.4",
     "yargs": "^17.2.1"
   }
 }

@@ -5,6 +5,7 @@
 		include	"tunnel.i"
 		include	"girl.i"
 		include	"dude.i"
+		include	"image.i"
 
 _start:
 		include	"PhotonsMiniWrapper1.04.i"
@@ -36,6 +37,7 @@ Demo:
 
 ;-------------------------------------------------------------------------------
 ; Effects
+		jsr	Image_Effect
 		; jsr	Girl_Effect
 		; jsr	Tentacles_Effect
 		; jsr	Tunnel_Effect

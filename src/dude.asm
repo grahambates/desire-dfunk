@@ -1,7 +1,7 @@
 		include	src/_main.i
 		include	dude.i
 
-DUDE_END_FRAME = $100
+DUDE_END_FRAME = $800
 
 DUDE_W = 96
 DUDE_BW = DUDE_W/8
@@ -122,16 +122,71 @@ Frame:
 		move.l	a1,bltdpt(a6)
 		move.w	#(DUDE_H*3<<6)!(DUDE_BW/2),bltsize(a6)
 
-		; rept	20
-		; bsr	InitDrawLine
-		; lea	BlankBpl,a0
-		; move.l	#200,d0
-		; move.l	#100,d1
-		; move.l	#260,d2
-		; move.l	#20,d3
-		; bsr	DrawLine
-		; endr
+		bsr	InitDrawLine
+		lea	BlankBpl,a0
 
+		move.l	#119,d0
+		move.l	#56,d1
+		move.l	#119,d2
+		move.l	#195,d3
+		bsr	DrawLine
+
+		move.l	#174,d0
+		move.l	#54,d1
+		move.l	#174,d2
+		move.l	#202,d3
+		bsr	DrawLine
+
+		move.l	#4,d0
+		move.l	#209,d1
+		move.l	#90,d2
+		move.l	#193,d3
+		bsr	DrawLine
+
+		move.l	#126,d0
+		move.l	#233,d1
+		move.l	#237,d2
+		move.l	#211,d3
+		bsr	DrawLine
+
+		move.l	#266,d0
+		move.l	#255,d1
+		move.l	#319,d2
+		move.l	#245,d3
+		bsr	DrawLine
+
+; 		moveq	#0,d0
+; 		moveq	#0,d1
+; 		moveq	#0,d2
+; 		moveq	#0,d3
+; 		moveq	#0,d5
+; 		moveq	#0,d6
+; 		moveq	#0,d7
+; 		lea	BlankBpl,a0
+; 		lea	glyphA,a1
+; 		move.b	(a1)+,d5				; width
+; 		move.b	(a1)+,d7				; path count
+; .path
+
+; 		move.b	(a1)+,d6				; point count
+; 		and.w	#$ff,d6
+; 		; first point
+; 		move.b	(a1)+,d0
+; 		and.w	#$ff,d0
+; 		move.b	(a1)+,d1
+; 		and.w	#$ff,d1
+; .pt
+; 		move.b	(a1),d2
+; 		and.w	#$ff,d2
+; 		move.b	1(a1),d3
+; 		and.w	#$ff,d3
+; 		bsr	DrawLine
+; 		move.b	(a1)+,d0
+; 		and.w	#$ff,d0
+; 		move.b	(a1)+,d1
+; 		and.w	#$ff,d1
+; 		dbf	d6,.pt
+; 		dbf	d7,.path
 
 		jsr	WaitEOF
 		cmp.l	#DUDE_END_FRAME,CurrFrame
@@ -247,6 +302,7 @@ DrawLine:
 		move.w	d1,bltsize(a6)				; set length and start the blitter
 		rts
 
+; TODO: precalc
 ; Multiplication LUT for screen byte width
 .screenMuls:
 		rept	SCREEN_H
@@ -289,6 +345,8 @@ Offsets:
 		dc.b	1,-2
 		dc.b	1,-1
 
+		include	data/font.i
+
 
 ********************************************************************************
 		data_c
@@ -303,6 +361,10 @@ Cop:
 		dc.w	bpl2mod,0
 		dc.w	bplcon0,BPLS<<12!$200!(1<<10)
 		incbin	data/dude-bg.COP
+		dc.w	color12,$414
+		dc.w	color13,$fff
+		dc.w	color14,$101
+		dc.w	color15,$000
 ; loop A
 Cop2LcA		dc.w	cop2lch,0
 		dc.w	cop2lcl,0
