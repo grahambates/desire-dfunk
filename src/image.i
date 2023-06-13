@@ -1,0 +1,1 @@
+		xdef	Image_Effect
