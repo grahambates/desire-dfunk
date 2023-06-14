@@ -122,11 +122,9 @@ Frame:
 		bsr	InitDrawLine
 		move.l	DrawBufferB(pc),a0
 		move.l	CurrFrame,d0
-		; lsl	#8,d0
-		; divu	#60,d0
-		lsl	#2,d0
 		neg.w	d0
-		and.w	#$1fe,d0
+		and.w	#$ff,d0
+		add.w	d0,d0
 		lea	XGrid,a1
 		move.w	(a1,d0.w),d0
 
