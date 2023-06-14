@@ -3,7 +3,7 @@ const { XMLParser } = require("fast-xml-parser");
 const fs = require("fs");
 const xmlDataStr = fs.readFileSync(__dirname + "/../assets/KARNIVOR.svg");
 
-const scale = 0.025;
+const scale = 0.036;
 const baseline = 750;
 
 const parser = new XMLParser({ ignoreAttributes: false });
@@ -36,7 +36,7 @@ out.forEach((g) => {
 console.log("\nFontGlyphs:");
 out.forEach((g) => {
 	console.log("glyph" + g.char + ":");
-	console.log(" dc.b " + fmt(g.width));
+	console.log(" dc.b " + fmt(g.width + 2 / scale));
 	console.log(" dc.b " + (g.path.length - 1));
 	g.path.forEach((p) => {
 		console.log(" dc.b " + (p.length - 2));

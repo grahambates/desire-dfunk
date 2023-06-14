@@ -102,7 +102,10 @@ Frame:
 
 		bsr	InitDrawLine
 
-		move.w	#50,a2
+		move.l	CurrFrame,d0
+		neg.w	d0
+		move.w	d0,a2
+		add.w	#50,a2
 		lea	Text,a3
 		lea	XGrid,a4
 		lea	FontTable-65*4,a5
@@ -393,7 +396,7 @@ DrawWord:
 .done		rts
 
 Text:
-		dc.b	"SLIPSTREAM",0
+		dc.b	"ABYSS",0
 		even
 
 ********************************************************************************
@@ -408,6 +411,8 @@ DrawChar:
 		moveq	#0,d7
 		move.b	(a1)+,d5				; width
 		move.w	d5,Width				; d5 gets trashed by line draw
+		move.w	a2,d0
+		ble	.skipChar
 		move.b	(a1)+,d7				; path count
 .path
 		moveq	#-1,d0
@@ -441,7 +446,7 @@ DrawChar:
 		movem.w	(sp)+,d0-d1
 		dbf	d6,.pt
 		dbf	d7,.path
-		add.w	Width(pc),a2
+.skipChar	add.w	Width(pc),a2
 		rts
 
 Width:		dc.w	0

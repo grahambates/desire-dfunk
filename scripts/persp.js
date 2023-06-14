@@ -37,4 +37,4 @@ console.log("TextTop:");
 console.log(" dc.w " + lerp(23 + 9, 0, 320).join(","));
 
 console.log("TextMul:");
-console.log(" dc.w " + lerp(0x8000, 0xf000, 320).join(","));
+console.log(" dc.w " + lerp(0x8000, 0xd000, 320).join(","));
