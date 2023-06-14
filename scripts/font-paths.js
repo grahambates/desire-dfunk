@@ -3,7 +3,8 @@ const { XMLParser } = require("fast-xml-parser");
 const fs = require("fs");
 const xmlDataStr = fs.readFileSync(__dirname + "/../assets/KARNIVOR.svg");
 
-const scale = 0.1;
+const scale = 0.03;
+const baseline = 800;
 
 const parser = new XMLParser({ ignoreAttributes: false });
 let jsonObj = parser.parse(xmlDataStr);
@@ -40,7 +41,7 @@ out.forEach((g) => {
 	g.path.forEach((p) => {
 		console.log(" dc.b " + (p.length - 3));
 		for (let i = 0; i < p.length - 1; i++) {
-			let pt = fmt(p[i][0]) + "," + fmt(p[i][1]);
+			let pt = fmt(p[i][0]) + "," + fmt(baseline - p[i][1]);
 			console.log(" dc.b " + pt);
 		}
 	});

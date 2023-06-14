@@ -42,12 +42,11 @@ Vbi:
 		lea	SCREEN_BPL(a0),a0
 		move.l	a0,bpl4pt(a6)
 		; pf2
-		lea	BlankBpl,a1
 		lea	Bg,a2
 		move.l	a2,bpl1pt(a6)
 		lea	SCREEN_BW*SCREEN_H(a2),a2
 		move.l	a2,bpl3pt(a6)
-		move.l	a1,bpl5pt(a6)
+		move.l	ViewBufferB(pc),bpl5pt(a6)
 
 		rts
 
@@ -86,44 +85,15 @@ Dude_Effect:
 		jsr	StartEffect
 
 Frame:
-		movem.l	DrawBuffer(pc),a0-a1
+		movem.l	DrawBuffer(pc),a0-a3
 		exg	a0,a1
-		movem.l	a0-a1,DrawBuffer
+		exg	a2,a3
+		movem.l	a0-a3,DrawBuffer
 
-		bsr	ClearScreen
-
-		move.l	CurrFrame,d0
-		lsr	#2,d0
-		and.w	#$f,d0
-		move.w	d0,d1
-		mulu	#DUDE_BW*DUDE_H*3,d0
-
-		add.w	d1,d1
-		lea	Offsets,a1
-		move.b	1(a1,d1),d2				; y
-		move.b	(a1,d1),d1				; x
-		ext.w	d2
-		add.w	#DUDE_Y,d2
-		mulu	#SCREEN_BW*3,d2
-		add.l	#4,d2
-		ror.w	#4,d1
-
-		WAIT_BLIT
-		move.l	DrawBuffer(pc),a1
-		add.l	d2,a1
-		lea	Anim,a0
-		add.l	d0,a0
-		or.w	#$09f0,d1
-		move.w	d1,bltcon0(a6)
-		move.l	#-1,bltafwm(a6)
-		clr.w	bltamod(a6)
-		move.w	#SCREEN_BW-DUDE_BW,bltdmod(a6)
-		move.l	a0,bltapt(a6)
-		move.l	a1,bltdpt(a6)
-		move.w	#(DUDE_H*3<<6)!(DUDE_BW/2),bltsize(a6)
+		bsr	DrawDude
 
 		bsr	InitDrawLine
-		lea	BlankBpl,a0
+		move.l	DrawBufferB(pc),a0
 
 		move.l	#119,d0
 		move.l	#56,d1
@@ -155,38 +125,28 @@ Frame:
 		move.l	#245,d3
 		bsr	DrawLine
 
-		moveq	#0,d0
-		moveq	#0,d1
-		moveq	#0,d2
-		moveq	#0,d3
-		moveq	#0,d5
-		moveq	#0,d6
-		moveq	#0,d7
-		lea	BlankBpl,a0
-		lea	glyphE,a1
-		move.b	(a1)+,d5				; width
-		move.b	(a1)+,d7				; path count
-.path
+; Clear top
+		move.l	DrawBufferB(pc),a0
+		WAIT_BLIT
+		move.l	a0,bltdpt(a6)
+		move.l	#$01000000,bltcon0(a6)
+		clr.w	bltdmod(a6)
+		move.w	#50<<6!(SCREEN_BW/2),bltsize(a6)
 
-		move.b	(a1)+,d6				; point count
-		and.w	#$ff,d6
-		; first point
-		move.b	(a1)+,d0
-		and.w	#$ff,d0
-		move.b	(a1)+,d1
-		and.w	#$ff,d1
-.pt
-		move.b	(a1),d2
-		and.w	#$ff,d2
-		move.b	1(a1),d3
-		and.w	#$ff,d3
-		bsr	DrawLine
-		move.b	(a1)+,d0
-		and.w	#$ff,d0
-		move.b	(a1)+,d1
-		and.w	#$ff,d1
-		dbf	d6,.pt
-		dbf	d7,.path
+		; abyss
+		lea	Text,a4
+		move.w	#20,a2
+		bsr	DrawWord
+
+; Fill top
+		move.l	DrawBufferB(pc),a0
+		add.l	#SCREEN_BW*50-1,a0
+		WAIT_BLIT
+		move.l	a0,bltapt(a6)
+		move.l	a0,bltdpt(a6)
+		move.l	#$09f0001a,bltcon0(a6)
+		clr.l	bltamod(a6)
+		move.w	#50<<6!(SCREEN_BW/2),bltsize(a6)
 
 		jsr	WaitEOF
 		cmp.l	#DUDE_END_FRAME,CurrFrame
@@ -311,12 +271,180 @@ DrawLine:
 
 
 ********************************************************************************
+DrawLineBlit:
+; Draw a line for filling using the blitter
+; Based on TEC, but with muls LUT
+;-------------------------------------------------------------------------------
+; d0.w - x1
+; d1.w - y1
+; d2.w - x2
+; d3.w - y2
+; a0 - Draw buffer
+; a6 - Custom
+;-------------------------------------------------------------------------------
+		cmp.w	d1,d3
+		bgt.s	.l0
+		beq.s	.done
+		exg	d0,d2
+		exg	d1,d3
+.l0		moveq	#0,d4
+		move.w	d1,d4
+		add.w	d4,d4
+		move.w	ScreenMuls(pc,d4.w),d4
+		move.w	d0,d5
+		add.l	a0,d4
+		asr.w	#3,d5
+		ext.l	d5
+		add.l	d5,d4					; fix - was word but needs to be long for high screen addresses
+		moveq	#0,d5
+		sub.w	d1,d3
+		sub.w	d0,d2
+		bpl.s	.l1
+		moveq	#1,d5
+		neg.w	d2
+.l1		move.w	d3,d1
+		add.w	d1,d1
+		cmp.w	d2,d1
+		dbhi	d3,.l2
+.l2		move.w	d3,d1
+		sub.w	d2,d1
+		bpl.s	.l3
+		exg	d2,d3
+.l3		addx.w	d5,d5
+		add.w	d2,d2
+		move.w	d2,d1
+		sub.w	d3,d2
+		addx.w	d5,d5
+		and.w	#15,d0
+		ror.w	#4,d0
+		or.w	#$a4a,d0
+		WAIT_BLIT
+		move.w	d2,bltaptl(a6)
+		sub.w	d3,d2
+		lsl.w	#6,d3
+		addq.w	#2,d3
+		move.w	d0,bltcon0(a6)
+		move.b	.oct(pc,d5.w),bltcon1+1(a6)
+		move.l	d4,bltcpt(a6)
+		move.l	d4,bltdpt(a6)
+		movem.w	d1/d2,bltbmod(a6)
+		move.w	d3,bltsize(a6)
+.done		rts
+.oct		dc.b	3,3+64,19,19+64,11,11+64,23,23+64
+
+; TODO: combine
+; Multiplication LUT for screen byte width
+ScreenMuls:
+		rept	SCREEN_H
+		dc.w	SCREEN_BW*REPTN
+		endr
+
+
+********************************************************************************
 ClearScreen:
 		WAIT_BLIT
 		move.l	a0,bltdpt(a6)
 		move.l	#$01000000,bltcon0(a6)
 		clr.l	bltdmod(a6)
-		move.w	#(DIW_H*BPLS/2)<<6!(SCREEN_BW/2),bltsize(a6)
+		move.w	#(DIW_H*3)<<6!(SCREEN_BW/2),bltsize(a6)
+		rts
+
+********************************************************************************
+DrawDude:
+		move.l	CurrFrame,d0
+		lsr	#2,d0
+		and.w	#$f,d0
+		move.w	d0,d1
+		mulu	#DUDE_BW*DUDE_H*3,d0
+
+		add.w	d1,d1
+		lea	Offsets,a1
+		move.b	1(a1,d1),d2				; y
+		move.b	(a1,d1),d1				; x
+		ext.w	d2
+		add.w	#DUDE_Y,d2
+		mulu	#SCREEN_BW*3,d2
+		add.l	#4,d2
+		ror.w	#4,d1
+
+		WAIT_BLIT
+		move.l	DrawBuffer(pc),a1
+		add.l	d2,a1
+		lea	Anim,a0
+		add.l	d0,a0
+		or.w	#$09f0,d1
+		move.w	d1,bltcon0(a6)
+		move.w	#0,bltcon1(a6)
+		move.l	#-1,bltafwm(a6)
+		clr.w	bltamod(a6)
+		move.w	#SCREEN_BW-DUDE_BW,bltdmod(a6)
+		move.l	a0,bltapt(a6)
+		move.l	a1,bltdpt(a6)
+		move.w	#((DUDE_H+1)*3<<6)!(DUDE_BW/2),bltsize(a6)
+.skip		rts
+
+********************************************************************************
+; a0 = draw buffer
+; a1 = glyph
+; a2.w = x offset
+; a4 = text data
+********************************************************************************
+DrawWord:
+		lea	FontTable-65*4,a5
+		moveq	#0,d0
+.char
+		move.b	(a4)+,d0
+		beq	.done
+		lsl	#2,d0
+		move.l	(a5,d0.w),a1
+		bsr	DrawChar
+		bra	.char
+.done		rts
+
+Text:
+		dc.b	"SLIPSTREAM",0
+		even
+
+********************************************************************************
+; a0 = draw buffer
+; a1 = glyph
+; a2.w = x offset
+********************************************************************************
+DrawChar:
+		moveq	#0,d0
+		moveq	#0,d1
+		moveq	#0,d2
+		moveq	#0,d3
+		moveq	#0,d5
+		moveq	#0,d6
+		moveq	#0,d7
+		move.b	(a1)+,d5				; width
+		move.w	d5,a3					; d5 gets trashed by line draw
+		move.b	(a1)+,d7				; path count
+.path
+
+		move.b	(a1)+,d6				; point count
+		and.w	#$ff,d6
+; first point
+		move.b	(a1)+,d0
+		and.w	#$ff,d0
+		move.b	(a1)+,d1
+		and.w	#$ff,d1
+.pt
+		move.b	(a1),d2
+		and.w	#$ff,d2
+		move.b	1(a1),d3
+		and.w	#$ff,d3
+		add.w	a2,d0
+		add.w	a2,d2
+		bsr	DrawLineBlit
+		move.b	(a1)+,d0
+		and.w	#$ff,d0
+		move.b	(a1)+,d1
+		and.w	#$ff,d1
+		dbf	d6,.pt
+		dbf	d7,.path
+		add.w	a3,a2
 		rts
 
 
@@ -326,6 +454,8 @@ Vars:
 
 DrawBuffer	dc.l	0
 ViewBuffer	dc.l	0
+DrawBufferB	dc.l	BlankBpl
+ViewBufferB	dc.l	BlankBpl2
 
 Offsets:
 		dc.b	0,-1
@@ -409,11 +539,13 @@ CopLoopB
 
 Anim:
 		incbin	data/dude_walking.BPL
+		ds.b	DUDE_BW*3
 
 Bg:
 		incbin	data/dude-bg.BPL
 
 		bss_c
 
-
 BlankBpl:	ds.b	SCREEN_SIZE
+BlankBpl2:	ds.b	SCREEN_SIZE
+
