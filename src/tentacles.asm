@@ -102,12 +102,12 @@ Tentacles_Effect:
 		lea	8(a0),a0
 		dbf	d7,.spr
 
-		move.w	#$357,color17(a6)
+		move.w	#$27c,color17(a6)
 		move.w	#$fff,color18(a6)
-		move.w	#$123,color19(a6)
-		move.w	#$357,color21(a6)
+		move.w	#$024,color19(a6)
+		move.w	#$27c,color21(a6)
 		move.w	#$fff,color22(a6)
-		move.w	#$123,color23(a6)
+		move.w	#$024,color23(a6)
 
 		lea	Cop,a0
 		sub.l	a1,a1
@@ -426,7 +426,7 @@ Data:
 *******************************************************************************
 
 Pal:
-		dc.w	$123,$f06,$f58,$f79,$f9a,$fbc,$ecd,$ded
+		dc.w	$024,$f06,$f58,$f79,$f9a,$fbc,$ecd,$ded
 		dc.w	$744,$f5b,$f7c,$f9d,$fbd,$fde,$fef,$fff
 
 PalStart:
@@ -436,7 +436,7 @@ PalStart:
 
 PalEnd:
 		rept	16
-		dc.w	$123
+		dc.w	$024
 		endr
 
 Screen:		dc.l	0

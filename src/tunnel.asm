@@ -2,7 +2,7 @@
 		include	"tunnel.i"
 
 TUNNEL_END_FRAME = $400
-BG_COL = $123
+BG_COL = $024
 
 SRC_W = 64
 SRC_H = 64

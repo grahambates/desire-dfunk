@@ -37,11 +37,11 @@ Demo:
 
 ;-------------------------------------------------------------------------------
 ; Effects
-		jsr	Girl_Effect
-		jsr	Tentacles_Effect
-		jsr	Image_Effect
-		jsr	Tunnel_Effect
-		jsr	Rotate_Effect
+		; jsr	Girl_Effect
+		; jsr	Tentacles_Effect
+		; jsr	Image_Effect
+		; jsr	Tunnel_Effect
+		; jsr	Rotate_Effect
 		jsr	Dude_Effect
 		rts						; Exit demo
 
@@ -187,5 +187,5 @@ BlankCop:
 		dc.w	diwstrt,$2c81
 		dc.w	diwstop,$2cc1
 		dc.w	bplcon0,$200
-		dc.w	color00,$123
+		dc.w	color00,$024
 		dc.l	-2

@@ -1,7 +1,7 @@
 		include	src/_main.i
 		include	dude.i
 
-DUDE_END_FRAME = $100
+DUDE_END_FRAME = $1000
 
 DUDE_W = 96
 DUDE_BW = DUDE_W/8
@@ -155,38 +155,38 @@ Frame:
 		move.l	#245,d3
 		bsr	DrawLine
 
-; 		moveq	#0,d0
-; 		moveq	#0,d1
-; 		moveq	#0,d2
-; 		moveq	#0,d3
-; 		moveq	#0,d5
-; 		moveq	#0,d6
-; 		moveq	#0,d7
-; 		lea	BlankBpl,a0
-; 		lea	glyphA,a1
-; 		move.b	(a1)+,d5				; width
-; 		move.b	(a1)+,d7				; path count
-; .path
+		moveq	#0,d0
+		moveq	#0,d1
+		moveq	#0,d2
+		moveq	#0,d3
+		moveq	#0,d5
+		moveq	#0,d6
+		moveq	#0,d7
+		lea	BlankBpl,a0
+		lea	glyphE,a1
+		move.b	(a1)+,d5				; width
+		move.b	(a1)+,d7				; path count
+.path
 
-; 		move.b	(a1)+,d6				; point count
-; 		and.w	#$ff,d6
-; 		; first point
-; 		move.b	(a1)+,d0
-; 		and.w	#$ff,d0
-; 		move.b	(a1)+,d1
-; 		and.w	#$ff,d1
-; .pt
-; 		move.b	(a1),d2
-; 		and.w	#$ff,d2
-; 		move.b	1(a1),d3
-; 		and.w	#$ff,d3
-; 		bsr	DrawLine
-; 		move.b	(a1)+,d0
-; 		and.w	#$ff,d0
-; 		move.b	(a1)+,d1
-; 		and.w	#$ff,d1
-; 		dbf	d6,.pt
-; 		dbf	d7,.path
+		move.b	(a1)+,d6				; point count
+		and.w	#$ff,d6
+		; first point
+		move.b	(a1)+,d0
+		and.w	#$ff,d0
+		move.b	(a1)+,d1
+		and.w	#$ff,d1
+.pt
+		move.b	(a1),d2
+		and.w	#$ff,d2
+		move.b	1(a1),d3
+		and.w	#$ff,d3
+		bsr	DrawLine
+		move.b	(a1)+,d0
+		and.w	#$ff,d0
+		move.b	(a1)+,d1
+		and.w	#$ff,d1
+		dbf	d6,.pt
+		dbf	d7,.path
 
 		jsr	WaitEOF
 		cmp.l	#DUDE_END_FRAME,CurrFrame

@@ -42,33 +42,33 @@ DIW_XSTOP = DIW_XSTRT+DIW_W
 DIW_YSTOP = DIW_YSTRT+DIW_H
 
 Script:
-	dc.l 0,CmdLerpWord,200,7,ZoomBase
-	; Cube
-	dc.l $180,CmdLerpPoints,SpherePoints,CubePoints
-	; Particles
-	dc.l $300,CmdLerpPoints,CubePoints,Particles
-	dc.l $300,CmdLerpWord,150,6,ZoomBase
-	; Start movement
-	dc.l $300+LERP_POINTS_LENGTH+1,SetParticles
-	dc.l $300+LERP_POINTS_LENGTH+1,CmdLerpWord,$200,3,ParticlesSpeedX
-	dc.l $300+LERP_POINTS_LENGTH+1,CmdLerpWord,$400,5,ParticlesSpeedY
-	dc.l $300+LERP_POINTS_LENGTH+1,CmdLerpWord,$400,3,ParticlesSpeedZ
-	; Stop movement
-	dc.l $480-(1<<3),CmdLerpWord,0,3,ParticlesSpeedX
-	dc.l $480-(1<<3),CmdLerpWord,0,3,ParticlesSpeedY
-	dc.l $480-(1<<3),CmdLerpWord,0,3,ParticlesSpeedZ
-	; Logo
-	dc.l $480+LERP_POINTS_LENGTH,CmdLerpPoints,Particles,LogoPoints
-	; Hearts
-	; dc.l $700,CmdLerpPoints,LogoPoints,HeartPoints
-	dc.l $680,CmdLerpPoints,LogoPoints,SpherePoints
-	; ; Zoom out
-	dc.l $700,CmdLerpWord,1000,8,ZoomBase
-	dc.l 0,0
+		dc.l	0,CmdLerpWord,200,7,ZoomBase
+; Cube
+		dc.l	$180,CmdLerpPoints,SpherePoints,CubePoints
+; Particles
+		dc.l	$300,CmdLerpPoints,CubePoints,Particles
+		dc.l	$300,CmdLerpWord,150,6,ZoomBase
+; Start movement
+		dc.l	$300+LERP_POINTS_LENGTH+1,SetParticles
+		dc.l	$300+LERP_POINTS_LENGTH+1,CmdLerpWord,$200,3,ParticlesSpeedX
+		dc.l	$300+LERP_POINTS_LENGTH+1,CmdLerpWord,$400,5,ParticlesSpeedY
+		dc.l	$300+LERP_POINTS_LENGTH+1,CmdLerpWord,$400,3,ParticlesSpeedZ
+; Stop movement
+		dc.l	$480-(1<<3),CmdLerpWord,0,3,ParticlesSpeedX
+		dc.l	$480-(1<<3),CmdLerpWord,0,3,ParticlesSpeedY
+		dc.l	$480-(1<<3),CmdLerpWord,0,3,ParticlesSpeedZ
+; Logo
+		dc.l	$480+LERP_POINTS_LENGTH,CmdLerpPoints,Particles,LogoPoints
+; Hearts
+; dc.l $700,CmdLerpPoints,LogoPoints,HeartPoints
+		dc.l	$680,CmdLerpPoints,LogoPoints,SpherePoints
+; ; Zoom out
+		dc.l	$700,CmdLerpWord,1000,8,ZoomBase
+		dc.l	0,0
 
 SetParticles:
-	move.l Particles,DrawPoints
-	rts
+		move.l	Particles,DrawPoints
+		rts
 
 
 ********************************************************************************
@@ -134,8 +134,8 @@ Rotate_Effect:
 		lea	Rotate_Vbi(pc),a1
 		jsr	StartEffect
 
-		lea Script,a0
-		jsr Commander_Init
+		lea	Script,a0
+		jsr	Commander_Init
 
 ********************************************************************************
 Frame:
@@ -324,9 +324,9 @@ r		equr	d6
 
 		move.l	DrawPoints,points
 		move.l	DrawBuffer,draw
-		lea	DIW_BW/2+DIW_H/2*SCREEN_BW(draw),draw ; centered with top/left padding
+		lea	DIW_BW/2+DIW_H/2*SCREEN_BW(draw),draw	; centered with top/left padding
 		move.l	DrawClearList,clear
-		lea	MulsTable+256*127+128,multbl			; start at middle of table (0x)
+		lea	MulsTable+256*127+128,multbl		; start at middle of table (0x)
 
 		move.w	#POINTS_COUNT-1,d7
 SMCLoop:
@@ -507,9 +507,9 @@ InitParticles:
 InitCube:
 		move.l	CubePoints(pc),a0
 
-PAD=$30
-RANGE=$100-PAD-PAD
-INC=RANGE/3
+PAD = $30
+RANGE = $100-PAD-PAD
+INC = RANGE/3
 START = -$80+PAD
 
 		move.w	#START<<8,d0
@@ -684,10 +684,10 @@ LerpPointsRemaining: dc.w 0
 ********************************************************************************
 ; LerpPoints for commander
 CmdLerpPoints:
-	movem.l (a5)+,a0-a1
-	move.l (a0),a0
-	move.l (a1),a1
-	jmp LerpPoints
+		movem.l	(a5)+,a0-a1
+		move.l	(a0),a0
+		move.l	(a1),a1
+		jmp	LerpPoints
 
 
 ********************************************************************************
@@ -702,7 +702,7 @@ SwapBuffers:
 ********************************************************************************
 LoadPalette:
 		lea	color01(a6),a1
-		addq 	#2,a0
+		addq	#2,a0
 		move.w	#32/2-1,d0
 .col		move.l	(a0)+,(a1)+
 		dbf	d0,.col
@@ -762,7 +762,7 @@ Colors:
 		; ; green / cyan
 		; dc.w $123,$164,$3a4,$4c8,$5dc,$5ef ; https://gradient-blaster.grahambates.com/?points=123@0,3a4@2,5ef@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
 		; ; pink / cyan
-		dc.w	$123,$636,$a39,$a7b,$9bd,$5ef		; https://gradient-blaster.grahambates.com/?points=123@0,a39@2,5ef@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
+		dc.w	$024,$636,$a39,$a7b,$9bd,$5ef		; https://gradient-blaster.grahambates.com/?points=123@0,a39@2,5ef@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
 		; ; bright pink / cyan
 		; dc.w $123,$737,$d0b,$c8d,$abe,$5ef ; https://gradient-blaster.grahambates.com/?points=123@0,d1b@2,5ef@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
 
@@ -999,8 +999,8 @@ LogoPointsData:
 		dc.b	1,2,2,2
 		dc.b	1,4,2,4,3,4
 
-		printt "Rotate: Data"
-		printv *-Data
+		printt	"Rotate: Data"
+		printv	*-Data
 
 
 *******************************************************************************
@@ -1019,6 +1019,6 @@ Cop:
 		dc.w	bpl2mod,DIW_MOD
 		dc.w	bplcon0,BPLS<<12!$200
 		dc.w	bplcon1,0
-		dc.w	color,$123
+		dc.w	color,$024
 		dc.l	-2
 CopE:

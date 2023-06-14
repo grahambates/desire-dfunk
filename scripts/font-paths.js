@@ -24,7 +24,7 @@ for (let i = 65; i < 91; i++) {
 
 const fmt = (num) => {
 	const val = Math.round(num * scale);
-	return val >= 0 ? "$" + val : "-$" + val * -1;
+	return val; // >= 0 ? "$" + val : "-$" + val * -1;
 };
 
 console.log("FontTable:");
@@ -38,14 +38,10 @@ out.forEach((g) => {
 	console.log(" dc.b " + fmt(g.width));
 	console.log(" dc.b " + (g.path.length - 1));
 	g.path.forEach((p) => {
-		console.log(" dc.b " + (p.length - 2));
-		let lastPt = "";
-		for (let i = 0; i < p.length; i++) {
+		console.log(" dc.b " + (p.length - 3));
+		for (let i = 0; i < p.length - 1; i++) {
 			let pt = fmt(p[i][0]) + "," + fmt(p[i][1]);
-			if (pt !== lastPt) {
-				console.log(" dc.b " + pt);
-			}
-			lastPt = pt;
+			console.log(" dc.b " + pt);
 		}
 	});
 });
