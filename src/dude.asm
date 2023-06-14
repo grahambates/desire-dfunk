@@ -102,10 +102,11 @@ Frame:
 
 		bsr	InitDrawLine
 
-		move.w	#20,a2
+		move.w	#50,a2
 		lea	Text,a3
 		lea	XGrid,a4
 		lea	FontTable-65*4,a5
+		sub.l	#SCREEN_BW*9,a0
 		bsr	DrawWord
 
 ; Fill top
@@ -381,8 +382,8 @@ DrawDude:
 ; a5 = font table
 ********************************************************************************
 DrawWord:
-		moveq	#0,d0
 .char
+		moveq	#0,d0
 		move.b	(a3)+,d0
 		beq	.done
 		lsl	#2,d0
@@ -402,10 +403,6 @@ Text:
 ; a4 = xgrid
 ********************************************************************************
 DrawChar:
-		moveq	#0,d0
-		moveq	#0,d1
-		moveq	#0,d2
-		moveq	#0,d3
 		moveq	#0,d5
 		moveq	#0,d6
 		moveq	#0,d7
@@ -413,32 +410,35 @@ DrawChar:
 		move.w	d5,Width				; d5 gets trashed by line draw
 		move.b	(a1)+,d7				; path count
 .path
-
+		moveq	#-1,d0
 		move.b	(a1)+,d6				; point count
 		and.w	#$ff,d6
-; first point
-		move.b	(a1)+,d0
-		and.w	#$ff,d0
-		move.b	(a1)+,d1
-		and.w	#$ff,d1
 .pt
-		move.b	(a1),d2
+		move.b	(a1)+,d2
 		and.w	#$ff,d2
-		move.b	1(a1),d3
+		move.b	(a1)+,d3
 		and.w	#$ff,d3
-		add.w	a2,d0
 		add.w	a2,d2
 
-		add.w	d0,d0
+		; perspective transform:
+		lea	XGrid,a4
 		add.w	d2,d2
-		move.w	(a4,d0.w),d0
 		move.w	(a4,d2.w),d2
+		move.w	d2,d5
+		add.w	d5,d5
+		lea	TextMul,a4
+		mulu	(a4,d5.w),d3				; TODO: make this a table
+		add.l	d3,d3
+		swap	d3
+		lea	TextTop,a4
+		add.w	(a4,d5.w),d3
 
+		movem.w	d2-d3,-(sp)
+		cmp.w	#-1,d0
+		beq	.skipBlit
 		bsr	DrawLineBlit
-		move.b	(a1)+,d0
-		and.w	#$ff,d0
-		move.b	(a1)+,d1
-		and.w	#$ff,d1
+.skipBlit
+		movem.w	(sp)+,d0-d1
 		dbf	d6,.pt
 		dbf	d7,.path
 		add.w	Width(pc),a2
@@ -550,6 +550,8 @@ Bg:
 
 		bss_c
 
+		ds.b	SCREEN_BW*9
 BlankBpl:	ds.b	SCREEN_SIZE
+		ds.b	SCREEN_BW*9
 BlankBpl2:	ds.b	SCREEN_SIZE
 
