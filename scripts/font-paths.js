@@ -5,6 +5,7 @@ const xmlDataStr = fs.readFileSync(__dirname + "/../assets/KARNIVOR.svg");
 
 const scale = 0.036;
 const baseline = 750;
+const xScale = 0.7;
 
 const parser = new XMLParser({ ignoreAttributes: false });
 let jsonObj = parser.parse(xmlDataStr);
@@ -36,12 +37,15 @@ out.forEach((g) => {
 console.log("\nFontGlyphs:");
 out.forEach((g) => {
 	console.log("glyph" + g.char + ":");
-	console.log(" dc.b " + fmt(g.width + 2 / scale));
+	console.log(" dc.b " + fmt(g.width * xScale + 2 / scale));
 	console.log(" dc.b " + (g.path.length - 1));
 	g.path.forEach((p) => {
 		console.log(" dc.b " + (p.length - 2));
 		for (let i = 0; i < p.length - 1; i++) {
-			let pt = fmt(p[i][0]) + "," + fmt(baseline - p[i][1]);
+			let pt =
+				fmt(p[i][0] * xScale) +
+				"," +
+				fmt(baseline - p[i][1]);
 			console.log(" dc.b " + pt);
 		}
 	});

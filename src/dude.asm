@@ -83,6 +83,7 @@ Dude_Effect:
 		sub.l	a1,a1
 		jsr	StartEffect
 
+; Allocate mem
 		move.l	#PF1_SIZE,d0
 		jsr	AllocChip
 		move.l	a0,DrawBuffer
@@ -92,6 +93,13 @@ Dude_Effect:
 		move.l	a0,ViewBuffer
 		bsr	ClearScreen
 
+		move.l	#PF2_SIZE+PF2_BW*TOP_PAD,d0
+		jsr	AllocChip
+		move.l	a0,DrawBufferB
+		jsr	AllocChip
+		move.l	a0,ViewBufferB
+
+; set pointers in copper loops
 		lea	Cop2LcA+2,a0
 		move.l	#CopLoopA,d0
 		move.w	d0,4(a0)
@@ -103,6 +111,7 @@ Dude_Effect:
 		move.w	d0,4(a0)
 		swap	d0
 		move.w	d0,(a0)
+
 
 		lea	Cop,a0
 		lea	Vbi,a1
@@ -116,54 +125,87 @@ Frame:
 
 		bsr	DrawDude
 
-; Clear
+		; hog blitter
+		move.w	#DMAF_SETCLR!DMAF_BLITHOG,dmacon(a6)
+
 		move.l	DrawBufferB(pc),a0
+		add.l	#TOP_PAD,a0
 		WAIT_BLIT
 		move.l	a0,bltdpt(a6)
 		move.l	#$01000000,bltcon0(a6)
 		clr.w	bltdmod(a6)
 		move.w	#255<<6!(PF2_BW/2),bltsize(a6)
 
+; ; Clear top
+; 		move.l	DrawBufferB(pc),a0
+; 		add.l	#TOP_PAD*PF1_BPL,a0
+; 		WAIT_BLIT
+; 		move.l	a0,bltdpt(a6)
+; 		move.l	#$01000000,bltcon0(a6)
+; 		clr.w	bltdmod(a6)
+; 		move.w	#FILL_HEIGHT<<6!(PF2_BW/2),bltsize(a6)
+
+; ; Clear main
+; 		move.l	DrawBufferB(pc),a0
+; 		add.l	#(TOP_PAD+FILL_HEIGHT)*PF1_BPL+L_PAD/8,a0
+; 		WAIT_BLIT
+; 		move.l	a0,bltdpt(a6)
+; 		move.l	#$01000000,bltcon0(a6)
+; 		move.w	#PF2_BW-DIW_BW,bltdmod(a6)
+; 		move.w	#(255-FILL_HEIGHT)<<6!(DIW_BW/2),bltsize(a6)
+
 		bsr	InitDrawLine
 
+		; unhog blitter
+		move.w	#DMAF_BLITHOG,dmacon(a6)
+
+; Draw text:
+		move.l	DrawBufferB(pc),a0
 		move.l	CurrFrame,d0
 		neg.w	d0
 		move.w	d0,a2
-		add.w	#50,a2
+		add.w	#300,a2
 		lea	Text,a3
 		lea	XGrid,a4
 		lea	FontTable-65*4,a5
 		bsr	DrawWord
 
-; Fill top
+; Fill text:
 		move.l	DrawBufferB(pc),a0
 		add.l	#PF2_BW*(FILL_HEIGHT+TOP_PAD)-1,a0
 		WAIT_BLIT
 		move.l	a0,bltapt(a6)
 		move.l	a0,bltdpt(a6)
 		move.l	#$09f0001a,bltcon0(a6)
-		move.w	#0,bltamod(a6)
-		move.w	#0,bltdmod(a6)
+		clr.l	bltamod(a6)
 		move.w	#FILL_HEIGHT<<6!(PF2_BW/2),bltsize(a6)
 
-; Lines
-		bsr	InitDrawLine
-		move.l	DrawBufferB(pc),a0
-		move.l	CurrFrame,d0
-		neg.w	d0
-		and.w	#$ff,d0
-		add.w	d0,d0
-		lea	XGrid,a1
-		move.w	(a1,d0.w),d0
+; ; Vertical lines:
+; 		bsr	InitDrawLine
+; 		move.l	DrawBufferB(pc),a0
 
-		move.w	d0,d3
-		add.w	d3,d3
-		lea	LineTop,a1
-		move.w	(a1,d3.w),d1
-		move.l	d0,d2
-		lea	LineBottom,a1
-		move.w	(a1,d3.w),d3
-		bsr	DrawLineBlit
+; 		move.l	CurrFrame,d1
+; 		divu	#XGRID_SIZE,d1
+; 		swap	d1
+; 		move.w	#XGRID_SIZE,d0
+; 		sub.w	d1,d0
+
+; 		add.w	d0,d0
+; 		lea	XGrid,a1
+; 		move.w	(a1,d0.w),d0
+
+; 		cmp.w	#DIW_W,d0
+; 		beq	.skipLine
+
+; 		move.w	d0,d3
+; 		add.w	d3,d3
+; 		lea	LineTop,a1
+; 		move.w	(a1,d3.w),d1
+; 		move.l	d0,d2
+; 		lea	LineBottom,a1
+; 		move.w	(a1,d3.w),d3
+; 		bsr	DrawLineBlit	; blit line is ok here because it's vertical
+; .skipLine
 
 		jsr	WaitEOF
 		cmp.l	#DUDE_END_FRAME,CurrFrame
@@ -420,7 +462,7 @@ DrawWord:
 .done		rts
 
 Text:
-		dc.b	"MELON",0
+		dc.b	"RIFT",0
 		even
 
 ********************************************************************************
@@ -484,8 +526,8 @@ Vars:
 
 DrawBuffer	dc.l	0
 ViewBuffer	dc.l	0
-DrawBufferB	dc.l	BlankBpl
-ViewBufferB	dc.l	BlankBpl2
+DrawBufferB	dc.l	0
+ViewBufferB	dc.l	0
 
 ********************************************************************************
 Data:
@@ -579,13 +621,4 @@ Anim:
 Bg:
 		incbin	data/dude-bg.BPL
 
-
-********************************************************************************
-		bss_c
-********************************************************************************
-
-		ds.b	PF2_BW*TOP_PAD
-BlankBpl:	ds.b	PF2_SIZE
-		ds.b	PF2_BW*TOP_PAD
-BlankBpl2:	ds.b	PF2_SIZE
 

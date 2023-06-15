@@ -1,7 +1,7 @@
 		include	src/_main.i
 		include	src/memory.i
 
-CHIP_BUFFER_SIZE = 1024*100
+CHIP_BUFFER_SIZE = 1024*200
 PUBLIC_BUFFER_SIZE = 1024*290
 
 ********************************************************************************

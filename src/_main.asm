@@ -43,7 +43,7 @@ Demo:
 		; jsr	Tunnel_Effect
 		; jsr	Rotate_Effect
 		jsr	Dude_Effect
-		rts						; Exit demo
+		rts			; Exit demo
 
 
 ********************************************************************************
@@ -61,7 +61,7 @@ MainInterrupt:
 		addq.l	#1,VBlank-Vars(a5)
 		addq.l	#1,CurrFrame-Vars(a5)
 ; Process active lerps
-		jsr	LerpWordsStep				; TODO: should this be after Commander_Process?
+		jsr	LerpWordsStep	; TODO: should this be after Commander_Process?
 		jsr	Commander_Process
 ; Call effect interrupt if Installed
 		move.l	VbiRoutine(pc),d0
@@ -79,8 +79,8 @@ MainInterrupt:
 ; Copper interrupt
 		btst	#INTB_COPER,intreqr+1(a6)
 		beq.s	.end
-		lea	$dff0a0,a6				; always set a6 to dff0a0 before calling LSP tick
-		bsr	LSP_MusicPlayTick			; player music tick
+		lea	$dff0a0,a6	; always set a6 to dff0a0 before calling LSP tick
+		bsr	LSP_MusicPlayTick ; player music tick
 		moveq	#INTF_COPER,d0
 		move.w	d0,intreq+custom
 		move.w	d0,intreq+custom
@@ -172,13 +172,13 @@ LSPBank:	incbin	"data/funky_shuffler.lsbank"
 MainCop:
 		dc.w	fmode,0
 		ifne	MUSIC_ENABLE
-		dc.l	$009c8000|(1<<4)			; fire copper interrupt
-		dc.l	(11<<24)|($09fffe)			; wait scanline 11
+		dc.l	$009c8000|(1<<4) ; fire copper interrupt
+		dc.l	(11<<24)|($09fffe) ; wait scanline 11
 CopDma:		dc.w	dmacon,$8000
 		endc
-Cop2Lc:		dc.w	cop2lc,0				; Address of installed copper
+Cop2Lc:		dc.w	cop2lc,0	; Address of installed copper
 		dc.w	cop2lc+2,0
-		dc.w	copjmp2,0				; Jump to installed copper
+		dc.w	copjmp2,0	; Jump to installed copper
 
 
 ;-------------------------------------------------------------------------------
