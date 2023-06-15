@@ -170,7 +170,7 @@ InitDrawLine:
 ; Prepare common blit regs for line draw
 ;-------------------------------------------------------------------------------
 		WAIT_BLIT
-		move.w	#PF1_BW,bltcmod(a6)
+		move.w	#PF2_BW,bltcmod(a6)
 		move.l	#-$8000,bltbdat(a6)
 		move.l	#-1,bltafwm(a6)
 		rts
