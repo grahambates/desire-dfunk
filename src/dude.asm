@@ -114,7 +114,7 @@ Frame:
 		move.l	a0,bltdpt(a6)
 		move.l	#$01000000,bltcon0(a6)
 		clr.w	bltdmod(a6)
-		move.w	#255<<6!(PF1_BW/2),bltsize(a6)
+		move.w	#255<<6!(PF2_BW/2),bltsize(a6)
 
 		bsr	InitDrawLine
 
@@ -125,7 +125,7 @@ Frame:
 		lea	Text,a3
 		lea	XGrid,a4
 		lea	FontTable-65*4,a5
-		sub.l	#PF1_BW*9,a0
+		sub.l	#PF2_BW*9,a0
 		bsr	DrawWord
 
 ; Fill top
