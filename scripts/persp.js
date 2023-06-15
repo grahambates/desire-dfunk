@@ -1,5 +1,6 @@
 const leftDist = 728; // distance from vanishing point at left of screen
 const W = 320 + 32 + 48;
+const TOP_PAD = 9;
 
 // const referenceSize = 147;
 const referenceSize = 1.27; // gives 255 values
@@ -32,11 +33,11 @@ console.log("XGrid:");
 console.log(" dc.w " + out.join(","));
 
 console.log("LineTop:");
-console.log(" dc.w " + lerp(60, 47, W).join(","));
+console.log(" dc.w " + lerp(62 + TOP_PAD, 48 + TOP_PAD, W).join(","));
 console.log("LineBottom:");
-console.log(" dc.w " + lerp(180, 220, W).join(","));
+console.log(" dc.w " + lerp(177 + TOP_PAD, 227 + TOP_PAD, W).join(","));
 console.log("TextTop:");
-console.log(" dc.w " + lerp(23 + 9, 0, W).join(","));
+console.log(" dc.w " + lerp(26 + TOP_PAD, 0, W).join(","));
 
 console.log("TextMul:");
 console.log(" dc.w " + lerp(0x8000, 0xd000, W).join(","));

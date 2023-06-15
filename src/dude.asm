@@ -25,6 +25,7 @@ TOP_PAD = 9
 L_PAD = 32
 R_PAD = 48
 H_PAD = L_PAD+R_PAD
+FILL_HEIGHT = 51
 
 ;-------------------------------------------------------------------------------
 ; Derived
@@ -136,14 +137,14 @@ Frame:
 
 ; Fill top
 		move.l	DrawBufferB(pc),a0
-		add.l	#PF2_BW*(50+TOP_PAD)-1,a0
+		add.l	#PF2_BW*(FILL_HEIGHT+TOP_PAD)-1,a0
 		WAIT_BLIT
 		move.l	a0,bltapt(a6)
 		move.l	a0,bltdpt(a6)
 		move.l	#$09f0001a,bltcon0(a6)
 		move.w	#0,bltamod(a6)
 		move.w	#0,bltdmod(a6)
-		move.w	#50<<6!(PF2_BW/2),bltsize(a6)
+		move.w	#FILL_HEIGHT<<6!(PF2_BW/2),bltsize(a6)
 
 ; Lines
 		bsr	InitDrawLine
