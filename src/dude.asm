@@ -129,7 +129,7 @@ Frame:
 		move.w	#DMAF_SETCLR!DMAF_BLITHOG,dmacon(a6)
 
 		move.l	DrawBufferB(pc),a0
-		add.l	#TOP_PAD,a0
+		add.l	#TOP_PAD*PF2_BW,a0
 		WAIT_BLIT
 		move.l	a0,bltdpt(a6)
 		move.l	#$01000000,bltcon0(a6)
@@ -180,32 +180,78 @@ Frame:
 		clr.l	bltamod(a6)
 		move.w	#FILL_HEIGHT<<6!(PF2_BW/2),bltsize(a6)
 
-; ; Vertical lines:
-; 		bsr	InitDrawLine
-; 		move.l	DrawBufferB(pc),a0
+; Vertical lines:
+		bsr	InitDrawLine
+		move.l	DrawBufferB(pc),a0
 
-; 		move.l	CurrFrame,d1
-; 		divu	#XGRID_SIZE,d1
-; 		swap	d1
-; 		move.w	#XGRID_SIZE,d0
-; 		sub.w	d1,d0
+		move.l	CurrFrame,d1
+		divu	#XGRID_SIZE,d1
+		swap	d1
+		move.w	#XGRID_SIZE,d0
+		sub.w	d1,d0
 
-; 		add.w	d0,d0
-; 		lea	XGrid,a1
-; 		move.w	(a1,d0.w),d0
+		add.w	d0,d0
+		lea	XGrid,a1
+		move.w	(a1,d0.w),d0
 
-; 		cmp.w	#DIW_W,d0
-; 		beq	.skipLine
+		cmp.w	#DIW_W,d0
+		beq	.skipLine
 
-; 		move.w	d0,d3
-; 		add.w	d3,d3
-; 		lea	LineTop,a1
-; 		move.w	(a1,d3.w),d1
-; 		move.l	d0,d2
-; 		lea	LineBottom,a1
-; 		move.w	(a1,d3.w),d3
-; 		bsr	DrawLineBlit	; blit line is ok here because it's vertical
-; .skipLine
+		move.w	d0,d3
+		add.w	d3,d3
+		lea	LineTop,a1
+		move.w	(a1,d3.w),d1
+		move.l	d0,d2
+		lea	LineBottom,a1
+		move.w	(a1,d3.w),d3
+		; bsr	DrawLineBlit	; blit line is ok here because it's vertical
+.skipLine
+
+; Floor lines:
+		bsr	InitDrawLine
+		move.l	DrawBufferB(pc),a0
+		sub.l	#R_PAD/8,a0
+
+		move.l	CurrFrame,d1
+		divu	#XGRID_SIZE,d1
+		swap	d1
+		move.w	#XGRID_SIZE,d0
+		sub.w	d1,d0
+
+		add.w	d0,d0
+		lea	XGrid,a1
+		move.w	(a1,d0.w),d0
+
+		cmp.w	#DIW_W,d0
+		beq	.skipLine2
+
+		move.w	d0,d3
+		add.w	d3,d3
+		lea	LineBottom,a1
+		move.w	(a1,d3.w),d1
+		addq	#2,d1
+		move.l	d0,d2
+
+		add.w	d2,d2
+		lea	LineFloorX,a1
+		move.w	(a1,d2.w),d2
+
+		move.w	d2,d3
+		add.w	d3,d3
+		lea	LineFloorEdge,a1
+		move.w	(a1,d3.w),d3
+
+		add.w	#R_PAD,d0
+		add.w	#R_PAD,d2
+
+		tst.w	d2
+		blt	.skipLine2
+		cmp.w	#PF2_W,d2
+		bge	.skipLine2
+
+		bsr	DrawLine
+.skipLine2
+
 
 		jsr	WaitEOF
 		cmp.l	#DUDE_END_FRAME,CurrFrame
