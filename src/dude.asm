@@ -10,17 +10,33 @@ DUDE_Y = 60
 
 DIW_W = 320
 DIW_H = 256
-SCREEN_W = DIW_W
-SCREEN_H = DIW_H
-BPLS = 6
+
+PF1_BPLS = 3
+PF1_W = DIW_W
+PF1_H = DIW_H
+
+PF2_BPLS = 3
+PF2_W = DIW_W
+PF2_H = DIW_H
+
+BPLS = PF1_BPLS+PF2_BPLS
+
+TOP_PAD = 9
 
 ;-------------------------------------------------------------------------------
 ; Derived
-SCREEN_BW = SCREEN_W/8
-SCREEN_SIZE = SCREEN_BW*SCREEN_H*BPLS/2
-SCREEN_BPL = SCREEN_BW
+
+PF1_BW = PF1_W/8
+PF1_SIZE = PF1_BW*PF1_H*PF1_BPLS
+PF1_BPL = PF1_BW
+PF1_MOD = PF1_BW*(PF1_BPLS-1)
+
+PF2_BW = PF2_W/8
+PF2_SIZE = PF2_BW*PF2_H*PF2_BPLS
+PF2_BPL = PF2_BW*PF2_H
+PF2_MOD = DIW_BW-PF2_BW
+
 DIW_BW = DIW_W/8
-DIW_MOD = SCREEN_BW*(BPLS/2-1)
 DIW_XSTRT = ($242-DIW_W)/2
 DIW_YSTRT = ($158-DIW_H)/2
 DIW_XSTOP = DIW_XSTRT+DIW_W
@@ -37,14 +53,14 @@ Vbi:
 		; pf1
 		move.l	ViewBuffer(pc),a0
 		move.l	a0,bpl0pt(a6)
-		lea	SCREEN_BPL(a0),a0
+		lea	PF1_BPL(a0),a0
 		move.l	a0,bpl2pt(a6)
-		lea	SCREEN_BPL(a0),a0
+		lea	PF1_BPL(a0),a0
 		move.l	a0,bpl4pt(a6)
 		; pf2
 		lea	Bg,a2
 		move.l	a2,bpl1pt(a6)
-		lea	SCREEN_BW*SCREEN_H(a2),a2
+		lea	PF2_BPL(a2),a2
 		move.l	a2,bpl3pt(a6)
 		move.l	ViewBufferB(pc),bpl5pt(a6)
 
@@ -59,7 +75,7 @@ Dude_Effect:
 		sub.l	a1,a1
 		jsr	StartEffect
 
-		move.l	#SCREEN_SIZE,d0
+		move.l	#PF1_SIZE,d0
 		jsr	AllocChip
 		move.l	a0,DrawBuffer
 		bsr	ClearScreen
@@ -98,7 +114,7 @@ Frame:
 		move.l	a0,bltdpt(a6)
 		move.l	#$01000000,bltcon0(a6)
 		clr.w	bltdmod(a6)
-		move.w	#255<<6!(SCREEN_BW/2),bltsize(a6)
+		move.w	#255<<6!(PF1_BW/2),bltsize(a6)
 
 		bsr	InitDrawLine
 
@@ -109,18 +125,19 @@ Frame:
 		lea	Text,a3
 		lea	XGrid,a4
 		lea	FontTable-65*4,a5
-		sub.l	#SCREEN_BW*9,a0
+		sub.l	#PF1_BW*9,a0
 		bsr	DrawWord
 
 ; Fill top
 		move.l	DrawBufferB(pc),a0
-		add.l	#SCREEN_BW*50-1,a0
+		add.l	#DIW_BW*50-1,a0
 		WAIT_BLIT
 		move.l	a0,bltapt(a6)
 		move.l	a0,bltdpt(a6)
 		move.l	#$09f0001a,bltcon0(a6)
-		clr.l	bltamod(a6)
-		move.w	#50<<6!(SCREEN_BW/2),bltsize(a6)
+		move.w	#PF2_BW-DIW_BW,bltamod(a6)
+		move.w	#PF2_BW-DIW_BW,bltdmod(a6)
+		move.w	#50<<6!(DIW_BW/2),bltsize(a6)
 
 ; Lines
 		bsr	InitDrawLine
@@ -153,7 +170,7 @@ InitDrawLine:
 ; Prepare common blit regs for line draw
 ;-------------------------------------------------------------------------------
 		WAIT_BLIT
-		move.w	#SCREEN_BW,bltcmod(a6)
+		move.w	#PF1_BW,bltcmod(a6)
 		move.l	#-$8000,bltbdat(a6)
 		move.l	#-1,bltafwm(a6)
 		rts
@@ -258,8 +275,8 @@ DrawLine:
 ; TODO: precalc
 ; Multiplication LUT for screen byte width
 .screenMuls:
-		rept	SCREEN_H
-		dc.w	SCREEN_BW*REPTN
+		rept	PF2_H
+		dc.w	PF2_BW*REPTN
 		endr
 
 
@@ -328,8 +345,8 @@ DrawLineBlit:
 ; TODO: combine
 ; Multiplication LUT for screen byte width
 ScreenMuls:
-		rept	SCREEN_H
-		dc.w	SCREEN_BW*REPTN
+		rept	PF2_H
+		dc.w	PF2_BW*REPTN
 		endr
 
 
@@ -339,7 +356,7 @@ ClearScreen:
 		move.l	a0,bltdpt(a6)
 		move.l	#$01000000,bltcon0(a6)
 		clr.l	bltdmod(a6)
-		move.w	#(DIW_H*3)<<6!(SCREEN_BW/2),bltsize(a6)
+		move.w	#(PF1_H*3)<<6!(PF1_BW/2),bltsize(a6)
 		rts
 
 ********************************************************************************
@@ -356,7 +373,7 @@ DrawDude:
 		move.b	(a1,d1),d1				; x
 		ext.w	d2
 		add.w	#DUDE_Y,d2
-		mulu	#SCREEN_BW*3,d2
+		mulu	#PF1_BW*PF1_BPLS,d2
 		add.l	#4,d2
 		ror.w	#4,d1
 
@@ -370,10 +387,10 @@ DrawDude:
 		move.w	#0,bltcon1(a6)
 		move.l	#-1,bltafwm(a6)
 		clr.w	bltamod(a6)
-		move.w	#SCREEN_BW-DUDE_BW,bltdmod(a6)
+		move.w	#PF1_BW-DUDE_BW,bltdmod(a6)
 		move.l	a0,bltapt(a6)
 		move.l	a1,bltdpt(a6)
-		move.w	#((DUDE_H+1)*3<<6)!(DUDE_BW/2),bltsize(a6)
+		move.w	#((DUDE_H+1)*PF1_BPLS<<6)!(DUDE_BW/2),bltsize(a6)
 .skip		rts
 
 ********************************************************************************
@@ -496,8 +513,8 @@ Cop:
 		dc.w	diwstop,DIW_STOP
 		dc.w	ddfstrt,DDF_STRT
 		dc.w	ddfstop,DDF_STOP
-		dc.w	bpl1mod,DIW_MOD
-		dc.w	bpl2mod,0
+		dc.w	bpl1mod,PF1_MOD
+		dc.w	bpl2mod,PF2_MOD
 		dc.w	bplcon0,BPLS<<12!$200!(1<<10)
 		incbin	data/dude-bg.COP
 		dc.w	color12,$414
@@ -509,10 +526,10 @@ Cop2LcA		dc.w	cop2lch,0
 		dc.w	cop2lcl,0
 		COP_WAITV DUDE_Y+DIW_YSTRT-4
 CopLoopA
-		dc.w	bpl1mod,-SCREEN_BW
+		dc.w	bpl1mod,-PF1_BW
 		incbin	data/dude_walking.COP
 		COP_WAITH 0,$e0
-		dc.w	bpl1mod,DIW_MOD
+		dc.w	bpl1mod,PF1_MOD
 		dc.w	color01,$000
 		dc.w	color02,$414
 		dc.w	color03,$a28
@@ -528,10 +545,10 @@ CopLoopA
 Cop2LcB		dc.w	cop2lch,0
 		dc.w	cop2lcl,0
 CopLoopB
-		dc.w	bpl1mod,-SCREEN_BW
+		dc.w	bpl1mod,-PF1_BW
 		incbin	data/dude_walking.COP
 		COP_WAITH $80,$e0
-		dc.w	bpl1mod,DIW_MOD
+		dc.w	bpl1mod,PF1_MOD
 		dc.w	color01,$000
 		dc.w	color02,$414
 		dc.w	color03,$a28
@@ -548,15 +565,18 @@ CopLoopB
 
 Anim:
 		incbin	data/dude_walking.BPL
-		ds.b	DUDE_BW*3
+		ds.b	DUDE_BW*PF1_BPLS
 
 Bg:
 		incbin	data/dude-bg.BPL
 
-		bss_c
 
-		ds.b	SCREEN_BW*9
-BlankBpl:	ds.b	SCREEN_SIZE
-		ds.b	SCREEN_BW*9
-BlankBpl2:	ds.b	SCREEN_SIZE
+********************************************************************************
+		bss_c
+********************************************************************************
+
+		ds.b	PF2_BW*TOP_PAD
+BlankBpl:	ds.b	PF2_SIZE
+		ds.b	PF2_BW*TOP_PAD
+BlankBpl2:	ds.b	PF2_SIZE
 
