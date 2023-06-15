@@ -1,7 +1,7 @@
 		include	src/_main.i
 		include	src/memory.i
 
-CHIP_BUFFER_SIZE = 1024*200
+CHIP_BUFFER_SIZE = 1024*100
 PUBLIC_BUFFER_SIZE = 1024*290
 
 ********************************************************************************
@@ -12,11 +12,11 @@ PUBLIC_BUFFER_SIZE = 1024*290
 ; TODO: bi-directional?
 
 OutOfChip:
-	move.w #$ff0,color00(a6)
-	bra OutOfChip
+		move.w	#$ff0,color00(a6)
+		bra	OutOfChip
 OutOfPublic:
-	move.w #$00f,color00(a6)
-	bra OutOfPublic
+		move.w	#$00f,color00(a6)
+		bra	OutOfPublic
 
 ********************************************************************************
 ; Allocate chip RAM
@@ -27,11 +27,11 @@ OutOfPublic:
 AllocChip:
 		move.l	AllocChipOffs(pc),a0
 		add.l	d0,AllocChipOffs
-		move.l d0,d1
-		add.l a0,d1
-		cmp.l #ChipBufferE,d1
-		bgt OutOfChip
-		move.l d1,AllocChipOffs
+		move.l	d0,d1
+		add.l	a0,d1
+		cmp.l	#ChipBufferE,d1
+		bgt	OutOfChip
+		move.l	d1,AllocChipOffs
 		rts
 
 ********************************************************************************
@@ -44,24 +44,24 @@ AllocChip:
 AllocChipAligned:
 		move.l	AllocChipOffs(pc),a0
 		move.l	a0,d1
-		move.l	d1,d2					; d2 = start address
-		add.l	d0,d1					; d1 = end address
+		move.l	d1,d2		; d2 = start address
+		add.l	d0,d1		; d1 = end address
 ; compare upper word
 		swap	d1
 		swap	d2
 		cmp.w	d1,d2
 		beq	.ok
 ; Not ok, need to adjust start
-		swap	d1					; clear lower word of end address
+		swap	d1		; clear lower word of end address
 		clr.w	d1
-		move.l	d1,a0					; update returned address
-		add.l	d0,d1					; add bytes to new start
+		move.l	d1,a0		; update returned address
+		add.l	d0,d1		; add bytes to new start
 		swap	d1
 .ok
 ; Ok, just swap back and set
 		swap	d1
-		cmp.l #ChipBufferE,d1
-		bgt OutOfChip
+		cmp.l	#ChipBufferE,d1
+		bgt	OutOfChip
 		move.l	d1,AllocChipOffs
 		rts
 
@@ -73,11 +73,11 @@ AllocChipAligned:
 ;-------------------------------------------------------------------------------
 AllocPublic:
 		move.l	AllocPublicOffs(pc),a0
-		move.l d0,d1
-		add.l a0,d1
-		cmp.l #PublicBufferE,d1
-		bgt OutOfPublic
-		move.l d1,AllocPublicOffs
+		move.l	d0,d1
+		add.l	a0,d1
+		cmp.l	#PublicBufferE,d1
+		bgt	OutOfPublic
+		move.l	d1,AllocPublicOffs
 		rts
 
 ********************************************************************************

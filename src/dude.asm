@@ -16,12 +16,15 @@ PF1_W = DIW_W
 PF1_H = DIW_H
 
 PF2_BPLS = 3
-PF2_W = DIW_W
+PF2_W = DIW_W+H_PAD
 PF2_H = DIW_H
 
 BPLS = PF1_BPLS+PF2_BPLS
 
 TOP_PAD = 9
+L_PAD = 32
+R_PAD = 48
+H_PAD = L_PAD+R_PAD
 
 ;-------------------------------------------------------------------------------
 ; Derived
@@ -57,12 +60,16 @@ Vbi:
 		move.l	a0,bpl2pt(a6)
 		lea	PF1_BPL(a0),a0
 		move.l	a0,bpl4pt(a6)
+
 		; pf2
-		lea	Bg,a2
+		lea	Bg+L_PAD/8,a2
 		move.l	a2,bpl1pt(a6)
 		lea	PF2_BPL(a2),a2
 		move.l	a2,bpl3pt(a6)
-		move.l	ViewBufferB(pc),bpl5pt(a6)
+
+		move.l	ViewBufferB(pc),a0
+		add.l	#PF2_BW*TOP_PAD+L_PAD/8,a0
+		move.l	a0,bpl5pt(a6)
 
 		rts
 
@@ -125,19 +132,18 @@ Frame:
 		lea	Text,a3
 		lea	XGrid,a4
 		lea	FontTable-65*4,a5
-		sub.l	#PF2_BW*9,a0
 		bsr	DrawWord
 
 ; Fill top
 		move.l	DrawBufferB(pc),a0
-		add.l	#DIW_BW*50-1,a0
+		add.l	#PF2_BW*(50+TOP_PAD)-1,a0
 		WAIT_BLIT
 		move.l	a0,bltapt(a6)
 		move.l	a0,bltdpt(a6)
 		move.l	#$09f0001a,bltcon0(a6)
-		move.w	#PF2_BW-DIW_BW,bltamod(a6)
-		move.w	#PF2_BW-DIW_BW,bltdmod(a6)
-		move.w	#50<<6!(DIW_BW/2),bltsize(a6)
+		move.w	#0,bltamod(a6)
+		move.w	#0,bltdmod(a6)
+		move.w	#50<<6!(PF2_BW/2),bltsize(a6)
 
 ; Lines
 		bsr	InitDrawLine
@@ -184,92 +190,92 @@ DrawLine:
 ; a0 - Draw buffer
 ; a6 - Custom
 ;-------------------------------------------------------------------------------
-		sub.w	d0,d2					; d2 = dx = x1 - x2
-		bmi.b	.oct2345				; nagative? octant could be 2,3,4,5
-		sub.w	d1,d3					; d3 = dy = y1 - y2
-		bmi.b	.oct01					; negative? octant is 0 or 1
-		cmp.w	d3,d2					; compare dy with dx
-		bmi.b	.oct6					; dy > dx? octant 6!
-		moveq	#$0011,d4				; select line + octant 7!
+		sub.w	d0,d2		; d2 = dx = x1 - x2
+		bmi.b	.oct2345	; nagative? octant could be 2,3,4,5
+		sub.w	d1,d3		; d3 = dy = y1 - y2
+		bmi.b	.oct01		; negative? octant is 0 or 1
+		cmp.w	d3,d2		; compare dy with dx
+		bmi.b	.oct6		; dy > dx? octant 6!
+		moveq	#$0011,d4	; select line + octant 7!
 		bra.b	.doneOct
 
-.oct6		exg	d2,d3					; ensure d2=dmax and d3=dmin
-		moveq	#$0001,d4				; select line + octant 6
+.oct6		exg	d2,d3		; ensure d2=dmax and d3=dmin
+		moveq	#$0001,d4	; select line + octant 6
 		bra.b	.doneOct
 
 .oct2345
-		neg.w	d2					; make dx positive
-		sub.w	d1,d3					; d3 = dy = y1 - y2
-		bmi.b	.oct23					; negative? octant is 2 or 3
-		cmp.w	d3,d2					; compare dy with dx
-		bmi.b	.oct5					; dy > dx? octant 5!
-		moveq	#$0015,d4				; select line + octant 4
+		neg.w	d2		; make dx positive
+		sub.w	d1,d3		; d3 = dy = y1 - y2
+		bmi.b	.oct23		; negative? octant is 2 or 3
+		cmp.w	d3,d2		; compare dy with dx
+		bmi.b	.oct5		; dy > dx? octant 5!
+		moveq	#$0015,d4	; select line + octant 4
 		bra.b	.doneOct
 
-.oct5		exg	d2,d3					; ensure d2=dmax and d3=dmin
-		moveq	#$0009,d4				; select line + octant 5
+.oct5		exg	d2,d3		; ensure d2=dmax and d3=dmin
+		moveq	#$0009,d4	; select line + octant 5
 		bra.b	.doneOct
 
 .oct23
-		neg.w	d3					; make dy positive
-		cmp.w	d3,d2					; compare dy with dx
-		bmi.b	.oct2					; dy > dx? octant 2!
-		moveq	#$001d,d4				; select line + octant 3
+		neg.w	d3		; make dy positive
+		cmp.w	d3,d2		; compare dy with dx
+		bmi.b	.oct2		; dy > dx? octant 2!
+		moveq	#$001d,d4	; select line + octant 3
 		bra.b	.doneOct
 
-.oct2		exg	d2,d3					; ensure d2=dmax and d3=dmin
-		moveq	#$000d,d4				; select line + octant 2
+.oct2		exg	d2,d3		; ensure d2=dmax and d3=dmin
+		moveq	#$000d,d4	; select line + octant 2
 		bra.b	.doneOct
 
 .oct01
-		neg.w	d3					; make dy positive
-		cmp.w	d3,d2					; compare dy with dx
-		bmi.b	.oct1					; dy > dx? octant 1!
-		moveq	#$0019,d4				; select line + octant 0
+		neg.w	d3		; make dy positive
+		cmp.w	d3,d2		; compare dy with dx
+		bmi.b	.oct1		; dy > dx? octant 1!
+		moveq	#$0019,d4	; select line + octant 0
 		bra.b	.doneOct
 
-.oct1		exg	d2,d3					; ensure d2=dmax and d3=dmin
-		moveq	#$0005,d4				; select line + octant 1
+.oct1		exg	d2,d3		; ensure d2=dmax and d3=dmin
+		moveq	#$0005,d4	; select line + octant 1
 
 .doneOct
-		add.w	d2,d2					; d2 = 2 * dmax
-		asl.w	#2,d3					; d3 = 4 * dmin
+		add.w	d2,d2		; d2 = 2 * dmax
+		asl.w	#2,d3		; d3 = 4 * dmin
 
-		move.l	a0,a5					; aptr bitplane to draw on
+		move.l	a0,a5		; aptr bitplane to draw on
 
-		add.w	d1,d1					; convert y1 pos into offset
+		add.w	d1,d1		; convert y1 pos into offset
 		ext.l	d1
 		move.w	.screenMuls(pc,d1.w),d1
 
-		add.l	d1,a5					; add ofset to bitplane pointer
-		ext.l	d0					; clear top bits of d0
-		ror.l	#4,d0					; roll shift bits to top word
-		add.w	d0,d0					; bottom word: convert to byte offset
-		adda.w	d0,a5					; add byte offset to bitplane pointer
-		swap	d0					; move shift value to bottom word
-		or.w	#$0bca,d0				; usea, c and d. minterm $ca, d=a/c+/ac
+		add.l	d1,a5		; add ofset to bitplane pointer
+		ext.l	d0		; clear top bits of d0
+		ror.l	#4,d0		; roll shift bits to top word
+		add.w	d0,d0		; bottom word: convert to byte offset
+		adda.w	d0,a5		; add byte offset to bitplane pointer
+		swap	d0		; move shift value to bottom word
+		or.w	#$0bca,d0	; usea, c and d. minterm $ca, d=a/c+/ac
 
-		move.w	d2,d1					; d1 = 2 * dmax
-		lsl.w	#5,d1					; shift dmax to hx pos for bltsize
-		add.w	#$0042,d1				; add 1 to hx and set wx to 2
+		move.w	d2,d1		; d1 = 2 * dmax
+		lsl.w	#5,d1		; shift dmax to hx pos for bltsize
+		add.w	#$0042,d1	; add 1 to hx and set wx to 2
 
 		WAIT_BLIT
 
-		move.l	a5,bltcpt(a6)				; source c = bitplane to draw on
-		move.l	a5,bltdpt(a6)				; destination = bitplane to draw on
-		move.w	d0,bltcon0(a6)				; source a shift and logic function
-		move.w	d3,bltbmod(a6)				; set 4 * dmin
+		move.l	a5,bltcpt(a6)	; source c = bitplane to draw on
+		move.l	a5,bltdpt(a6)	; destination = bitplane to draw on
+		move.w	d0,bltcon0(a6)	; source a shift and logic function
+		move.w	d3,bltbmod(a6)	; set 4 * dmin
 
-		sub.w	d2,d3					; d3 = (2 * dmax)-(4 * dmin)
-		ext.l	d3					; make full long sized
-		move.l	d3,bltapt(a6)				; store in a pointer
-		bpl.b	.notneg					; skip if positive
-		or.w	#$0040,d4				; set sign bit if negative
+		sub.w	d2,d3		; d3 = (2 * dmax)-(4 * dmin)
+		ext.l	d3		; make full long sized
+		move.l	d3,bltapt(a6)	; store in a pointer
+		bpl.b	.notneg		; skip if positive
+		or.w	#$0040,d4	; set sign bit if negative
 .notneg
-		move.w	d4,bltcon1(a6)				; octant selection, sign and line
-		sub.w	d2,d3					; d2 = (2*dmax), d3 = (2*dmax)-(4*dmin)
-		move.w	d3,bltamod(a6)				; d3 = 4 * (dmax - dmin)
-		move.w	d1,bltsize(a6)				; set length and start the blitter
+		move.w	d4,bltcon1(a6)	; octant selection, sign and line
+		sub.w	d2,d3		; d2 = (2*dmax), d3 = (2*dmax)-(4*dmin)
+		move.w	d3,bltamod(a6)	; d3 = 4 * (dmax - dmin)
+		move.w	d1,bltsize(a6)	; set length and start the blitter
 		rts
 
 ; TODO: precalc
@@ -305,7 +311,7 @@ DrawLineBlit:
 		add.l	a0,d4
 		asr.w	#3,d5
 		ext.l	d5
-		add.l	d5,d4					; fix - was word but needs to be long for high screen addresses
+		add.l	d5,d4		; fix - was word but needs to be long for high screen addresses
 		moveq	#0,d5
 		sub.w	d1,d3
 		sub.w	d0,d2
@@ -369,8 +375,8 @@ DrawDude:
 
 		add.w	d1,d1
 		lea	Offsets,a1
-		move.b	1(a1,d1),d2				; y
-		move.b	(a1,d1),d1				; x
+		move.b	1(a1,d1),d2	; y
+		move.b	(a1,d1),d1	; x
 		ext.w	d2
 		add.w	#DUDE_Y,d2
 		mulu	#PF1_BW*PF1_BPLS,d2
@@ -413,7 +419,7 @@ DrawWord:
 .done		rts
 
 Text:
-		dc.b	"ABYSS",0
+		dc.b	"MELON",0
 		even
 
 ********************************************************************************
@@ -426,14 +432,16 @@ DrawChar:
 		moveq	#0,d5
 		moveq	#0,d6
 		moveq	#0,d7
-		move.b	(a1)+,d5				; width
-		move.w	d5,Width				; d5 gets trashed by line draw
+		move.b	(a1)+,d5	; width
+		move.w	d5,Width	; d5 gets trashed by line draw
 		move.w	a2,d0
 		ble	.skipChar
-		move.b	(a1)+,d7				; path count
+		cmp.w	#XGRID_SIZE-30,d0
+		bge	.skipChar
+		move.b	(a1)+,d7	; path count
 .path
 		moveq	#-1,d0
-		move.b	(a1)+,d6				; point count
+		move.b	(a1)+,d6	; point count
 		and.w	#$ff,d6
 .pt
 		move.b	(a1)+,d2
@@ -449,7 +457,7 @@ DrawChar:
 		move.w	d2,d5
 		add.w	d5,d5
 		lea	TextMul,a4
-		mulu	(a4,d5.w),d3				; TODO: make this a table
+		mulu	(a4,d5.w),d3	; TODO: make this a table
 		add.l	d3,d3
 		swap	d3
 		lea	TextTop,a4

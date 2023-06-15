@@ -1,4 +1,5 @@
 const leftDist = 728; // distance from vanishing point at left of screen
+const W = 320 + 32 + 48;
 
 // const referenceSize = 147;
 const referenceSize = 1.27; // gives 255 values
@@ -9,7 +10,7 @@ const size = (D) => (referenceSize / referenceDist) * (D + 1);
 let p = 0;
 
 const out = [];
-while (p < 320) {
+while (p < W) {
 	out.push(Math.round(p));
 	const s = size(p + leftDist);
 	p += s;
@@ -26,15 +27,16 @@ function lerp(from, to, steps) {
 	return out;
 }
 
+console.log("XGRID_SIZE=" + out.length);
 console.log("XGrid:");
 console.log(" dc.w " + out.join(","));
 
 console.log("LineTop:");
-console.log(" dc.w " + lerp(60, 47, 320).join(","));
+console.log(" dc.w " + lerp(60, 47, W).join(","));
 console.log("LineBottom:");
-console.log(" dc.w " + lerp(180, 220, 320).join(","));
+console.log(" dc.w " + lerp(180, 220, W).join(","));
 console.log("TextTop:");
-console.log(" dc.w " + lerp(23 + 9, 0, 320).join(","));
+console.log(" dc.w " + lerp(23 + 9, 0, W).join(","));
 
 console.log("TextMul:");
-console.log(" dc.w " + lerp(0x8000, 0xd000, 320).join(","));
+console.log(" dc.w " + lerp(0x8000, 0xd000, W).join(","));
