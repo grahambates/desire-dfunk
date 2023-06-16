@@ -1,3 +1,8 @@
+; TODO: table for muls?
+; Lamp posts
+; fix floor
+; clear list for lines
+
 		include	src/_main.i
 		include	dude.i
 
@@ -25,7 +30,7 @@ TOP_PAD = 9
 L_PAD = 32
 R_PAD = 48
 H_PAD = L_PAD+R_PAD
-FILL_HEIGHT = 51
+FILL_HEIGHT = 52
 
 ;-------------------------------------------------------------------------------
 ; Derived
@@ -134,25 +139,16 @@ Frame:
 		move.l	a0,bltdpt(a6)
 		move.l	#$01000000,bltcon0(a6)
 		clr.w	bltdmod(a6)
-		move.w	#255<<6!(PF2_BW/2),bltsize(a6)
+		move.w	#FILL_HEIGHT<<6!(PF2_BW/2),bltsize(a6)
 
-; ; Clear top
-; 		move.l	DrawBufferB(pc),a0
-; 		add.l	#TOP_PAD*PF1_BPL,a0
-; 		WAIT_BLIT
-; 		move.l	a0,bltdpt(a6)
-; 		move.l	#$01000000,bltcon0(a6)
-; 		clr.w	bltdmod(a6)
-; 		move.w	#FILL_HEIGHT<<6!(PF2_BW/2),bltsize(a6)
-
-; ; Clear main
-; 		move.l	DrawBufferB(pc),a0
-; 		add.l	#(TOP_PAD+FILL_HEIGHT)*PF1_BPL+L_PAD/8,a0
-; 		WAIT_BLIT
-; 		move.l	a0,bltdpt(a6)
-; 		move.l	#$01000000,bltcon0(a6)
-; 		move.w	#PF2_BW-DIW_BW,bltdmod(a6)
-; 		move.w	#(255-FILL_HEIGHT)<<6!(DIW_BW/2),bltsize(a6)
+; Clear main
+		; move.l	DrawBufferB(pc),a0
+		; add.l	#(TOP_PAD+FILL_HEIGHT)*PF2_BW+L_PAD/8,a0
+		; WAIT_BLIT
+		; move.l	a0,bltdpt(a6)
+		; move.l	#$01000000,bltcon0(a6)
+		; move.w	#PF2_BW-DIW_BW,bltdmod(a6)
+		; move.w	#(DIW_H-FILL_HEIGHT)<<6!(DIW_BW/2),bltsize(a6)
 
 		bsr	InitDrawLine
 
@@ -160,15 +156,34 @@ Frame:
 		move.w	#DMAF_BLITHOG,dmacon(a6)
 
 ; Draw text:
-		move.l	DrawBufferB(pc),a0
 		move.l	CurrFrame,d0
 		neg.w	d0
-		move.w	d0,a2
-		add.w	#300,a2
-		lea	Text,a3
+
+		move.l	DrawBufferB(pc),a0
+		lea	Greets,a1
 		lea	XGrid,a4
 		lea	FontTable-65*4,a5
+.gr
+		move.w	(a1)+,d1	; d1 = x pos of text
+		blt	.grDone		; EOF
+		move.l	(a1)+,a3
+
+		add.w	#40,d0
+		move.w	d0,a2
+		add.w	d1,d0
+
+		; Don't draw if off-left
+		cmp.w	#XGRID_MIN_VIS,d0
+		blt	.gr
+
 		bsr	DrawWord
+
+		; Done if text is off-right
+		cmp.w	#XGRID_MAX_VIS,d0
+		bge	.grDone
+
+		bra	.gr
+.grDone
 
 ; Fill text:
 		move.l	DrawBufferB(pc),a0
@@ -204,7 +219,7 @@ Frame:
 		move.l	d0,d2
 		lea	LineBottom,a1
 		move.w	(a1,d3.w),d3
-		; bsr	DrawLineBlit	; blit line is ok here because it's vertical
+		bsr	DrawLineBlit	; blit line is ok here because it's vertical
 .skipLine
 
 ; Floor lines:
@@ -497,19 +512,23 @@ DrawDude:
 ; a5 = font table
 ********************************************************************************
 DrawWord:
+		movem.l	d0/a0/a1,-(sp)
 .char
 		moveq	#0,d0
 		move.b	(a3)+,d0
-		beq	.done
+		beq	.done		; EOL?
+		cmp.w	#32,d0		; space?
+		bne	.notSpace
+		add.w	#20,a2
+		bra	.char
+.notSpace
 		lsl	#2,d0
 		move.l	(a5,d0.w),a1
 		bsr	DrawChar
 		bra	.char
-.done		rts
-
-Text:
-		dc.b	"RIFT",0
-		even
+.done
+		movem.l	(sp)+,d0/a0/a1
+		rts
 
 ********************************************************************************
 ; a0 = draw buffer

@@ -51,3 +51,49 @@ out.forEach((g) => {
 	});
 });
 // TODO: limit to used chars
+
+const greets = [
+	"SLIPSTREAM",
+	"FOCUS DESIGN",
+	"RIFT",
+	"LOGICOMA",
+	"TUHB",
+	"BITSHIFTERS",
+	"MELON",
+	"ABYSS",
+	"PROXIMA",
+	"FATZONE",
+	"RESISTANCE",
+	"INSANE",
+	// "FOCUS DESIGN",
+	// "MOODS PLATEAU",
+	// "FIVE FINGER PUNCH",
+];
+
+greets.forEach((g) => {
+	console.log(`${makeLabel(g)}: dc.b "${g}",0`);
+});
+
+console.log(" even");
+
+console.log(`Greets:`);
+
+greets.forEach((g) => {
+	console.log(` dc.w ${getWidth(g)}`);
+	console.log(` dc.l ${makeLabel(g)}`);
+});
+console.log(" dc.w -1");
+
+function makeLabel(str) {
+	return "t" + str.replace(" ", "");
+}
+
+function getWidth(str) {
+	let w = 0;
+	for (i = 0; i < str.length; i++) {
+		const char = str.charCodeAt(i);
+		const width = char === 32 ? "20" : out[char - 65].width;
+		w += width * xScale + 2 / scale;
+	}
+	return Math.round(w * scale);
+}

@@ -488,3 +488,42 @@ glyphZ:
  dc.b 1,13
  dc.b 1,27
  dc.b 20,27
+tSLIPSTREAM: dc.b "SLIPSTREAM",0
+tFOCUSDESIGN: dc.b "FOCUS DESIGN",0
+tRIFT: dc.b "RIFT",0
+tLOGICOMA: dc.b "LOGICOMA",0
+tTUHB: dc.b "TUHB",0
+tBITSHIFTERS: dc.b "BITSHIFTERS",0
+tMELON: dc.b "MELON",0
+tABYSS: dc.b "ABYSS",0
+tPROXIMA: dc.b "PROXIMA",0
+tFATZONE: dc.b "FATZONE",0
+tRESISTANCE: dc.b "RESISTANCE",0
+tINSANE: dc.b "INSANE",0
+ even
+Greets:
+ dc.w 211
+ dc.l tSLIPSTREAM
+ dc.w 242
+ dc.l tFOCUSDESIGN
+ dc.w 78
+ dc.l tRIFT
+ dc.w 162
+ dc.l tLOGICOMA
+ dc.w 93
+ dc.l tTUHB
+ dc.w 226
+ dc.l tBITSHIFTERS
+ dc.w 109
+ dc.l tMELON
+ dc.w 116
+ dc.l tABYSS
+ dc.w 148
+ dc.l tPROXIMA
+ dc.w 163
+ dc.l tFATZONE
+ dc.w 218
+ dc.l tRESISTANCE
+ dc.w 125
+ dc.l tINSANE
+ dc.w -1
