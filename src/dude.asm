@@ -141,6 +141,12 @@ Dude_Effect:
 		move.w	d0,4(a0)
 		swap	d0
 		move.w	d0,(a0)
+
+		lea	Cop2LcC+2,a0
+		move.l	#CopLoopC,d0
+		move.w	d0,4(a0)
+		swap	d0
+		move.w	d0,(a0)
 ; fixed bpls
 		lea	CopBplsFixed+2,a1
 		lea	Bg+L_PAD/8,a0
@@ -182,12 +188,17 @@ Frame:
 		clr.w	bltdmod(a6)
 		move.w	#FILL_HEIGHT<<6!(PF2_BW/2),bltsize(a6)
 
+		lea	WordPositions,a4
+		move.w	#$38+(DIW_W/2)!1,(a4)+
+		move.w	#$38+(DIW_W/2)!1,(a4)+
+		move.w	#$38+(DIW_W/2)!1,(a4)+
+
 ; Draw text:
 		move.l	CurrFrame,d0
 		neg.w	d0		; d0 = x pos
 		move.l	DrawBufferB(pc),a0
 		lea	Greets,a1
-		lea	XGrid,a4
+		lea	WordPositions,a4
 .gr
 		move.w	(a1)+,d1	; d1 = x pos of text
 		blt	.grDone		; EOF
@@ -201,12 +212,30 @@ Frame:
 		cmp.w	#XGRID_MIN_VIS,d0
 		blt	.gr
 		; Draw
+		move.w	d0,(a4)+
 		bsr	DrawWord
 		; Done if text is off-right
 		cmp.w	#XGRID_MAX_VIS,d0
 		bge	.grDone
 		bra	.gr
 .grDone
+
+; Set color positions:
+		lea	WordPositions+2,a0
+		lea	TextPos2,a1
+		lea	XGrid,a2
+		moveq	#2-1,d7
+.col
+		move.w	(a0)+,d0
+		add.w	d0,d0
+		move.w	(a2,d0),d0
+		lsr	d0
+		; add.w	#$38,d0
+		add.w	#$38-12,d0
+		bset	#0,d0
+		move.w	d0,(a1)
+		lea	TextPos3-TextPos2(a1),a1
+		dbf	d7,.col
 
 ; Fill text:
 		move.l	DrawBufferB(pc),a0
@@ -246,53 +275,53 @@ Frame:
 		move.w	(a2,d3.w),d3
 		bsr	DrawLine
 .skipLine
+
+; Floor lines:
+		bsr	InitDrawLine
+		move.l	DrawBufferB(pc),a0
+		sub.l	#R_PAD/8,a0
+
+		move.l	CurrFrame,d1
+		divu	#XGRID_SIZE,d1
+		swap	d1
+		move.w	#XGRID_SIZE,d0
+		sub.w	d1,d0
+
+		add.w	d0,d0
+		lea	XGrid,a2
+		move.w	(a2,d0.w),d0
+
+		cmp.w	#DIW_W,d0
+		beq	.skipLine2
+
+		move.w	d0,d3
+		add.w	d3,d3
+		lea	LineBottom,a2
+		move.w	(a2,d3.w),d1
+		addq	#2,d1
+		move.l	d0,d2
+
+		add.w	d2,d2
+		lea	LineFloorX,a2
+		move.w	(a2,d2.w),d2
+
+		move.w	d2,d3
+		add.w	d3,d3
+		lea	LineFloorEdge,a2
+		move.w	(a2,d3.w),d3
+
+		add.w	#R_PAD,d0
+		add.w	#R_PAD,d2
+
+		tst.w	d2
+		blt	.skipLine2
+		cmp.w	#PF2_W,d2
+		bge	.skipLine2
+
+		bsr	DrawLine
+.skipLine2
+
 		move.w	#0,(a1)+	; end clear list
-
-; ; Floor lines:
-; 		bsr	InitDrawLine
-; 		move.l	DrawBufferB(pc),a0
-; 		sub.l	#R_PAD/8,a0
-
-; 		move.l	CurrFrame,d1
-; 		divu	#XGRID_SIZE,d1
-; 		swap	d1
-; 		move.w	#XGRID_SIZE,d0
-; 		sub.w	d1,d0
-
-; 		add.w	d0,d0
-; 		lea	XGrid,a1
-; 		move.w	(a1,d0.w),d0
-
-; 		cmp.w	#DIW_W,d0
-; 		beq	.skipLine2
-
-; 		move.w	d0,d3
-; 		add.w	d3,d3
-; 		lea	LineBottom,a1
-; 		move.w	(a1,d3.w),d1
-; 		addq	#2,d1
-; 		move.l	d0,d2
-
-; 		add.w	d2,d2
-; 		lea	LineFloorX,a1
-; 		move.w	(a1,d2.w),d2
-
-; 		move.w	d2,d3
-; 		add.w	d3,d3
-; 		lea	LineFloorEdge,a1
-; 		move.w	(a1,d3.w),d3
-
-; 		add.w	#R_PAD,d0
-; 		add.w	#R_PAD,d2
-
-; 		tst.w	d2
-; 		blt	.skipLine2
-; 		cmp.w	#PF2_W,d2
-; 		bge	.skipLine2
-
-; 		bsr	DrawLine
-; .skipLine2
-
 
 		jsr	WaitEOF
 		cmp.l	#DUDE_END_FRAME,CurrFrame
@@ -528,11 +557,10 @@ DrawDude:
 ; a1 = glyph
 ; a2.w = x offset
 ; a3 = text data
-; a4 = x grid
 ; a5 = font table
 ********************************************************************************
 DrawWord:
-		movem.l	d0/a0/a1,-(sp)
+		movem.l	d0/a0/a1/a4,-(sp)
 .char
 		moveq	#0,d0
 		moveq	#0,d5
@@ -595,7 +623,7 @@ DrawWord:
 
 		bra	.char
 .done
-		movem.l	(sp)+,d0/a0/a1
+		movem.l	(sp)+,d0/a0/a1/a4
 		rts
 
 
@@ -615,6 +643,8 @@ Width:		dc.w	0
 ********************************************************************************
 Data:
 ********************************************************************************
+
+WordPositions:	ds.w	4		; TODO
 
 Offsets:
 		dc.b	0,-1
@@ -673,6 +703,24 @@ CopBplsFixed:
 		dc.w	color13,$fff
 		dc.w	color14,$101
 		dc.w	color15,$000
+
+
+; loop C
+Cop2LcC		dc.w	cop2lch,0
+		dc.w	cop2lcl,0
+CopLoopC
+		dc.w	color13
+TextCol1	dc.w	$ff0
+TextPos2	dc.w	$38+(100/2)!1,$80fe
+		dc.w	color13
+TextCol2	dc.w	$f0f
+TextPos3	dc.w	$38+(200/2)!1,$80fe
+		dc.w	color13
+TextCol3	dc.w	$0ff
+		COP_WAITH 0,$e0
+		COP_SKIPV DIW_YSTRT+FILL_HEIGHT
+		dc.w	copjmp2,0
+
 ; loop A
 Cop2LcA		dc.w	cop2lch,0
 		dc.w	cop2lcl,0
