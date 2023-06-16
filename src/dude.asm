@@ -1,7 +1,10 @@
 ; TODO: table for muls?
 ; Lamp posts
 ; fix floor
+; fix text y
 ; clear list for lines
+
+; light colours / flashing
 
 		include	src/_main.i
 		include	dude.i
@@ -26,11 +29,14 @@ PF2_H = DIW_H
 
 BPLS = PF1_BPLS+PF2_BPLS
 
-TOP_PAD = 9
+TOP_PAD = 13
 L_PAD = 32
 R_PAD = 48
 H_PAD = L_PAD+R_PAD
 FILL_HEIGHT = 52
+
+SPACE_WIDTH = 15
+GREET_SPACE = 40
 
 ;-------------------------------------------------------------------------------
 ; Derived
@@ -153,12 +159,11 @@ Frame:
 		bsr	InitDrawLine
 
 		; unhog blitter
-		move.w	#DMAF_BLITHOG,dmacon(a6)
+		; move.w	#DMAF_BLITHOG,dmacon(a6)
 
 ; Draw text:
 		move.l	CurrFrame,d0
-		neg.w	d0
-
+		neg.w	d0		; d0 = x pos
 		move.l	DrawBufferB(pc),a0
 		lea	Greets,a1
 		lea	XGrid,a4
@@ -168,7 +173,7 @@ Frame:
 		blt	.grDone		; EOF
 		move.l	(a1)+,a3
 
-		add.w	#40,d0
+		add.w	#GREET_SPACE,d0	;
 		move.w	d0,a2
 		add.w	d1,d0
 
@@ -195,77 +200,77 @@ Frame:
 		clr.l	bltamod(a6)
 		move.w	#FILL_HEIGHT<<6!(PF2_BW/2),bltsize(a6)
 
-; Vertical lines:
-		bsr	InitDrawLine
-		move.l	DrawBufferB(pc),a0
+; ; Vertical lines:
+; 		bsr	InitDrawLine
+; 		move.l	DrawBufferB(pc),a0
 
-		move.l	CurrFrame,d1
-		divu	#XGRID_SIZE,d1
-		swap	d1
-		move.w	#XGRID_SIZE,d0
-		sub.w	d1,d0
+; 		move.l	CurrFrame,d1
+; 		divu	#XGRID_SIZE,d1
+; 		swap	d1
+; 		move.w	#XGRID_SIZE,d0
+; 		sub.w	d1,d0
 
-		add.w	d0,d0
-		lea	XGrid,a1
-		move.w	(a1,d0.w),d0
+; 		add.w	d0,d0
+; 		lea	XGrid,a1
+; 		move.w	(a1,d0.w),d0
 
-		cmp.w	#DIW_W,d0
-		beq	.skipLine
+; 		cmp.w	#DIW_W,d0
+; 		beq	.skipLine
 
-		move.w	d0,d3
-		add.w	d3,d3
-		lea	LineTop,a1
-		move.w	(a1,d3.w),d1
-		move.l	d0,d2
-		lea	LineBottom,a1
-		move.w	(a1,d3.w),d3
-		bsr	DrawLineBlit	; blit line is ok here because it's vertical
-.skipLine
+; 		move.w	d0,d3
+; 		add.w	d3,d3
+; 		lea	LineTop,a1
+; 		move.w	(a1,d3.w),d1
+; 		move.l	d0,d2
+; 		lea	LineBottom,a1
+; 		move.w	(a1,d3.w),d3
+; 		bsr	DrawLineBlit	; blit line is ok here because it's vertical
+; .skipLine
 
-; Floor lines:
-		bsr	InitDrawLine
-		move.l	DrawBufferB(pc),a0
-		sub.l	#R_PAD/8,a0
+; ; Floor lines:
+; 		bsr	InitDrawLine
+; 		move.l	DrawBufferB(pc),a0
+; 		sub.l	#R_PAD/8,a0
 
-		move.l	CurrFrame,d1
-		divu	#XGRID_SIZE,d1
-		swap	d1
-		move.w	#XGRID_SIZE,d0
-		sub.w	d1,d0
+; 		move.l	CurrFrame,d1
+; 		divu	#XGRID_SIZE,d1
+; 		swap	d1
+; 		move.w	#XGRID_SIZE,d0
+; 		sub.w	d1,d0
 
-		add.w	d0,d0
-		lea	XGrid,a1
-		move.w	(a1,d0.w),d0
+; 		add.w	d0,d0
+; 		lea	XGrid,a1
+; 		move.w	(a1,d0.w),d0
 
-		cmp.w	#DIW_W,d0
-		beq	.skipLine2
+; 		cmp.w	#DIW_W,d0
+; 		beq	.skipLine2
 
-		move.w	d0,d3
-		add.w	d3,d3
-		lea	LineBottom,a1
-		move.w	(a1,d3.w),d1
-		addq	#2,d1
-		move.l	d0,d2
+; 		move.w	d0,d3
+; 		add.w	d3,d3
+; 		lea	LineBottom,a1
+; 		move.w	(a1,d3.w),d1
+; 		addq	#2,d1
+; 		move.l	d0,d2
 
-		add.w	d2,d2
-		lea	LineFloorX,a1
-		move.w	(a1,d2.w),d2
+; 		add.w	d2,d2
+; 		lea	LineFloorX,a1
+; 		move.w	(a1,d2.w),d2
 
-		move.w	d2,d3
-		add.w	d3,d3
-		lea	LineFloorEdge,a1
-		move.w	(a1,d3.w),d3
+; 		move.w	d2,d3
+; 		add.w	d3,d3
+; 		lea	LineFloorEdge,a1
+; 		move.w	(a1,d3.w),d3
 
-		add.w	#R_PAD,d0
-		add.w	#R_PAD,d2
+; 		add.w	#R_PAD,d0
+; 		add.w	#R_PAD,d2
 
-		tst.w	d2
-		blt	.skipLine2
-		cmp.w	#PF2_W,d2
-		bge	.skipLine2
+; 		tst.w	d2
+; 		blt	.skipLine2
+; 		cmp.w	#PF2_W,d2
+; 		bge	.skipLine2
 
-		bsr	DrawLine
-.skipLine2
+; 		bsr	DrawLine
+; .skipLine2
 
 
 		jsr	WaitEOF
@@ -519,7 +524,7 @@ DrawWord:
 		beq	.done		; EOL?
 		cmp.w	#32,d0		; space?
 		bne	.notSpace
-		add.w	#20,a2
+		add.w	#SPACE_WIDTH,a2
 		bra	.char
 .notSpace
 		lsl	#2,d0

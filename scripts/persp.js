@@ -1,4 +1,4 @@
-const TOP_PAD = 9;
+const TOP_PAD = 13;
 const L_PAD = 32;
 const R_PAD = 48;
 const DIW_W = 320;

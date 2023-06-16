@@ -3,6 +3,8 @@ const { XMLParser } = require("fast-xml-parser");
 const fs = require("fs");
 const xmlDataStr = fs.readFileSync(__dirname + "/../assets/KARNIVOR.svg");
 
+const SPACE_WIDTH = 15;
+
 const scale = 0.036;
 const baseline = 750;
 const xScale = 0.7;
@@ -92,7 +94,7 @@ function getWidth(str) {
 	let w = 0;
 	for (i = 0; i < str.length; i++) {
 		const char = str.charCodeAt(i);
-		const width = char === 32 ? "20" : out[char - 65].width;
+		const width = char === 32 ? SPACE_WIDTH : out[char - 65].width;
 		w += width * xScale + 2 / scale;
 	}
 	return Math.round(w * scale);
