@@ -6,10 +6,21 @@
 
 ; light colours / flashing
 
+; perf
+
 		include	src/_main.i
 		include	dude.i
 
 DUDE_END_FRAME = $1000
+
+TOP_PAD = 13
+L_PAD = 32
+R_PAD = 48
+H_PAD = L_PAD+R_PAD
+FILL_HEIGHT = 52
+
+SPACE_WIDTH = 15
+GREET_SPACE = 40
 
 DUDE_W = 96
 DUDE_BW = DUDE_W/8
@@ -28,15 +39,6 @@ PF2_W = DIW_W+H_PAD
 PF2_H = DIW_H
 
 BPLS = PF1_BPLS+PF2_BPLS
-
-TOP_PAD = 13
-L_PAD = 32
-R_PAD = 48
-H_PAD = L_PAD+R_PAD
-FILL_HEIGHT = 52
-
-SPACE_WIDTH = 15
-GREET_SPACE = 40
 
 ;-------------------------------------------------------------------------------
 ; Derived
@@ -159,7 +161,7 @@ Frame:
 		bsr	InitDrawLine
 
 		; unhog blitter
-		; move.w	#DMAF_BLITHOG,dmacon(a6)
+		move.w	#DMAF_BLITHOG,dmacon(a6)
 
 ; Draw text:
 		move.l	CurrFrame,d0
@@ -171,7 +173,7 @@ Frame:
 .gr
 		move.w	(a1)+,d1	; d1 = x pos of text
 		blt	.grDone		; EOF
-		move.l	(a1)+,a3
+		move.l	(a1)+,a3	; a3 = glyph
 
 		add.w	#GREET_SPACE,d0	;
 		move.w	d0,a2
