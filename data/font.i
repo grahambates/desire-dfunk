@@ -1,33 +1,33 @@
-FontTable:
- dc.l glyphA
- dc.l glyphB
- dc.l glyphC
- dc.l glyphD
- dc.l glyphE
- dc.l glyphF
- dc.l glyphG
- dc.l glyphH
- dc.l glyphI
- dc.l glyphJ
- dc.l glyphK
- dc.l glyphL
- dc.l glyphM
- dc.l glyphN
- dc.l glyphO
- dc.l glyphP
- dc.l glyphQ
- dc.l glyphR
- dc.l glyphS
- dc.l glyphT
- dc.l glyphU
- dc.l glyphV
- dc.l glyphW
- dc.l glyphX
- dc.l glyphY
- dc.l glyphZ
+zosillaFontTable:
+ dc.l zosillaA
+ dc.l zosillaB
+ dc.l zosillaC
+ dc.l zosillaD
+ dc.l zosillaE
+ dc.l zosillaF
+ dc.l zosillaG
+ dc.l zosillaH
+ dc.l zosillaI
+ dc.l 0
+ dc.l 0
+ dc.l zosillaL
+ dc.l zosillaM
+ dc.l zosillaN
+ dc.l zosillaO
+ dc.l zosillaP
+ dc.l 0
+ dc.l zosillaR
+ dc.l zosillaS
+ dc.l zosillaT
+ dc.l zosillaU
+ dc.l zosillaV
+ dc.l 0
+ dc.l zosillaX
+ dc.l 0
+ dc.l 0
 
-FontGlyphs:
-glyphA:
+zosillaFontGlyphs:
+zosillaA:
  dc.b 16
  dc.b 1
  dc.b 8
@@ -46,7 +46,8 @@ glyphA:
  dc.b 9,11
  dc.b 9,4
  dc.b 3,4
-glyphB:
+ even
+zosillaB:
  dc.b 16
  dc.b 2
  dc.b 6
@@ -69,7 +70,8 @@ glyphB:
  dc.b 9,17
  dc.b 3,12
  dc.b 3,22
-glyphC:
+ even
+zosillaC:
  dc.b 16
  dc.b 0
  dc.b 8
@@ -82,7 +84,8 @@ glyphC:
  dc.b 0,25
  dc.b 0,0
  dc.b 11,0
-glyphD:
+ even
+zosillaD:
  dc.b 16
  dc.b 1
  dc.b 4
@@ -97,7 +100,8 @@ glyphD:
  dc.b 0,28
  dc.b 0,0
  dc.b 11,0
-glyphE:
+ even
+zosillaE:
  dc.b 16
  dc.b 0
  dc.b 12
@@ -114,7 +118,8 @@ glyphE:
  dc.b 0,25
  dc.b 0,0
  dc.b 11,0
-glyphF:
+ even
+zosillaF:
  dc.b 16
  dc.b 0
  dc.b 10
@@ -129,7 +134,8 @@ glyphF:
  dc.b 0,25
  dc.b 0,0
  dc.b 11,0
-glyphG:
+ even
+zosillaG:
  dc.b 16
  dc.b 0
  dc.b 12
@@ -146,7 +152,8 @@ glyphG:
  dc.b 0,25
  dc.b 0,0
  dc.b 11,0
-glyphH:
+ even
+zosillaH:
  dc.b 16
  dc.b 0
  dc.b 12
@@ -163,7 +170,8 @@ glyphH:
  dc.b 9,25
  dc.b 9,14
  dc.b 3,14
-glyphI:
+ even
+zosillaI:
  dc.b 16
  dc.b 0
  dc.b 12
@@ -180,37 +188,8 @@ glyphI:
  dc.b 11,22
  dc.b 11,25
  dc.b 0,25
-glyphJ:
- dc.b 16
- dc.b 0
- dc.b 6
- dc.b 0,25
- dc.b 0,22
- dc.b 9,22
- dc.b 9,0
- dc.b 11,0
- dc.b 11,25
- dc.b 0,25
-glyphK:
- dc.b 16
- dc.b 0
- dc.b 14
- dc.b 3,17
- dc.b 3,25
- dc.b 0,25
- dc.b 0,0
- dc.b 3,0
- dc.b 3,13
- dc.b 9,8
- dc.b 9,0
- dc.b 11,0
- dc.b 11,10
- dc.b 7,14
- dc.b 11,25
- dc.b 8,25
- dc.b 5,16
- dc.b 3,17
-glyphL:
+ even
+zosillaL:
  dc.b 16
  dc.b 0
  dc.b 6
@@ -221,7 +200,8 @@ glyphL:
  dc.b 0,0
  dc.b 3,0
  dc.b 3,22
-glyphM:
+ even
+zosillaM:
  dc.b 16
  dc.b 0
  dc.b 12
@@ -238,7 +218,8 @@ glyphM:
  dc.b 4,25
  dc.b 4,4
  dc.b 3,4
-glyphN:
+ even
+zosillaN:
  dc.b 16
  dc.b 0
  dc.b 8
@@ -251,7 +232,8 @@ glyphN:
  dc.b 9,25
  dc.b 9,4
  dc.b 3,4
-glyphO:
+ even
+zosillaO:
  dc.b 16
  dc.b 1
  dc.b 4
@@ -266,7 +248,8 @@ glyphO:
  dc.b 3,22
  dc.b 9,22
  dc.b 9,4
-glyphP:
+ even
+zosillaP:
  dc.b 16
  dc.b 1
  dc.b 4
@@ -283,26 +266,8 @@ glyphP:
  dc.b 0,25
  dc.b 0,0
  dc.b 11,0
-glyphQ:
- dc.b 16
- dc.b 1
- dc.b 4
- dc.b 11,0
- dc.b 11,25
- dc.b 0,25
- dc.b 0,0
- dc.b 11,0
- dc.b 8
- dc.b 9,4
- dc.b 3,4
- dc.b 3,22
- dc.b 4,22
- dc.b 4,16
- dc.b 7,16
- dc.b 7,22
- dc.b 9,22
- dc.b 9,4
-glyphR:
+ even
+zosillaR:
  dc.b 16
  dc.b 1
  dc.b 4
@@ -323,7 +288,8 @@ glyphR:
  dc.b 0,25
  dc.b 0,0
  dc.b 11,0
-glyphS:
+ even
+zosillaS:
  dc.b 16
  dc.b 0
  dc.b 12
@@ -340,7 +306,8 @@ glyphS:
  dc.b 0,10
  dc.b 0,0
  dc.b 11,0
-glyphT:
+ even
+zosillaT:
  dc.b 16
  dc.b 0
  dc.b 8
@@ -353,7 +320,8 @@ glyphT:
  dc.b 11,0
  dc.b 11,4
  dc.b 7,4
-glyphU:
+ even
+zosillaU:
  dc.b 16
  dc.b 0
  dc.b 8
@@ -366,7 +334,8 @@ glyphU:
  dc.b 11,25
  dc.b 0,25
  dc.b 0,0
-glyphV:
+ even
+zosillaV:
  dc.b 16
  dc.b 0
  dc.b 8
@@ -379,24 +348,8 @@ glyphV:
  dc.b 3,0
  dc.b 3,17
  dc.b 9,22
-glyphW:
- dc.b 16
- dc.b 0
- dc.b 12
- dc.b 0,0
- dc.b 3,0
- dc.b 3,22
- dc.b 4,22
- dc.b 4,0
- dc.b 7,0
- dc.b 7,22
- dc.b 9,22
- dc.b 9,0
- dc.b 11,0
- dc.b 11,25
- dc.b 0,25
- dc.b 0,0
-glyphX:
+ even
+zosillaX:
  dc.b 16
  dc.b 0
  dc.b 16
@@ -417,42 +370,417 @@ glyphX:
  dc.b 8,25
  dc.b 5,16
  dc.b 3,17
-glyphY:
- dc.b 16
+ even
+NameSmileFontTable:
+ dc.l NameSmileA
+ dc.l 0
+ dc.l 0
+ dc.l 0
+ dc.l NameSmileE
+ dc.l NameSmileF
+ dc.l 0
+ dc.l 0
+ dc.l NameSmileI
+ dc.l 0
+ dc.l 0
+ dc.l NameSmileL
+ dc.l NameSmileM
+ dc.l NameSmileN
+ dc.l NameSmileO
+ dc.l 0
+ dc.l 0
+ dc.l NameSmileR
+ dc.l 0
+ dc.l NameSmileT
+ dc.l 0
+ dc.l 0
+ dc.l 0
+ dc.l 0
+ dc.l 0
+ dc.l NameSmileZ
+
+NameSmileFontGlyphs:
+NameSmileA:
+ dc.b 23
+ dc.b 1
+ dc.b 6
+ dc.b 8,7
+ dc.b 6,10
+ dc.b 6,14
+ dc.b 15,14
+ dc.b 15,10
+ dc.b 13,7
+ dc.b 8,7
+ dc.b 10
+ dc.b 1,7
+ dc.b 6,0
+ dc.b 15,0
+ dc.b 20,7
+ dc.b 20,27
+ dc.b 15,27
+ dc.b 15,20
+ dc.b 6,20
+ dc.b 6,27
+ dc.b 1,27
+ dc.b 1,7
+ even
+NameSmileE:
+ dc.b 23
  dc.b 0
  dc.b 12
+ dc.b 6,20
+ dc.b 20,20
+ dc.b 20,27
+ dc.b 1,27
+ dc.b 1,0
+ dc.b 20,0
+ dc.b 20,7
+ dc.b 6,7
+ dc.b 6,10
+ dc.b 18,10
+ dc.b 18,17
+ dc.b 6,17
+ dc.b 6,20
+ even
+NameSmileF:
+ dc.b 23
+ dc.b 0
+ dc.b 10
+ dc.b 20,0
+ dc.b 20,7
+ dc.b 6,7
+ dc.b 6,10
+ dc.b 18,10
+ dc.b 18,17
+ dc.b 6,17
+ dc.b 6,27
+ dc.b 1,27
+ dc.b 1,0
+ dc.b 20,0
+ even
+NameSmileI:
+ dc.b 9
+ dc.b 0
+ dc.b 4
+ dc.b 6,27
+ dc.b 1,27
+ dc.b 1,0
+ dc.b 6,0
+ dc.b 6,27
+ even
+NameSmileL:
+ dc.b 23
+ dc.b 0
+ dc.b 6
+ dc.b 6,20
+ dc.b 20,20
+ dc.b 20,27
+ dc.b 1,27
+ dc.b 1,0
+ dc.b 6,0
+ dc.b 6,20
+ even
+NameSmileM:
+ dc.b 23
+ dc.b 0
+ dc.b 12
+ dc.b 6,12
+ dc.b 6,27
+ dc.b 1,27
+ dc.b 1,0
+ dc.b 5,0
+ dc.b 11,9
+ dc.b 17,0
+ dc.b 20,0
+ dc.b 20,27
+ dc.b 15,27
+ dc.b 15,12
+ dc.b 11,18
+ dc.b 6,12
+ even
+NameSmileN:
+ dc.b 23
+ dc.b 0
+ dc.b 10
+ dc.b 6,12
+ dc.b 6,27
+ dc.b 1,27
+ dc.b 1,0
+ dc.b 5,0
+ dc.b 15,16
+ dc.b 15,0
+ dc.b 20,0
+ dc.b 20,27
+ dc.b 17,27
+ dc.b 6,12
+ even
+NameSmileO:
+ dc.b 23
+ dc.b 1
+ dc.b 8
+ dc.b 8,7
+ dc.b 6,10
+ dc.b 6,17
+ dc.b 8,20
+ dc.b 13,20
+ dc.b 15,17
+ dc.b 15,10
+ dc.b 13,7
+ dc.b 8,7
+ dc.b 8
+ dc.b 1,7
+ dc.b 6,0
+ dc.b 15,0
+ dc.b 20,7
+ dc.b 20,20
+ dc.b 15,27
+ dc.b 6,27
+ dc.b 1,20
+ dc.b 1,7
+ even
+NameSmileR:
+ dc.b 23
+ dc.b 1
+ dc.b 5
+ dc.b 16,9
+ dc.b 14,7
+ dc.b 6,7
+ dc.b 6,10
+ dc.b 14,10
+ dc.b 16,9
+ dc.b 12
+ dc.b 10,17
+ dc.b 6,17
+ dc.b 6,27
+ dc.b 1,27
+ dc.b 1,0
+ dc.b 16,0
+ dc.b 20,5
+ dc.b 20,12
+ dc.b 16,17
+ dc.b 20,22
+ dc.b 20,27
+ dc.b 17,27
+ dc.b 10,17
+ even
+NameSmileT:
+ dc.b 23
+ dc.b 0
+ dc.b 8
+ dc.b 20,0
+ dc.b 20,7
+ dc.b 13,7
+ dc.b 13,27
+ dc.b 8,27
+ dc.b 8,7
+ dc.b 1,7
+ dc.b 1,0
+ dc.b 20,0
+ even
+NameSmileZ:
+ dc.b 23
+ dc.b 0
+ dc.b 10
+ dc.b 12,7
+ dc.b 1,7
+ dc.b 1,0
+ dc.b 20,0
+ dc.b 20,5
+ dc.b 9,20
+ dc.b 20,20
+ dc.b 20,27
+ dc.b 1,27
+ dc.b 1,22
+ dc.b 12,7
+ even
+RabbitFireFontTable:
+ dc.l RabbitFireA
+ dc.l RabbitFireB
+ dc.l 0
+ dc.l 0
+ dc.l RabbitFireE
+ dc.l 0
+ dc.l 0
+ dc.l RabbitFireH
+ dc.l RabbitFireI
+ dc.l 0
+ dc.l 0
+ dc.l 0
+ dc.l 0
+ dc.l RabbitFireN
+ dc.l 0
+ dc.l 0
+ dc.l 0
+ dc.l 0
+ dc.l RabbitFireS
+ dc.l RabbitFireT
+ dc.l RabbitFireU
+ dc.l 0
+ dc.l 0
+ dc.l 0
+ dc.l RabbitFireY
+ dc.l 0
+
+RabbitFireFontGlyphs:
+RabbitFireA:
+ dc.b 21
+ dc.b 1
+ dc.b 8
  dc.b 0,0
- dc.b 3,0
- dc.b 3,11
- dc.b 9,11
+ dc.b 17,0
+ dc.b 17,27
+ dc.b 8,27
+ dc.b 8,17
+ dc.b 4,17
+ dc.b 4,27
+ dc.b 0,27
+ dc.b 0,0
+ dc.b 4
+ dc.b 4,6
+ dc.b 4,11
+ dc.b 8,11
+ dc.b 8,6
+ dc.b 4,6
+ even
+RabbitFireB:
+ dc.b 22
+ dc.b 1
+ dc.b 5
+ dc.b 0,0
+ dc.b 19,0
+ dc.b 15,13
+ dc.b 19,27
+ dc.b 0,27
+ dc.b 0,0
+ dc.b 5
+ dc.b 4,6
+ dc.b 4,21
+ dc.b 8,21
+ dc.b 5,13
+ dc.b 8,6
+ dc.b 4,6
+ even
+RabbitFireE:
+ dc.b 21
+ dc.b 0
+ dc.b 12
+ dc.b 17,0
+ dc.b 17,6
+ dc.b 9,6
+ dc.b 9,10
+ dc.b 17,10
+ dc.b 17,16
+ dc.b 9,16
+ dc.b 9,21
+ dc.b 17,21
+ dc.b 17,27
+ dc.b 0,27
+ dc.b 0,0
+ dc.b 17,0
+ even
+RabbitFireH:
+ dc.b 21
+ dc.b 0
+ dc.b 12
+ dc.b 4,16
+ dc.b 4,27
+ dc.b 0,27
+ dc.b 0,0
+ dc.b 4,0
+ dc.b 4,10
+ dc.b 8,10
+ dc.b 8,0
+ dc.b 17,0
+ dc.b 17,27
+ dc.b 8,27
+ dc.b 8,16
+ dc.b 4,16
+ even
+RabbitFireI:
+ dc.b 13
+ dc.b 0
+ dc.b 4
+ dc.b 9,27
+ dc.b 0,27
+ dc.b 0,0
  dc.b 9,0
- dc.b 11,0
- dc.b 11,14
- dc.b 7,14
- dc.b 7,25
- dc.b 4,25
- dc.b 4,14
- dc.b 0,14
+ dc.b 9,27
+ even
+RabbitFireN:
+ dc.b 21
+ dc.b 0
+ dc.b 8
+ dc.b 4,6
+ dc.b 4,27
+ dc.b 0,27
  dc.b 0,0
-glyphZ:
- dc.b 16
+ dc.b 17,0
+ dc.b 17,27
+ dc.b 8,27
+ dc.b 8,6
+ dc.b 4,6
+ even
+RabbitFireS:
+ dc.b 22
+ dc.b 0
+ dc.b 8
+ dc.b 0,27
+ dc.b 0,21
+ dc.b 7,21
+ dc.b 0,0
+ dc.b 19,0
+ dc.b 19,6
+ dc.b 11,6
+ dc.b 19,27
+ dc.b 0,27
+ even
+RabbitFireT:
+ dc.b 21
+ dc.b 0
+ dc.b 8
+ dc.b 17,0
+ dc.b 17,6
+ dc.b 13,6
+ dc.b 13,27
+ dc.b 4,27
+ dc.b 4,6
+ dc.b 0,6
+ dc.b 0,0
+ dc.b 17,0
+ even
+RabbitFireU:
+ dc.b 21
+ dc.b 0
+ dc.b 8
+ dc.b 0,0
+ dc.b 4,0
+ dc.b 4,21
+ dc.b 8,21
+ dc.b 8,0
+ dc.b 17,0
+ dc.b 17,27
+ dc.b 0,27
+ dc.b 0,0
+ even
+RabbitFireY:
+ dc.b 21
  dc.b 0
  dc.b 12
- dc.b 9,4
- dc.b 0,4
  dc.b 0,0
- dc.b 11,0
- dc.b 11,10
- dc.b 3,17
- dc.b 3,22
- dc.b 11,22
- dc.b 11,25
- dc.b 0,25
+ dc.b 4,0
+ dc.b 4,10
+ dc.b 8,10
+ dc.b 8,0
+ dc.b 17,0
+ dc.b 17,27
+ dc.b 0,27
+ dc.b 0,21
+ dc.b 8,21
+ dc.b 8,15
  dc.b 0,15
- dc.b 9,8
- dc.b 9,4
+ dc.b 0,0
+ even
 tSLIPSTREAM: dc.b "SLIPSTREAM",0
-tFOCUSDESIGN: dc.b "FOCUS DESIGN",0
 tRIFT: dc.b "RIFT",0
 tLOGICOMA: dc.b "LOGICOMA",0
 tTUHB: dc.b "TUHB",0
@@ -463,30 +791,51 @@ tPROXIMA: dc.b "PROXIMA",0
 tFATZONE: dc.b "FATZONE",0
 tRESISTANCE: dc.b "RESISTANCE",0
 tINSANE: dc.b "INSANE",0
+tFOCUSDESIGN: dc.b "FOCUS DESIGN",0
+tMOODSPLATEAU: dc.b "MOODS PLATEAU",0
+tFIVEFINGERPUNCH: dc.b "FIVE FINGER PUNCH",0
  even
 Greets:
  dc.w 160
+ dc.l zosillaFontTable-65*4
  dc.l tSLIPSTREAM
- dc.w 178
- dc.l tFOCUSDESIGN
- dc.w 64
+ dc.w 78
+ dc.l NameSmileFontTable-65*4
  dc.l tRIFT
  dc.w 128
+ dc.l zosillaFontTable-65*4
  dc.l tLOGICOMA
- dc.w 64
+ dc.w 85
+ dc.l RabbitFireFontTable-65*4
  dc.l tTUHB
  dc.w 176
+ dc.l zosillaFontTable-65*4
  dc.l tBITSHIFTERS
- dc.w 80
+ dc.w 115
+ dc.l NameSmileFontTable-65*4
  dc.l tMELON
- dc.w 80
+ dc.w 108
+ dc.l RabbitFireFontTable-65*4
  dc.l tABYSS
  dc.w 112
+ dc.l zosillaFontTable-65*4
  dc.l tPROXIMA
- dc.w 112
+ dc.w 161
+ dc.l NameSmileFontTable-65*4
  dc.l tFATZONE
  dc.w 160
+ dc.l zosillaFontTable-65*4
  dc.l tRESISTANCE
- dc.w 96
+ dc.w 119
+ dc.l RabbitFireFontTable-65*4
  dc.l tINSANE
+ dc.w 178
+ dc.l zosillaFontTable-65*4
+ dc.l tFOCUSDESIGN
+ dc.w 194
+ dc.l zosillaFontTable-65*4
+ dc.l tMOODSPLATEAU
+ dc.w 244
+ dc.l zosillaFontTable-65*4
+ dc.l tFIVEFINGERPUNCH
  dc.w -1

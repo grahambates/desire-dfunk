@@ -168,10 +168,10 @@ Frame:
 		move.l	DrawBufferB(pc),a0
 		lea	Greets,a1
 		lea	XGrid,a4
-		lea	FontTable-65*4,a5
 .gr
 		move.w	(a1)+,d1	; d1 = x pos of text
 		blt	.grDone		; EOF
+		move.l	(a1)+,a5	; a5 = font table
 		move.l	(a1)+,a3	; a3 = glyph
 
 		add.w	#GREET_SPACE,d0	;

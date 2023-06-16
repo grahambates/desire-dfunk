@@ -2,6 +2,9 @@ const { pathDataToPolys } = require("svg-path-to-polygons");
 const { XMLParser } = require("fast-xml-parser");
 const fs = require("fs");
 
+const xScale = 0.7;
+const SPACE_WIDTH = 15;
+
 // const xmlDataStr = fs.readFileSync(__dirname + "/../assets/KARNIVOR.svg");
 // const scale = 0.036;
 // const baseline = 750;
@@ -14,82 +17,101 @@ const fs = require("fs");
 // const scale = 0.017;
 // const baseline = 1600;
 
-const xmlDataStr = fs.readFileSync(__dirname + "/../assets/zosilla.svg");
-const scale = 0.018;
-const baseline = 1400;
+// const xmlDataStr = fs.readFileSync(__dirname + "/../assets/zosilla.svg");
+// const scale = 0.018;
+// const baseline = 1400;
 
 // const xmlDataStr = fs.readFileSync(__dirname + "/../assets/yukari.svg");
 // const scale = 0.014;
 // const baseline = 1600;
 
-const xScale = 0.7;
-const SPACE_WIDTH = 15;
-
-const parser = new XMLParser({ ignoreAttributes: false });
-let jsonObj = parser.parse(xmlDataStr);
-const glyphs = jsonObj.svg.defs.font.glyph;
-
-const out = [];
-
-for (let i = 65; i < 91; i++) {
-	const char = String.fromCharCode(i);
-	const glyph = glyphs.find((g) => g["@_glyph-name"] === char);
-	const pathData = glyph["@_d"];
-	const width = Number(glyph["@_horiz-adv-x"]);
-
-	const path = pathDataToPolys(pathData, { tolerance: 1, decimals: 1 });
-
-	out.push({ path, width, char });
-}
-
-const fmt = (num) => {
-	const val = Math.round(num * scale);
-	return val; // >= 0 ? "$" + val : "-$" + val * -1;
-};
-
-console.log("FontTable:");
-out.forEach((g) => {
-	console.log(" dc.l glyph" + g.char);
-});
-
-console.log("\nFontGlyphs:");
-out.forEach((g) => {
-	console.log("glyph" + g.char + ":");
-	console.log(" dc.b " + fmt(g.width * xScale + 2 / scale));
-	console.log(" dc.b " + (g.path.length - 1));
-	g.path.forEach((p) => {
-		console.log(" dc.b " + (p.length - 2));
-		for (let i = 0; i < p.length - 1; i++) {
-			let pt =
-				fmt(p[i][0] * xScale) +
-				"," +
-				fmt(baseline - p[i][1]);
-			console.log(" dc.b " + pt);
-		}
-	});
-});
-// TODO: limit to used chars
-
 const greets = [
-	"SLIPSTREAM",
-	"FOCUS DESIGN",
-	"RIFT",
-	"LOGICOMA",
-	"TUHB",
-	"BITSHIFTERS",
-	"MELON",
-	"ABYSS",
-	"PROXIMA",
-	"FATZONE",
-	"RESISTANCE",
-	"INSANE",
-	// "FOCUS DESIGN",
-	// "MOODS PLATEAU",
-	// "FIVE FINGER PUNCH",
+	["SLIPSTREAM", "zosilla"],
+	["RIFT", "NameSmile"],
+	["LOGICOMA", "zosilla"],
+	["TUHB", "RabbitFire"],
+	["BITSHIFTERS", "zosilla"],
+	["MELON", "NameSmile"],
+	["ABYSS", "RabbitFire"],
+	["PROXIMA", "zosilla"],
+	["FATZONE", "NameSmile"],
+	["RESISTANCE", "zosilla"],
+	["INSANE", "RabbitFire"],
+	["FOCUS DESIGN", "zosilla"],
+	["MOODS PLATEAU", "zosilla"],
+	["FIVE FINGER PUNCH", "zosilla"],
 ];
 
+const fonts = {};
+
+buildFont("zosilla", 0.018, 1400);
+buildFont("NameSmile", 0.017, 1600);
+buildFont("RabbitFire", 0.019, 1400);
+
+function buildFont(name, scale, baseline) {
+	const xmlDataStr = fs.readFileSync(
+		__dirname + `/../assets/${name}.svg`
+	);
+	const parser = new XMLParser({ ignoreAttributes: false });
+	let jsonObj = parser.parse(xmlDataStr);
+	const glyphsDat = jsonObj.svg.defs.font.glyph;
+
+	const fmt = (num) => Math.round(num * scale);
+
+	glyphs = [];
+
+	const text = greets
+		.filter((g) => g[1] === name)
+		.map((g) => g[0])
+		.join("");
+
+	for (let i = 65; i < 91; i++) {
+		const char = String.fromCharCode(i);
+		if (!text.includes(char)) {
+			glyphs.push(null);
+			continue;
+		}
+		const glyph = glyphsDat.find((g) => g["@_glyph-name"] === char);
+		const pathData = glyph["@_d"];
+		const width = Number(glyph["@_horiz-adv-x"]);
+
+		const path = pathDataToPolys(pathData, {
+			tolerance: 1,
+			decimals: 1,
+		});
+
+		glyphs.push({ path, width, char });
+	}
+
+	console.log(name + "FontTable:");
+	glyphs.forEach((g) => {
+		console.log(` dc.l ${g ? name + g.char : 0}`);
+	});
+
+	console.log("\n" + name + "FontGlyphs:");
+	glyphs.filter(Boolean).forEach((g) => {
+		console.log(name + g.char + ":");
+		console.log(" dc.b " + fmt(g.width * xScale + 2 / scale));
+		console.log(" dc.b " + (g.path.length - 1));
+		g.path.forEach((p) => {
+			console.log(" dc.b " + (p.length - 2));
+			for (let i = 0; i < p.length - 1; i++) {
+				let pt =
+					fmt(p[i][0] * xScale) +
+					"," +
+					fmt(baseline - p[i][1]);
+				console.log(" dc.b " + pt);
+			}
+		});
+		console.log(" even");
+	});
+	// TODO: limit to used chars
+
+	fonts[name] = { scale, glyphs };
+}
+
 greets.forEach((g) => {
-	console.log(`${makeLabel(g)}: dc.b "${g}",0`);
+	console.log(`${makeLabel(g)}: dc.b "${g[0]}",0`);
 });
 
 console.log(" even");
@@ -98,20 +120,25 @@ console.log(`Greets:`);
 
 greets.forEach((g) => {
 	console.log(` dc.w ${getWidth(g)}`);
+	console.log(` dc.l ${g[1]}FontTable-65*4`);
 	console.log(` dc.l ${makeLabel(g)}`);
 });
 console.log(" dc.w -1");
 
-function makeLabel(str) {
-	return "t" + str.replace(" ", "");
+function makeLabel(g) {
+	return "t" + g[0].replace(/ /g, "");
 }
 
-function getWidth(str) {
+function getWidth([str, name]) {
 	let w = 0;
 	for (i = 0; i < str.length; i++) {
 		const char = str.charCodeAt(i);
-		const width = char === 32 ? SPACE_WIDTH : out[char - 65].width;
-		w += Math.round(width * xScale * scale + 2);
+		// console.log({ char, name, i, str });
+		const width =
+			char === 32
+				? SPACE_WIDTH
+				: fonts[name].glyphs[char - 65].width;
+		w += Math.round(width * xScale * fonts[name].scale + 2);
 	}
 	return w;
 }
