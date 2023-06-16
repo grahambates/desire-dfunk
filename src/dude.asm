@@ -21,6 +21,8 @@ R_PAD = 48
 H_PAD = L_PAD+R_PAD
 FILL_HEIGHT = 52
 
+CLEAR_LIST_ITEM_SZ = 5*2+4+2
+
 SPACE_WIDTH = 15
 GREET_SPACE = 60
 
@@ -114,6 +116,12 @@ Dude_Effect:
 		jsr	AllocChip
 		move.l	a0,ViewBufferB
 
+		move.l	#CLEAR_LIST_ITEM_SZ*10,d0
+		jsr	AllocPublic
+		move.l	a0,DrawClearList
+		jsr	AllocPublic
+		move.l	a0,ViewClearList
+
 ; set pointers in copper loops
 		lea	Cop2LcA+2,a0
 		move.l	#CopLoopA,d0
@@ -127,21 +135,20 @@ Dude_Effect:
 		swap	d0
 		move.w	d0,(a0)
 
+		move.w	#DMAF_SETCLR!DMAF_BLITHOG,dmacon(a6)
 
 		lea	Cop,a0
 		lea	Vbi,a1
 		jsr	StartEffect
 
 Frame:
-		movem.l	DrawBuffer(pc),a0-a3
+		movem.l	DrawBuffer(pc),a0-a5
 		exg	a0,a1
 		exg	a2,a3
-		movem.l	a0-a3,DrawBuffer
+		exg	a4,a5
+		movem.l	a0-a5,DrawBuffer
 
 		bsr	DrawDude
-
-		; hog blitter
-		move.w	#DMAF_SETCLR!DMAF_BLITHOG,dmacon(a6)
 
 		move.l	DrawBufferB(pc),a0
 		add.l	#TOP_PAD*PF2_BW,a0
@@ -151,19 +158,7 @@ Frame:
 		clr.w	bltdmod(a6)
 		move.w	#FILL_HEIGHT<<6!(PF2_BW/2),bltsize(a6)
 
-; Clear main
-		; move.l	DrawBufferB(pc),a0
-		; add.l	#(TOP_PAD+FILL_HEIGHT)*PF2_BW+L_PAD/8,a0
-		; WAIT_BLIT
-		; move.l	a0,bltdpt(a6)
-		; move.l	#$01000000,bltcon0(a6)
-		; move.w	#PF2_BW-DIW_BW,bltdmod(a6)
-		; move.w	#(DIW_H-FILL_HEIGHT)<<6!(DIW_BW/2),bltsize(a6)
-
-		bsr	InitDrawLine
-
-		; unhog blitter
-		; move.w	#DMAF_BLITHOG,dmacon(a6)
+		bsr	ClearLines
 
 ; Draw text:
 		move.l	CurrFrame,d0
@@ -180,17 +175,14 @@ Frame:
 		add.w	#GREET_SPACE,d0	;
 		move.w	d0,a2
 		add.w	d1,d0
-
 		; Don't draw if off-left
 		cmp.w	#XGRID_MIN_VIS,d0
 		blt	.gr
-
+		; Draw
 		bsr	DrawWord
-
 		; Done if text is off-right
 		cmp.w	#XGRID_MAX_VIS,d0
 		bge	.grDone
-
 		bra	.gr
 .grDone
 
@@ -204,9 +196,12 @@ Frame:
 		clr.l	bltamod(a6)
 		move.w	#FILL_HEIGHT<<6!(PF2_BW/2),bltsize(a6)
 
-; Vertical lines:
 		bsr	InitDrawLine
+
+
+; Vertical lines:
 		move.l	DrawBufferB(pc),a0
+		move.l	DrawClearList(pc),a1
 
 		move.l	CurrFrame,d1
 		divu	#XGRID_SIZE,d1
@@ -215,21 +210,22 @@ Frame:
 		sub.w	d1,d0
 
 		add.w	d0,d0
-		lea	XGrid,a1
-		move.w	(a1,d0.w),d0
+		lea	XGrid,a2
+		move.w	(a2,d0.w),d0
 
 		cmp.w	#DIW_W,d0
 		beq	.skipLine
 
 		move.w	d0,d3
 		add.w	d3,d3
-		lea	LineTop,a1
-		move.w	(a1,d3.w),d1
+		lea	LineTop,a2
+		move.w	(a2,d3.w),d1
 		move.l	d0,d2
-		lea	LineBottom,a1
-		move.w	(a1,d3.w),d3
-		bsr	DrawLineBlit	; blit line is ok here because it's vertical
+		lea	LineBottom,a2
+		move.w	(a2,d3.w),d3
+		bsr	DrawLine
 .skipLine
+		move.w	#0,(a1)+	; end clear list
 
 ; ; Floor lines:
 ; 		bsr	InitDrawLine
@@ -281,6 +277,8 @@ Frame:
 		cmp.l	#DUDE_END_FRAME,CurrFrame
 		blt	Frame
 
+		move.w	#DMAF_BLITHOG,dmacon(a6)
+
 		rts
 
 
@@ -304,18 +302,19 @@ DrawLine:
 ; d2.w - x2
 ; d3.w - y2
 ; a0 - Draw buffer
+; a1 - Draw clearlist
 ; a6 - Custom
 ;-------------------------------------------------------------------------------
 		cmp.w	d1,d3
 		bgt.s	.l0
-		beq.s	.done
+		beq	.done
 		exg	d0,d2
 		exg	d1,d3
 .l0		moveq	#0,d4
 		move.w	d1,d4
 		add.w	d4,d4
-		lea	ScreenMuls,a1
-		move.w	(a1,d4.w),d4
+		lea	ScreenMuls,a2
+		move.w	(a2,d4.w),d4
 		move.w	d0,d5
 		add.l	a0,d4
 		asr.w	#3,d5
@@ -343,10 +342,11 @@ DrawLine:
 		and.w	#15,d0
 		ror.w	#4,d0
 		; or.w	#$a4a,d0
-		or.w	#$bca,d0
+		or.w	#$b4a,d0
 
 		WAIT_BLIT
 		move.w	d2,bltaptl(a6)
+		move.w	d2,(a1)+	; Write to clear list
 		sub.w	d3,d2
 		lsl.w	#6,d3
 		addq.w	#2,d3
@@ -356,6 +356,15 @@ DrawLine:
 		move.l	d4,bltdpt(a6)
 		movem.w	d1/d2,bltbmod(a6)
 		move.w	d3,bltsize(a6)
+		; Write to clear list
+		move.w	d0,(a1)+
+		move.w	d1,(a1)+
+		move.w	d2,(a1)+
+		move.w	d3,(a1)+
+		move.l	d4,(a1)+
+		move.b	.oct(pc,d5.w),(a1)+
+		clr.b	(a1)+
+
 .done		rts
 .oct		dc.b	3,3+64,19,19+64,11,11+64,23,23+64
 
@@ -427,6 +436,28 @@ ScreenMuls:
 		rept	PF2_H
 		dc.w	PF2_BW*REPTN
 		endr
+
+********************************************************************************
+ClearLines:
+		bsr	InitDrawLine
+		move.l	DrawClearList(pc),a1
+.l
+		WAIT_BLIT
+		movem.w	(a1)+,d0-d4
+		tst.w	d0
+		beq	.clrLDone
+		move.l	(a1)+,d5
+		move.b	(a1)+,d6
+		clr.b	(a1)+
+		move.w	d0,bltaptl(a6)
+		move.w	d1,bltcon0(a6)
+		move.b	d6,bltcon1+1(a6)
+		move.l	d5,bltcpt(a6)
+		move.l	d5,bltdpt(a6)
+		movem.w	d2/d3,bltbmod(a6)
+		move.w	d4,bltsize(a6)
+		bra	.l
+.clrLDone	rts
 
 ********************************************************************************
 ClearScreen:
@@ -555,6 +586,8 @@ DrawBuffer	dc.l	0
 ViewBuffer	dc.l	0
 DrawBufferB	dc.l	0
 ViewBufferB	dc.l	0
+DrawClearList	dc.l	0
+ViewClearList	dc.l	0
 
 Width:		dc.w	0
 
