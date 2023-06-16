@@ -52,17 +52,17 @@ console.log(" dc.w " + lerp(-80, W - 48, xGrid[xGrid.length - 1]).join(","));
 const textY = 26 + TOP_PAD;
 
 console.log("TextMul2:");
-for (let x = 0; x < 30; x++) {
+for (let x = 0; x < 29; x++) {
 	const inc = (x * 0.65) / W;
 	const hInc = textY / W;
 	let v = x + textY;
 	console.log(".r" + x);
 	const vals = [];
 	26 + TOP_PAD, 0;
-	for (let y = 0; y < 256; y++) {
+	for (let y = 0; y < 64; y++) {
 		vals.push(Math.round(v));
-		v += inc * 2;
-		v -= hInc * 2;
+		v += inc * 8;
+		v -= hInc * 8;
 	}
 	console.log(" dc.b " + vals.join(","));
 }

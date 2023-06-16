@@ -1,13 +1,29 @@
 const { pathDataToPolys } = require("svg-path-to-polygons");
 const { XMLParser } = require("fast-xml-parser");
 const fs = require("fs");
-const xmlDataStr = fs.readFileSync(__dirname + "/../assets/KARNIVOR.svg");
 
-const SPACE_WIDTH = 15;
+// const xmlDataStr = fs.readFileSync(__dirname + "/../assets/KARNIVOR.svg");
+// const scale = 0.036;
+// const baseline = 750;
 
-const scale = 0.036;
-const baseline = 750;
+// const xmlDataStr = fs.readFileSync(__dirname + "/../assets/RabbitFire.svg");
+// const scale = 0.019;
+// const baseline = 1400;
+
+// const xmlDataStr = fs.readFileSync(__dirname + "/../assets/NameSmile.svg");
+// const scale = 0.017;
+// const baseline = 1600;
+
+const xmlDataStr = fs.readFileSync(__dirname + "/../assets/zosilla.svg");
+const scale = 0.018;
+const baseline = 1400;
+
+// const xmlDataStr = fs.readFileSync(__dirname + "/../assets/yukari.svg");
+// const scale = 0.014;
+// const baseline = 1600;
+
 const xScale = 0.7;
+const SPACE_WIDTH = 15;
 
 const parser = new XMLParser({ ignoreAttributes: false });
 let jsonObj = parser.parse(xmlDataStr);
@@ -95,7 +111,7 @@ function getWidth(str) {
 	for (i = 0; i < str.length; i++) {
 		const char = str.charCodeAt(i);
 		const width = char === 32 ? SPACE_WIDTH : out[char - 65].width;
-		w += width * xScale + 2 / scale;
+		w += Math.round(width * xScale * scale + 2);
 	}
-	return Math.round(w * scale);
+	return w;
 }

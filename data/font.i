@@ -28,466 +28,429 @@ FontTable:
 
 FontGlyphs:
 glyphA:
- dc.b 23
+ dc.b 16
  dc.b 1
- dc.b 10
- dc.b 20,27
- dc.b 20,3
- dc.b 18,0
- dc.b 3,0
- dc.b 1,3
- dc.b 1,27
- dc.b 5,27
- dc.b 5,16
- dc.b 16,16
- dc.b 16,27
- dc.b 20,27
+ dc.b 8
+ dc.b 0,0
+ dc.b 11,0
+ dc.b 11,25
+ dc.b 9,25
+ dc.b 9,14
+ dc.b 3,14
+ dc.b 3,25
+ dc.b 0,25
+ dc.b 0,0
  dc.b 4
- dc.b 16,11
- dc.b 5,11
- dc.b 5,5
- dc.b 16,5
- dc.b 16,11
-glyphB:
- dc.b 23
- dc.b 2
- dc.b 9
- dc.b 20,24
- dc.b 20,16
- dc.b 18,13
- dc.b 20,11
- dc.b 20,3
- dc.b 18,0
- dc.b 1,0
- dc.b 1,27
- dc.b 18,27
- dc.b 20,24
- dc.b 4
- dc.b 16,22
- dc.b 5,22
- dc.b 5,16
- dc.b 16,16
- dc.b 16,22
- dc.b 4
- dc.b 16,11
- dc.b 5,11
- dc.b 5,5
- dc.b 16,5
- dc.b 16,11
-glyphC:
- dc.b 23
- dc.b 0
- dc.b 10
- dc.b 20,27
- dc.b 20,22
- dc.b 5,22
- dc.b 5,5
- dc.b 20,5
- dc.b 20,0
- dc.b 3,0
- dc.b 1,3
- dc.b 1,24
- dc.b 3,27
- dc.b 20,27
-glyphD:
- dc.b 23
- dc.b 1
- dc.b 6
- dc.b 20,24
- dc.b 20,3
- dc.b 18,0
- dc.b 1,0
- dc.b 1,27
- dc.b 18,27
- dc.b 20,24
- dc.b 4
- dc.b 16,22
- dc.b 5,22
- dc.b 5,5
- dc.b 16,5
- dc.b 16,22
-glyphE:
- dc.b 23
- dc.b 0
- dc.b 14
- dc.b 20,27
- dc.b 20,22
- dc.b 5,22
- dc.b 5,16
- dc.b 20,16
- dc.b 20,11
- dc.b 5,11
- dc.b 5,5
- dc.b 20,5
- dc.b 20,0
- dc.b 3,0
- dc.b 1,3
- dc.b 1,24
- dc.b 3,27
- dc.b 20,27
-glyphF:
- dc.b 23
- dc.b 0
- dc.b 11
- dc.b 5,16
- dc.b 20,16
- dc.b 20,11
- dc.b 5,11
- dc.b 5,5
- dc.b 20,5
- dc.b 20,0
- dc.b 3,0
- dc.b 1,3
- dc.b 1,27
- dc.b 5,27
- dc.b 5,16
-glyphG:
- dc.b 22
- dc.b 0
- dc.b 14
- dc.b 18,27
- dc.b 18,11
+ dc.b 3,4
+ dc.b 3,11
  dc.b 9,11
- dc.b 9,16
- dc.b 14,16
- dc.b 14,22
- dc.b 5,22
- dc.b 5,5
- dc.b 18,5
- dc.b 18,0
- dc.b 3,0
- dc.b 1,3
- dc.b 1,24
- dc.b 3,27
- dc.b 18,27
-glyphH:
- dc.b 23
+ dc.b 9,4
+ dc.b 3,4
+glyphB:
+ dc.b 16
+ dc.b 2
+ dc.b 6
+ dc.b 0,25
+ dc.b 0,0
+ dc.b 11,0
+ dc.b 7,11
+ dc.b 11,15
+ dc.b 11,25
+ dc.b 0,25
+ dc.b 4
+ dc.b 3,4
+ dc.b 3,8
+ dc.b 5,10
+ dc.b 7,4
+ dc.b 3,4
+ dc.b 4
+ dc.b 3,22
+ dc.b 9,22
+ dc.b 9,17
+ dc.b 3,12
+ dc.b 3,22
+glyphC:
+ dc.b 16
+ dc.b 0
+ dc.b 8
+ dc.b 11,0
+ dc.b 11,4
+ dc.b 3,4
+ dc.b 3,22
+ dc.b 11,22
+ dc.b 11,25
+ dc.b 0,25
+ dc.b 0,0
+ dc.b 11,0
+glyphD:
+ dc.b 16
+ dc.b 1
+ dc.b 4
+ dc.b 9,4
+ dc.b 3,4
+ dc.b 3,22
+ dc.b 9,17
+ dc.b 9,4
+ dc.b 4
+ dc.b 11,0
+ dc.b 11,19
+ dc.b 0,28
+ dc.b 0,0
+ dc.b 11,0
+glyphE:
+ dc.b 16
  dc.b 0
  dc.b 12
- dc.b 20,27
- dc.b 20,0
- dc.b 16,0
- dc.b 16,11
- dc.b 5,11
- dc.b 5,0
- dc.b 1,0
- dc.b 1,27
- dc.b 5,27
- dc.b 5,16
- dc.b 16,16
- dc.b 16,27
- dc.b 20,27
-glyphI:
- dc.b 8
- dc.b 0
- dc.b 4
- dc.b 5,27
- dc.b 5,0
- dc.b 1,0
- dc.b 1,27
- dc.b 5,27
-glyphJ:
- dc.b 18
- dc.b 0
- dc.b 7
- dc.b 15,24
- dc.b 15,0
  dc.b 11,0
+ dc.b 11,4
+ dc.b 3,4
+ dc.b 3,11
+ dc.b 9,11
+ dc.b 9,14
+ dc.b 3,14
+ dc.b 3,22
  dc.b 11,22
- dc.b 1,22
- dc.b 1,27
- dc.b 13,27
- dc.b 15,24
-glyphK:
- dc.b 23
+ dc.b 11,25
+ dc.b 0,25
+ dc.b 0,0
+ dc.b 11,0
+glyphF:
+ dc.b 16
  dc.b 0
- dc.b 15
- dc.b 20,27
- dc.b 20,16
- dc.b 18,13
- dc.b 20,11
- dc.b 20,0
- dc.b 16,0
- dc.b 16,11
+ dc.b 10
+ dc.b 11,0
+ dc.b 11,4
+ dc.b 3,4
+ dc.b 3,11
+ dc.b 11,11
+ dc.b 11,14
+ dc.b 3,14
+ dc.b 3,25
+ dc.b 0,25
+ dc.b 0,0
+ dc.b 11,0
+glyphG:
+ dc.b 16
+ dc.b 0
+ dc.b 12
+ dc.b 11,0
+ dc.b 11,4
+ dc.b 3,4
+ dc.b 3,22
+ dc.b 9,22
+ dc.b 9,14
+ dc.b 5,14
  dc.b 5,11
- dc.b 5,0
- dc.b 1,0
- dc.b 1,27
- dc.b 5,27
+ dc.b 11,11
+ dc.b 11,25
+ dc.b 0,25
+ dc.b 0,0
+ dc.b 11,0
+glyphH:
+ dc.b 16
+ dc.b 0
+ dc.b 12
+ dc.b 3,14
+ dc.b 3,25
+ dc.b 0,25
+ dc.b 0,0
+ dc.b 3,0
+ dc.b 3,11
+ dc.b 9,11
+ dc.b 9,0
+ dc.b 11,0
+ dc.b 11,25
+ dc.b 9,25
+ dc.b 9,14
+ dc.b 3,14
+glyphI:
+ dc.b 16
+ dc.b 0
+ dc.b 12
+ dc.b 0,25
+ dc.b 0,22
+ dc.b 4,22
+ dc.b 4,4
+ dc.b 0,4
+ dc.b 0,0
+ dc.b 11,0
+ dc.b 11,4
+ dc.b 7,4
+ dc.b 7,22
+ dc.b 11,22
+ dc.b 11,25
+ dc.b 0,25
+glyphJ:
+ dc.b 16
+ dc.b 0
+ dc.b 6
+ dc.b 0,25
+ dc.b 0,22
+ dc.b 9,22
+ dc.b 9,0
+ dc.b 11,0
+ dc.b 11,25
+ dc.b 0,25
+glyphK:
+ dc.b 16
+ dc.b 0
+ dc.b 14
+ dc.b 3,17
+ dc.b 3,25
+ dc.b 0,25
+ dc.b 0,0
+ dc.b 3,0
+ dc.b 3,13
+ dc.b 9,8
+ dc.b 9,0
+ dc.b 11,0
+ dc.b 11,10
+ dc.b 7,14
+ dc.b 11,25
+ dc.b 8,25
  dc.b 5,16
- dc.b 16,16
- dc.b 16,27
- dc.b 20,27
+ dc.b 3,17
 glyphL:
  dc.b 16
  dc.b 0
- dc.b 7
- dc.b 13,27
- dc.b 13,22
- dc.b 5,22
- dc.b 5,0
- dc.b 1,0
- dc.b 1,24
- dc.b 3,27
- dc.b 13,27
+ dc.b 6
+ dc.b 3,22
+ dc.b 11,22
+ dc.b 11,25
+ dc.b 0,25
+ dc.b 0,0
+ dc.b 3,0
+ dc.b 3,22
 glyphM:
- dc.b 23
+ dc.b 16
  dc.b 0
- dc.b 13
- dc.b 20,27
- dc.b 20,3
- dc.b 18,0
- dc.b 1,0
- dc.b 1,27
- dc.b 5,27
- dc.b 5,5
- dc.b 9,5
- dc.b 9,27
- dc.b 13,27
- dc.b 13,5
- dc.b 16,5
- dc.b 16,27
- dc.b 20,27
+ dc.b 12
+ dc.b 3,4
+ dc.b 3,25
+ dc.b 0,25
+ dc.b 0,0
+ dc.b 11,0
+ dc.b 11,25
+ dc.b 9,25
+ dc.b 9,4
+ dc.b 7,4
+ dc.b 7,25
+ dc.b 4,25
+ dc.b 4,4
+ dc.b 3,4
 glyphN:
- dc.b 23
+ dc.b 16
  dc.b 0
- dc.b 9
- dc.b 20,27
- dc.b 20,3
- dc.b 18,0
- dc.b 1,0
- dc.b 1,27
- dc.b 5,27
- dc.b 5,5
- dc.b 16,5
- dc.b 16,27
- dc.b 20,27
+ dc.b 8
+ dc.b 3,4
+ dc.b 3,25
+ dc.b 0,25
+ dc.b 0,0
+ dc.b 11,0
+ dc.b 11,25
+ dc.b 9,25
+ dc.b 9,4
+ dc.b 3,4
 glyphO:
- dc.b 23
+ dc.b 16
  dc.b 1
- dc.b 8
- dc.b 20,24
- dc.b 20,3
- dc.b 18,0
- dc.b 3,0
- dc.b 1,3
- dc.b 1,24
- dc.b 3,27
- dc.b 18,27
- dc.b 20,24
  dc.b 4
- dc.b 16,22
- dc.b 5,22
- dc.b 5,5
- dc.b 16,5
- dc.b 16,22
+ dc.b 11,0
+ dc.b 11,25
+ dc.b 0,25
+ dc.b 0,0
+ dc.b 11,0
+ dc.b 4
+ dc.b 9,4
+ dc.b 3,4
+ dc.b 3,22
+ dc.b 9,22
+ dc.b 9,4
 glyphP:
- dc.b 23
+ dc.b 16
  dc.b 1
- dc.b 8
- dc.b 20,13
- dc.b 20,3
- dc.b 18,0
- dc.b 1,0
- dc.b 1,27
- dc.b 5,27
- dc.b 5,16
- dc.b 18,16
- dc.b 20,13
  dc.b 4
- dc.b 16,11
- dc.b 5,11
- dc.b 5,5
- dc.b 16,5
- dc.b 16,11
+ dc.b 9,4
+ dc.b 3,4
+ dc.b 3,13
+ dc.b 9,8
+ dc.b 9,4
+ dc.b 6
+ dc.b 11,0
+ dc.b 11,10
+ dc.b 3,17
+ dc.b 3,25
+ dc.b 0,25
+ dc.b 0,0
+ dc.b 11,0
 glyphQ:
- dc.b 23
+ dc.b 16
  dc.b 1
- dc.b 12
- dc.b 20,24
- dc.b 20,3
- dc.b 18,0
- dc.b 3,0
- dc.b 1,3
- dc.b 1,24
- dc.b 3,27
- dc.b 9,27
- dc.b 9,32
- dc.b 13,32
- dc.b 13,27
- dc.b 18,27
- dc.b 20,24
  dc.b 4
- dc.b 16,22
- dc.b 5,22
- dc.b 5,5
- dc.b 16,5
- dc.b 16,22
+ dc.b 11,0
+ dc.b 11,25
+ dc.b 0,25
+ dc.b 0,0
+ dc.b 11,0
+ dc.b 8
+ dc.b 9,4
+ dc.b 3,4
+ dc.b 3,22
+ dc.b 4,22
+ dc.b 4,16
+ dc.b 7,16
+ dc.b 7,22
+ dc.b 9,22
+ dc.b 9,4
 glyphR:
- dc.b 23
+ dc.b 16
  dc.b 1
- dc.b 12
- dc.b 20,27
- dc.b 20,16
- dc.b 18,13
- dc.b 20,11
- dc.b 20,3
- dc.b 18,0
- dc.b 1,0
- dc.b 1,27
- dc.b 5,27
- dc.b 5,16
- dc.b 16,16
- dc.b 16,27
- dc.b 20,27
  dc.b 4
- dc.b 16,11
- dc.b 5,11
- dc.b 5,5
- dc.b 16,5
- dc.b 16,11
+ dc.b 9,4
+ dc.b 3,4
+ dc.b 3,13
+ dc.b 9,8
+ dc.b 9,4
+ dc.b 10
+ dc.b 11,0
+ dc.b 11,10
+ dc.b 7,14
+ dc.b 11,25
+ dc.b 8,25
+ dc.b 5,16
+ dc.b 3,17
+ dc.b 3,25
+ dc.b 0,25
+ dc.b 0,0
+ dc.b 11,0
 glyphS:
- dc.b 23
+ dc.b 16
+ dc.b 0
+ dc.b 12
+ dc.b 11,0
+ dc.b 11,4
+ dc.b 3,4
+ dc.b 3,8
+ dc.b 11,15
+ dc.b 11,25
+ dc.b 0,25
+ dc.b 0,22
+ dc.b 9,22
+ dc.b 9,17
+ dc.b 0,10
+ dc.b 0,0
+ dc.b 11,0
+glyphT:
+ dc.b 16
+ dc.b 0
+ dc.b 8
+ dc.b 7,4
+ dc.b 7,25
+ dc.b 4,25
+ dc.b 4,4
+ dc.b 0,4
+ dc.b 0,0
+ dc.b 11,0
+ dc.b 11,4
+ dc.b 7,4
+glyphU:
+ dc.b 16
+ dc.b 0
+ dc.b 8
+ dc.b 0,0
+ dc.b 3,0
+ dc.b 3,22
+ dc.b 9,22
+ dc.b 9,0
+ dc.b 11,0
+ dc.b 11,25
+ dc.b 0,25
+ dc.b 0,0
+glyphV:
+ dc.b 16
+ dc.b 0
+ dc.b 8
+ dc.b 9,22
+ dc.b 9,0
+ dc.b 11,0
+ dc.b 11,28
+ dc.b 0,19
+ dc.b 0,0
+ dc.b 3,0
+ dc.b 3,17
+ dc.b 9,22
+glyphW:
+ dc.b 16
+ dc.b 0
+ dc.b 12
+ dc.b 0,0
+ dc.b 3,0
+ dc.b 3,22
+ dc.b 4,22
+ dc.b 4,0
+ dc.b 7,0
+ dc.b 7,22
+ dc.b 9,22
+ dc.b 9,0
+ dc.b 11,0
+ dc.b 11,25
+ dc.b 0,25
+ dc.b 0,0
+glyphX:
+ dc.b 16
  dc.b 0
  dc.b 16
- dc.b 20,24
- dc.b 20,13
- dc.b 18,11
+ dc.b 3,17
+ dc.b 3,25
+ dc.b 0,25
+ dc.b 0,15
  dc.b 5,11
- dc.b 5,5
- dc.b 20,5
- dc.b 20,0
+ dc.b 0,0
  dc.b 3,0
- dc.b 1,3
- dc.b 1,13
- dc.b 3,16
- dc.b 16,16
- dc.b 16,22
- dc.b 1,22
- dc.b 1,27
- dc.b 18,27
- dc.b 20,24
-glyphT:
- dc.b 23
- dc.b 0
- dc.b 8
- dc.b 20,5
- dc.b 20,0
- dc.b 1,0
- dc.b 1,5
- dc.b 9,5
- dc.b 9,27
- dc.b 13,27
- dc.b 13,5
- dc.b 20,5
-glyphU:
- dc.b 23
- dc.b 0
- dc.b 10
- dc.b 20,24
- dc.b 20,0
- dc.b 16,0
- dc.b 16,22
- dc.b 5,22
- dc.b 5,0
- dc.b 1,0
- dc.b 1,24
- dc.b 3,27
- dc.b 18,27
- dc.b 20,24
-glyphV:
- dc.b 20
- dc.b 0
- dc.b 9
- dc.b 16,24
- dc.b 16,0
- dc.b 13,0
- dc.b 13,22
- dc.b 5,22
- dc.b 5,0
- dc.b 1,0
- dc.b 1,27
- dc.b 14,27
- dc.b 16,24
-glyphW:
- dc.b 23
- dc.b 0
- dc.b 13
- dc.b 1,0
- dc.b 1,24
- dc.b 3,27
- dc.b 20,27
- dc.b 20,0
- dc.b 16,0
- dc.b 16,22
- dc.b 13,22
- dc.b 13,0
+ dc.b 7,10
+ dc.b 9,8
  dc.b 9,0
- dc.b 9,22
- dc.b 5,22
- dc.b 5,0
- dc.b 1,0
-glyphX:
- dc.b 23
- dc.b 0
- dc.b 18
- dc.b 20,27
- dc.b 20,16
- dc.b 18,13
- dc.b 20,11
- dc.b 20,0
- dc.b 16,0
- dc.b 16,11
- dc.b 5,11
- dc.b 5,0
- dc.b 1,0
- dc.b 1,11
- dc.b 3,13
- dc.b 1,16
- dc.b 1,27
- dc.b 5,27
+ dc.b 11,0
+ dc.b 11,10
+ dc.b 7,14
+ dc.b 11,25
+ dc.b 8,25
  dc.b 5,16
- dc.b 16,16
- dc.b 16,27
- dc.b 20,27
+ dc.b 3,17
 glyphY:
- dc.b 23
+ dc.b 16
  dc.b 0
- dc.b 14
- dc.b 20,13
- dc.b 20,0
- dc.b 16,0
- dc.b 16,11
- dc.b 5,11
- dc.b 5,0
- dc.b 1,0
- dc.b 1,13
- dc.b 3,16
- dc.b 9,16
- dc.b 9,27
- dc.b 13,27
- dc.b 13,16
- dc.b 18,16
- dc.b 20,13
-glyphZ:
- dc.b 23
- dc.b 0
- dc.b 14
- dc.b 20,27
- dc.b 20,22
- dc.b 5,22
- dc.b 5,16
- dc.b 18,16
- dc.b 20,13
- dc.b 20,0
- dc.b 1,0
- dc.b 1,5
- dc.b 16,5
- dc.b 16,11
+ dc.b 12
+ dc.b 0,0
+ dc.b 3,0
  dc.b 3,11
- dc.b 1,13
- dc.b 1,27
- dc.b 20,27
+ dc.b 9,11
+ dc.b 9,0
+ dc.b 11,0
+ dc.b 11,14
+ dc.b 7,14
+ dc.b 7,25
+ dc.b 4,25
+ dc.b 4,14
+ dc.b 0,14
+ dc.b 0,0
+glyphZ:
+ dc.b 16
+ dc.b 0
+ dc.b 12
+ dc.b 9,4
+ dc.b 0,4
+ dc.b 0,0
+ dc.b 11,0
+ dc.b 11,10
+ dc.b 3,17
+ dc.b 3,22
+ dc.b 11,22
+ dc.b 11,25
+ dc.b 0,25
+ dc.b 0,15
+ dc.b 9,8
+ dc.b 9,4
 tSLIPSTREAM: dc.b "SLIPSTREAM",0
 tFOCUSDESIGN: dc.b "FOCUS DESIGN",0
 tRIFT: dc.b "RIFT",0
@@ -502,28 +465,28 @@ tRESISTANCE: dc.b "RESISTANCE",0
 tINSANE: dc.b "INSANE",0
  even
 Greets:
- dc.w 211
+ dc.w 160
  dc.l tSLIPSTREAM
- dc.w 242
+ dc.w 178
  dc.l tFOCUSDESIGN
- dc.w 78
+ dc.w 64
  dc.l tRIFT
- dc.w 162
+ dc.w 128
  dc.l tLOGICOMA
- dc.w 93
+ dc.w 64
  dc.l tTUHB
- dc.w 226
+ dc.w 176
  dc.l tBITSHIFTERS
- dc.w 109
+ dc.w 80
  dc.l tMELON
- dc.w 116
+ dc.w 80
  dc.l tABYSS
- dc.w 148
+ dc.w 112
  dc.l tPROXIMA
- dc.w 163
+ dc.w 112
  dc.l tFATZONE
- dc.w 218
+ dc.w 160
  dc.l tRESISTANCE
- dc.w 125
+ dc.w 96
  dc.l tINSANE
  dc.w -1

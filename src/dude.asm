@@ -25,7 +25,7 @@ FILL_HEIGHT = 52
 CLEAR_LIST_ITEM_SZ = 5*2+4+2
 
 SPACE_WIDTH = 15
-GREET_SPACE = 60
+GREET_SPACE = 40
 
 DUDE_W = 96
 DUDE_BW = DUDE_W/8
@@ -556,9 +556,9 @@ DrawWord:
 
 		; Scale y for x position
 		lea	TextMul2,a4
-		lsl.w	#8,d3
+		lsl.w	#6,d3
 		move.w	d2,d5
-		asr	d5
+		asr	#3,d5
 		lea	(a4,d3),a4
 		move.b	(a4,d5.w),d3
 		and.w	#$ff,d3
