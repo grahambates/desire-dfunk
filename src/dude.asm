@@ -1,8 +1,10 @@
 ; TODO: table for muls?
 ; Lamp posts
 ; fix floor
-; fix text y
 ; clear list for lines
+; blit padding on bg
+
+; pre-render dude frames?
 
 ; light colours / flashing
 
@@ -20,7 +22,7 @@ H_PAD = L_PAD+R_PAD
 FILL_HEIGHT = 52
 
 SPACE_WIDTH = 15
-GREET_SPACE = 40
+GREET_SPACE = 60
 
 DUDE_W = 96
 DUDE_BW = DUDE_W/8
@@ -161,7 +163,7 @@ Frame:
 		bsr	InitDrawLine
 
 		; unhog blitter
-		move.w	#DMAF_BLITHOG,dmacon(a6)
+		; move.w	#DMAF_BLITHOG,dmacon(a6)
 
 ; Draw text:
 		move.l	CurrFrame,d0
@@ -510,30 +512,31 @@ DrawWord:
 		and.w	#$ff,d6
 .pt
 		move.w	#$ff,d3
-		move.b	(a1)+,d2
+		move.b	(a1)+,d2	; next x
 		and.w	d3,d2
-		and.b	(a1)+,d3
+		and.b	(a1)+,d3	; next y
 		add.w	a2,d2
 
-		; perspective transform:
+		; Perspective transform:
 		lea	XGrid,a4
 		add.w	d2,d2
-		move.w	(a4,d2.w),d2
-		move.w	d2,d5
-		add.w	d5,d5
-		lea	TextMul,a4
-		mulu	(a4,d5.w),d3	; TODO: make this a table
-		add.l	d3,d3
-		swap	d3
-		lea	TextTop,a4
-		add.w	(a4,d5.w),d3
+		move.w	(a4,d2.w),d2	; Translate x to screen x in perspective grid LUT
 
-		movem.w	d2-d3,-(sp)
+		; Scale y for x position
+		lea	TextMul2,a4
+		lsl.w	#8,d3
+		move.w	d2,d5
+		asr	d5
+		lea	(a4,d3),a4
+		move.b	(a4,d5.w),d3
+		and.w	#$ff,d3
+
+		movem.w	d2-d3,-(sp)	; backup x/y before line draw, which trashes them
 		cmp.w	#-1,d0
 		beq	.skipBlit
 		bsr	DrawLineBlit
 .skipBlit
-		movem.w	(sp)+,d0-d1
+		movem.w	(sp)+,d0-d1	; restore x/y to different regs as 'current' for next loop
 		dbf	d6,.pt
 		dbf	d7,.path
 .skipChar	add.w	Width(pc),a2
@@ -646,5 +649,3 @@ Anim:
 
 Bg:
 		incbin	data/dude-bg.BPL
-
-

@@ -40,8 +40,6 @@ console.log("XGRID_MIN_VIS=" + xGrid.findIndex((v) => v > L_PAD));
 console.log("XGrid:");
 console.log(" dc.w " + xGrid.join(","));
 
-console.log("TextTop:");
-console.log(" dc.w " + lerp(26 + TOP_PAD, 0, W).join(","));
 console.log("LineTop:");
 console.log(" dc.w " + lerp(62 + TOP_PAD, 48 + TOP_PAD, W).join(","));
 console.log("LineBottom:");
@@ -51,5 +49,20 @@ console.log(" dc.w " + lerp(192 + TOP_PAD, 294 + TOP_PAD, W).join(","));
 console.log("LineFloorX:");
 console.log(" dc.w " + lerp(-80, W - 48, xGrid[xGrid.length - 1]).join(","));
 
-console.log("TextMul:");
-console.log(" dc.w " + lerp(0x8000, 0xd000, W).join(","));
+const textY = 26 + TOP_PAD;
+
+console.log("TextMul2:");
+for (let x = 0; x < 30; x++) {
+	const inc = (x * 0.65) / W;
+	const hInc = textY / W;
+	let v = x + textY;
+	console.log(".r" + x);
+	const vals = [];
+	26 + TOP_PAD, 0;
+	for (let y = 0; y < 256; y++) {
+		vals.push(Math.round(v));
+		v += inc * 2;
+		v -= hInc * 2;
+	}
+	console.log(" dc.b " + vals.join(","));
+}
