@@ -5,6 +5,7 @@
 ; blit padding on bg
 
 ; pre-render dude frames?
+; try to save bytes on bss
 
 ; light colours / flashing
 
@@ -150,6 +151,9 @@ Frame:
 
 		bsr	DrawDude
 
+		bsr	ClearLines
+
+; Clear filled text area
 		move.l	DrawBufferB(pc),a0
 		add.l	#TOP_PAD*PF2_BW,a0
 		WAIT_BLIT
@@ -157,8 +161,6 @@ Frame:
 		move.l	#$01000000,bltcon0(a6)
 		clr.w	bltdmod(a6)
 		move.w	#FILL_HEIGHT<<6!(PF2_BW/2),bltsize(a6)
-
-		bsr	ClearLines
 
 ; Draw text:
 		move.l	CurrFrame,d0
@@ -197,7 +199,6 @@ Frame:
 		move.w	#FILL_HEIGHT<<6!(PF2_BW/2),bltsize(a6)
 
 		bsr	InitDrawLine
-
 
 ; Vertical lines:
 		move.l	DrawBufferB(pc),a0
