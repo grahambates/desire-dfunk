@@ -72,24 +72,30 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 ********************************************************************************
 Vbi:
 ********************************************************************************
-		; pf1
+
+		rts
+
+PokeBpls:
+		lea	CopBpls+2,a1
+; pf1
 		move.l	ViewBuffer(pc),a0
-		move.l	a0,bpl0pt(a6)
-		lea	PF1_BPL(a0),a0
-		move.l	a0,bpl2pt(a6)
-		lea	PF1_BPL(a0),a0
-		move.l	a0,bpl4pt(a6)
+		moveq	#3-1,d7
+.l0:
+		move.l	a0,d2
+		swap	d2
+		move.w	d2,(a1)		;high word of address
+		move.w	a0,4(a1)	;low word of address
+		addq.w	#8,a1		;skip two copper instructions
+		add.l	#PF1_BPL,a0	;next ptr
+		dbf	d7,.l0
 
-		; pf2
-		lea	Bg+L_PAD/8,a2
-		move.l	a2,bpl1pt(a6)
-		lea	PF2_BPL(a2),a2
-		move.l	a2,bpl3pt(a6)
-
+; pf2
 		move.l	ViewBufferB(pc),a0
-		add.l	#PF2_BW*TOP_PAD+L_PAD/8,a0
-		move.l	a0,bpl5pt(a6)
-
+		add.l	#TOP_PAD*PF2_BW+L_PAD/8,a0 ; padding
+		move.l	a0,d2
+		swap	d2
+		move.w	d2,(a1)		;high word of address
+		move.w	a0,4(a1)	;low word of address
 		rts
 
 ********************************************************************************
@@ -135,6 +141,18 @@ Dude_Effect:
 		move.w	d0,4(a0)
 		swap	d0
 		move.w	d0,(a0)
+; fixed bpls
+		lea	CopBplsFixed+2,a1
+		lea	Bg+L_PAD/8,a0
+		moveq	#2-1,d7
+.l1:
+		move.l	a0,d2
+		swap	d2
+		move.w	d2,(a1)		;high word of address
+		move.w	a0,4(a1)	;low word of address
+		addq.w	#8,a1		;skip two copper instructions
+		add.l	#PF2_BPL,a0	;next ptr
+		dbf	d7,.l1
 
 		move.w	#DMAF_SETCLR!DMAF_BLITHOG,dmacon(a6)
 
@@ -148,6 +166,8 @@ Frame:
 		exg	a2,a3
 		exg	a4,a5
 		movem.l	a0-a5,DrawBuffer
+
+		bsr	PokeBpls
 
 		bsr	DrawDude
 
@@ -630,6 +650,24 @@ Cop:
 		dc.w	bpl1mod,PF1_MOD
 		dc.w	bpl2mod,PF2_MOD
 		dc.w	bplcon0,BPLS<<12!$200!(1<<10)
+CopBpls:
+		; pf1
+		dc.w	bpl0pt,0
+		dc.w	bpl0ptl,0
+		dc.w	bpl2pt,0
+		dc.w	bpl2ptl,0
+		dc.w	bpl4pt,0
+		dc.w	bpl4ptl,0
+		; pf2 buffer
+		dc.w	bpl5pt,0
+		dc.w	bpl5ptl,0
+CopBplsFixed:
+		; pf2 fixed
+		dc.w	bpl1pt,0
+		dc.w	bpl1ptl,0
+		dc.w	bpl3pt,0
+		dc.w	bpl3ptl,0
+
 		incbin	data/dude-bg.COP
 		dc.w	color12,$414
 		dc.w	color13,$fff
