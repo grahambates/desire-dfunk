@@ -202,32 +202,32 @@ Frame:
 		clr.l	bltamod(a6)
 		move.w	#FILL_HEIGHT<<6!(PF2_BW/2),bltsize(a6)
 
-; ; Vertical lines:
-; 		bsr	InitDrawLine
-; 		move.l	DrawBufferB(pc),a0
+; Vertical lines:
+		bsr	InitDrawLine
+		move.l	DrawBufferB(pc),a0
 
-; 		move.l	CurrFrame,d1
-; 		divu	#XGRID_SIZE,d1
-; 		swap	d1
-; 		move.w	#XGRID_SIZE,d0
-; 		sub.w	d1,d0
+		move.l	CurrFrame,d1
+		divu	#XGRID_SIZE,d1
+		swap	d1
+		move.w	#XGRID_SIZE,d0
+		sub.w	d1,d0
 
-; 		add.w	d0,d0
-; 		lea	XGrid,a1
-; 		move.w	(a1,d0.w),d0
+		add.w	d0,d0
+		lea	XGrid,a1
+		move.w	(a1,d0.w),d0
 
-; 		cmp.w	#DIW_W,d0
-; 		beq	.skipLine
+		cmp.w	#DIW_W,d0
+		beq	.skipLine
 
-; 		move.w	d0,d3
-; 		add.w	d3,d3
-; 		lea	LineTop,a1
-; 		move.w	(a1,d3.w),d1
-; 		move.l	d0,d2
-; 		lea	LineBottom,a1
-; 		move.w	(a1,d3.w),d3
-; 		bsr	DrawLineBlit	; blit line is ok here because it's vertical
-; .skipLine
+		move.w	d0,d3
+		add.w	d3,d3
+		lea	LineTop,a1
+		move.w	(a1,d3.w),d1
+		move.l	d0,d2
+		lea	LineBottom,a1
+		move.w	(a1,d3.w),d3
+		bsr	DrawLineBlit	; blit line is ok here because it's vertical
+.skipLine
 
 ; ; Floor lines:
 ; 		bsr	InitDrawLine
@@ -294,6 +294,9 @@ InitDrawLine:
 
 ********************************************************************************
 DrawLine:
+; Draw a line *not* for filling using the blitter
+; Based on TEC, but with muls LUT
+;-------------------------------------------------------------------------------
 ; d0.w - x1
 ; d1.w - y1
 ; d2.w - x2
@@ -301,100 +304,58 @@ DrawLine:
 ; a0 - Draw buffer
 ; a6 - Custom
 ;-------------------------------------------------------------------------------
-		sub.w	d0,d2		; d2 = dx = x1 - x2
-		bmi.b	.oct2345	; nagative? octant could be 2,3,4,5
-		sub.w	d1,d3		; d3 = dy = y1 - y2
-		bmi.b	.oct01		; negative? octant is 0 or 1
-		cmp.w	d3,d2		; compare dy with dx
-		bmi.b	.oct6		; dy > dx? octant 6!
-		moveq	#$0011,d4	; select line + octant 7!
-		bra.b	.doneOct
-
-.oct6		exg	d2,d3		; ensure d2=dmax and d3=dmin
-		moveq	#$0001,d4	; select line + octant 6
-		bra.b	.doneOct
-
-.oct2345
-		neg.w	d2		; make dx positive
-		sub.w	d1,d3		; d3 = dy = y1 - y2
-		bmi.b	.oct23		; negative? octant is 2 or 3
-		cmp.w	d3,d2		; compare dy with dx
-		bmi.b	.oct5		; dy > dx? octant 5!
-		moveq	#$0015,d4	; select line + octant 4
-		bra.b	.doneOct
-
-.oct5		exg	d2,d3		; ensure d2=dmax and d3=dmin
-		moveq	#$0009,d4	; select line + octant 5
-		bra.b	.doneOct
-
-.oct23
-		neg.w	d3		; make dy positive
-		cmp.w	d3,d2		; compare dy with dx
-		bmi.b	.oct2		; dy > dx? octant 2!
-		moveq	#$001d,d4	; select line + octant 3
-		bra.b	.doneOct
-
-.oct2		exg	d2,d3		; ensure d2=dmax and d3=dmin
-		moveq	#$000d,d4	; select line + octant 2
-		bra.b	.doneOct
-
-.oct01
-		neg.w	d3		; make dy positive
-		cmp.w	d3,d2		; compare dy with dx
-		bmi.b	.oct1		; dy > dx? octant 1!
-		moveq	#$0019,d4	; select line + octant 0
-		bra.b	.doneOct
-
-.oct1		exg	d2,d3		; ensure d2=dmax and d3=dmin
-		moveq	#$0005,d4	; select line + octant 1
-
-.doneOct
-		add.w	d2,d2		; d2 = 2 * dmax
-		asl.w	#2,d3		; d3 = 4 * dmin
-
-		move.l	a0,a5		; aptr bitplane to draw on
-
-		add.w	d1,d1		; convert y1 pos into offset
-		ext.l	d1
-		move.w	.screenMuls(pc,d1.w),d1
-
-		add.l	d1,a5		; add ofset to bitplane pointer
-		ext.l	d0		; clear top bits of d0
-		ror.l	#4,d0		; roll shift bits to top word
-		add.w	d0,d0		; bottom word: convert to byte offset
-		adda.w	d0,a5		; add byte offset to bitplane pointer
-		swap	d0		; move shift value to bottom word
-		or.w	#$0bca,d0	; usea, c and d. minterm $ca, d=a/c+/ac
-
-		move.w	d2,d1		; d1 = 2 * dmax
-		lsl.w	#5,d1		; shift dmax to hx pos for bltsize
-		add.w	#$0042,d1	; add 1 to hx and set wx to 2
+		cmp.w	d1,d3
+		bgt.s	.l0
+		beq.s	.done
+		exg	d0,d2
+		exg	d1,d3
+.l0		moveq	#0,d4
+		move.w	d1,d4
+		add.w	d4,d4
+		lea	ScreenMuls,a1
+		move.w	(a1,d4.w),d4
+		move.w	d0,d5
+		add.l	a0,d4
+		asr.w	#3,d5
+		ext.l	d5
+		add.l	d5,d4		; fix - was word but needs to be long for high screen addresses
+		moveq	#0,d5
+		sub.w	d1,d3
+		sub.w	d0,d2
+		bpl.s	.l1
+		moveq	#1,d5
+		neg.w	d2
+.l1		move.w	d3,d1
+		add.w	d1,d1
+		cmp.w	d2,d1
+		dbhi	d3,.l2
+.l2		move.w	d3,d1
+		sub.w	d2,d1
+		bpl.s	.l3
+		exg	d2,d3
+.l3		addx.w	d5,d5
+		add.w	d2,d2
+		move.w	d2,d1
+		sub.w	d3,d2
+		addx.w	d5,d5
+		and.w	#15,d0
+		ror.w	#4,d0
+		; or.w	#$a4a,d0
+		or.w	#$bca,d0
 
 		WAIT_BLIT
-
-		move.l	a5,bltcpt(a6)	; source c = bitplane to draw on
-		move.l	a5,bltdpt(a6)	; destination = bitplane to draw on
-		move.w	d0,bltcon0(a6)	; source a shift and logic function
-		move.w	d3,bltbmod(a6)	; set 4 * dmin
-
-		sub.w	d2,d3		; d3 = (2 * dmax)-(4 * dmin)
-		ext.l	d3		; make full long sized
-		move.l	d3,bltapt(a6)	; store in a pointer
-		bpl.b	.notneg		; skip if positive
-		or.w	#$0040,d4	; set sign bit if negative
-.notneg
-		move.w	d4,bltcon1(a6)	; octant selection, sign and line
-		sub.w	d2,d3		; d2 = (2*dmax), d3 = (2*dmax)-(4*dmin)
-		move.w	d3,bltamod(a6)	; d3 = 4 * (dmax - dmin)
-		move.w	d1,bltsize(a6)	; set length and start the blitter
-		rts
-
-; TODO: precalc
-; Multiplication LUT for screen byte width
-.screenMuls:
-		rept	PF2_H
-		dc.w	PF2_BW*REPTN
-		endr
+		move.w	d2,bltaptl(a6)
+		sub.w	d3,d2
+		lsl.w	#6,d3
+		addq.w	#2,d3
+		move.w	d0,bltcon0(a6)
+		move.b	.oct(pc,d5.w),bltcon1+1(a6)
+		move.l	d4,bltcpt(a6)
+		move.l	d4,bltdpt(a6)
+		movem.w	d1/d2,bltbmod(a6)
+		move.w	d3,bltsize(a6)
+.done		rts
+.oct		dc.b	3,3+64,19,19+64,11,11+64,23,23+64
 
 
 ********************************************************************************
@@ -445,6 +406,8 @@ DrawLineBlit:
 		and.w	#15,d0
 		ror.w	#4,d0
 		or.w	#$a4a,d0
+		; or.w	#$bca,d0
+
 		WAIT_BLIT
 		move.w	d2,bltaptl(a6)
 		sub.w	d3,d2
@@ -458,14 +421,10 @@ DrawLineBlit:
 		move.w	d3,bltsize(a6)
 .done		rts
 .oct		dc.b	3,3+64,19,19+64,11,11+64,23,23+64
-
-; TODO: combine
-; Multiplication LUT for screen byte width
 ScreenMuls:
 		rept	PF2_H
 		dc.w	PF2_BW*REPTN
 		endr
-
 
 ********************************************************************************
 ClearScreen:
@@ -522,6 +481,10 @@ DrawWord:
 		movem.l	d0/a0/a1,-(sp)
 .char
 		moveq	#0,d0
+		moveq	#0,d5
+		moveq	#0,d6
+		moveq	#0,d7
+
 		move.b	(a3)+,d0
 		beq	.done		; EOL?
 		cmp.w	#32,d0		; space?
@@ -531,22 +494,9 @@ DrawWord:
 .notSpace
 		lsl	#2,d0
 		move.l	(a5,d0.w),a1
-		bsr	DrawChar
-		bra	.char
-.done
-		movem.l	(sp)+,d0/a0/a1
-		rts
 
-********************************************************************************
-; a0 = draw buffer
-; a1 = glyph
-; a2.w = x offset
-; a4 = xgrid
-********************************************************************************
-DrawChar:
-		moveq	#0,d5
-		moveq	#0,d6
-		moveq	#0,d7
+;-------------------------------------------------------------------------------
+; DrawChar
 		move.b	(a1)+,d5	; width
 		move.w	d5,Width	; d5 gets trashed by line draw
 		move.w	a2,d0
@@ -559,10 +509,10 @@ DrawChar:
 		move.b	(a1)+,d6	; point count
 		and.w	#$ff,d6
 .pt
+		move.w	#$ff,d3
 		move.b	(a1)+,d2
-		and.w	#$ff,d2
-		move.b	(a1)+,d3
-		and.w	#$ff,d3
+		and.w	d3,d2
+		and.b	(a1)+,d3
 		add.w	a2,d2
 
 		; perspective transform:
@@ -587,9 +537,11 @@ DrawChar:
 		dbf	d6,.pt
 		dbf	d7,.path
 .skipChar	add.w	Width(pc),a2
-		rts
 
-Width:		dc.w	0
+		bra	.char
+.done
+		movem.l	(sp)+,d0/a0/a1
+		rts
 
 
 ********************************************************************************
@@ -600,6 +552,8 @@ DrawBuffer	dc.l	0
 ViewBuffer	dc.l	0
 DrawBufferB	dc.l	0
 ViewBufferB	dc.l	0
+
+Width:		dc.w	0
 
 ********************************************************************************
 Data:
