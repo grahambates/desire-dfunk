@@ -5,26 +5,6 @@ const fs = require("fs");
 const xScale = 0.7;
 const SPACE_WIDTH = 15;
 
-// const xmlDataStr = fs.readFileSync(__dirname + "/../assets/KARNIVOR.svg");
-// const scale = 0.036;
-// const baseline = 750;
-
-// const xmlDataStr = fs.readFileSync(__dirname + "/../assets/RabbitFire.svg");
-// const scale = 0.019;
-// const baseline = 1400;
-
-// const xmlDataStr = fs.readFileSync(__dirname + "/../assets/NameSmile.svg");
-// const scale = 0.017;
-// const baseline = 1600;
-
-// const xmlDataStr = fs.readFileSync(__dirname + "/../assets/zosilla.svg");
-// const scale = 0.018;
-// const baseline = 1400;
-
-// const xmlDataStr = fs.readFileSync(__dirname + "/../assets/yukari.svg");
-// const scale = 0.014;
-// const baseline = 1600;
-
 const greets = [
 	["SLIPSTREAM", "zosilla"],
 	["RIFT", "NameSmile"],
@@ -47,6 +27,8 @@ const fonts = {};
 buildFont("zosilla", 0.018, 1400);
 buildFont("NameSmile", 0.017, 1600);
 buildFont("RabbitFire", 0.019, 1400);
+// buildFont("KARNIVOR", 0.036, 750);
+// buildFont("yukari", 0.014, 1600);
 
 function buildFont(name, scale, baseline) {
 	const xmlDataStr = fs.readFileSync(
@@ -133,7 +115,6 @@ function getWidth([str, name]) {
 	let w = 0;
 	for (i = 0; i < str.length; i++) {
 		const char = str.charCodeAt(i);
-		// console.log({ char, name, i, str });
 		const width =
 			char === 32
 				? SPACE_WIDTH
