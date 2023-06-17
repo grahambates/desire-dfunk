@@ -179,11 +179,11 @@ Frame:
 
 		; rest position data:
 		lea	WordPositions,a4
-		move.w	#XGRID_MAX_VIS,(a4)+
+		move.w	#$ffff,(a4)+
 		move.w	#0,(a4)+
-		move.w	#XGRID_MAX_VIS,(a4)+
+		move.w	#$ffff,(a4)+
 		move.w	#0,(a4)+
-		move.w	#XGRID_MAX_VIS,(a4)+
+		move.w	#$ffff,(a4)+
 		move.w	#0,(a4)+
 
 ;--------------------------------------------------------------------------------
@@ -203,7 +203,7 @@ Frame:
 		add.w	#GREET_SPACE,d0
 
 		; Done if text is off-right
-		cmp.w	#XGRID_MAX_VIS,d0
+		cmp.w	#XGRID_MAX_VIS+GREET_SPACE/2,d0 ; include if line needed
 		bge	.grDone
 		move.w	d0,a2		; x used for draw
 		add.w	d1,d0		; add width for next
@@ -288,32 +288,37 @@ Frame:
 		bsr	InitDrawLine
 
 ;--------------------------------------------------------------------------------
-; Vertical lines:
+DrawWall:
 		move.l	DrawBufferB(pc),a0
 		move.l	DrawClearList(pc),a1
 
-		move.l	CurrFrame,d1
-		divu	#XGRID_SIZE,d1
-		swap	d1
-		move.w	#XGRID_SIZE,d0
-		sub.w	d1,d0
+		lea	WordPositions,a3
+		moveq	#3-1,d7
+.l
+		move.w	(a3),d0
+		lea	4(a3),a3
+		sub.w	#GREET_SPACE/2,d0
+		cmp.w	#XGRID_MAX_VIS,d0
+		bge	.grDone
+		cmp.w	#XGRID_MIN_VIS,d0
+		blt	.l
+		bsr	DrawWallLine
+		bra	.l
+.grDone
+		lea	WordPositions,a3
+		moveq	#3-1,d7
+.l1
+		move.w	(a3),d0
+		lea	4(a3),a3
+		add.w	#GREET_SPACE/2,d0
+		cmp.w	#XGRID_MAX_VIS,d0
+		bge	.grDone1
+		cmp.w	#XGRID_MIN_VIS,d0
+		blt	.l1
+		bsr	DrawWallLine
+		bra	.l1
+.grDone1
 
-		add.w	d0,d0
-		lea	XGrid,a2
-		move.w	(a2,d0.w),d0
-
-		cmp.w	#DIW_W,d0
-		beq	.skipLine
-
-		move.w	d0,d3
-		add.w	d3,d3
-		lea	WallTop,a2
-		move.w	(a2,d3.w),d1
-		move.l	d0,d2
-		lea	WallBottom,a2
-		move.w	(a2,d3.w),d3
-		bsr	DrawLine
-.skipLine
 
 ;--------------------------------------------------------------------------------
 ; Floor lines:
@@ -673,6 +678,28 @@ DrawFloorLine:
 		bsr	DrawLine
 .skipLine2
 		move.w	(sp)+,d0
+		rts
+
+
+********************************************************************************
+; d0 = x
+; a0 = draw buffer
+DrawWallLine:
+		movem.l	d0-d1/a2,-(sp)
+		add.w	d0,d0
+		lea	XGrid,a2
+		move.w	(a2,d0.w),d0
+
+		move.w	d0,d3
+		add.w	d3,d3
+		lea	WallTop,a2
+		move.w	(a2,d3.w),d1
+		move.l	d0,d2
+		lea	WallBottom,a2
+		move.w	(a2,d3.w),d3
+		bsr	DrawLine
+.skipLine
+		movem.l	(sp)+,d0-d1/a2
 		rts
 
 
