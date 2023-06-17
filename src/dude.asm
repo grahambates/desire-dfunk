@@ -227,11 +227,12 @@ Frame:
 
 		move.l	CurrFrame,d6
 		move.w	d6,d5
-		lsr	#3,d5
+		lsr	#5,d5
 		and.w	#3<<1,d5
 		lea	Cols,a4
 		move.w	(a4,d5),d5	; highlight color
 
+		; hightlight for first color?
 		move.w	(a0)+,d0
 		move.w	d0,TextCol1
 		btst	d5,d6
@@ -261,7 +262,8 @@ Frame:
 		move.w	d1,4(a2)
 		move.w	d3,6(a1)	; color value
 
-		add.w	#$20,d6
+		; hightlight for this color?
+		add.w	#$20,d6		; increment frame values for offset 'randomness'
 		btst	#6,d6
 		beq	.noHl2
 		move.w	d5,d3
@@ -693,8 +695,7 @@ Data:
 
 WordPositions:	ds.w	4*2
 
-Cols:		dc.w	$6cf,$d6f,$e71,$ed1
-		; dc.w	$ff0,$f0f,$0ff,$fff
+Cols:		dc.w	$08fa,$05a5,$0fdd,$0a28
 
 Offsets:
 		dc.b	0,-1
