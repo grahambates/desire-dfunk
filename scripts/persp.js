@@ -41,13 +41,16 @@ console.log("XGrid:");
 console.log(" dc.w " + xGrid.join(","));
 
 console.log("LineTop:");
-console.log(" dc.w " + lerp(62 + TOP_PAD, 48 + TOP_PAD, W).join(","));
+console.log(" dc.w " + lerp(62 + TOP_PAD, 46 + TOP_PAD, W).join(","));
 console.log("LineBottom:");
-console.log(" dc.w " + lerp(176 + TOP_PAD, 226 + TOP_PAD, W).join(","));
+console.log(" dc.w " + lerp(177 + TOP_PAD, 227 + TOP_PAD, W).join(","));
+
 console.log("LineFloorEdge:");
-console.log(" dc.w " + lerp(192 + TOP_PAD, 294 + TOP_PAD, W).join(","));
+console.log(
+	" dc.w " + lerp(193 + TOP_PAD, 273 + TOP_PAD, DIW_W + R_PAD).join(",")
+);
 console.log("LineFloorX:");
-console.log(" dc.w " + lerp(-80, W - 48, xGrid[xGrid.length - 1]).join(","));
+console.log(" dc.w " + lerp(0, W, DIW_W + R_PAD).join(","));
 
 const textY = 26 + TOP_PAD;
 

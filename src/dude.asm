@@ -292,6 +292,9 @@ Frame:
 ; Floor lines:
 		bsr	InitDrawLine
 		move.l	DrawBufferB(pc),a0
+; Offset screen buffer to move right padding to the left, giving us more space for bottom edge off-screen
+; Will need to put this back later
+; This means that bottom edge X can contain negative numbers up to -R_PAD
 		sub.l	#R_PAD/8,a0
 
 		move.l	CurrFrame,d1
@@ -302,32 +305,45 @@ Frame:
 
 		add.w	d0,d0
 		lea	XGrid,a2
-		move.w	(a2,d0.w),d0
+		move.w	(a2,d0.w),d0	; d0 = x in screen pixels
 
-		cmp.w	#DIW_W+L_PAD,d0
+		; check bounds:
+		cmp.w	#L_PAD,d0
+		blt	.skipLine2
+		cmp.w	#PF2_W,d0
 		bge	.skipLine2
 
 		move.w	d0,d3
 		add.w	d3,d3
 		lea	LineBottom,a2
 		move.w	(a2,d3.w),d1
-		addq	#2,d1
+		addq	#1,d1
 
-		move.w	d0,d2
-		move.w	d1,d3
-		add.w	#20,d3
+		; tmp bottom values:
+		; move.w	d0,d2
+		; move.w	d1,d3
+		; add.w	#30,d3
 
-		; add.w	d2,d2
-		; lea	LineFloorX,a2
-		; move.w	(a2,d2.w),d2
+		move.w	d0,d3
+		sub.w	#L_PAD,d3
+		add.w	d3,d3
+		lea	LineFloorX,a2
+		move.w	(a2,d3.w),d2
+		lea	LineFloorEdge,a2
+		move.w	(a2,d3.w),d3
 
-		; move.w	d2,d3
-		; add.w	d3,d3
-		; lea	LineFloorEdge,a2
-		; move.w	(a2,d3.w),d3
 
+		; lerp L_PAD -> L_PAD+DIW
+		; bottom x/y
+		; sub lpad for offset and then
+		; lerp 0 -> DIW
+
+		; wait, shouldn't this be
+		; lerp 0 -> DIW+R_PAD?
+
+		; Put back right padding to adjust for screen offset
+		; This should mean that all x coordinates are now positive
 		add.w	#R_PAD,d0
-		add.w	#R_PAD,d2
 
 		; tst.w	d2
 		; blt	.skipLine2
@@ -800,3 +816,5 @@ Bg:
 ; pre-render dude frames?
 ; try to save bytes on bss
 ; colors flashing
+
+; right minterm for draw line
