@@ -195,8 +195,8 @@ Frame:
 		lea	WordPositions,a4
 .gr
 		move.w	(a1)+,d1	; d1 = x pos of text
-		move.w	(a1)+,d2	; d2 = color
 		blt	.grDone		; EOF
+		move.w	(a1)+,d2	; d2 = color
 		move.l	(a1)+,a5	; a5 = font table
 		move.l	(a1)+,a3	; a3 = glyph
 
@@ -304,32 +304,35 @@ Frame:
 		lea	XGrid,a2
 		move.w	(a2,d0.w),d0
 
-		cmp.w	#DIW_W,d0
-		beq	.skipLine2
+		cmp.w	#DIW_W+L_PAD,d0
+		bge	.skipLine2
 
 		move.w	d0,d3
 		add.w	d3,d3
 		lea	LineBottom,a2
 		move.w	(a2,d3.w),d1
 		addq	#2,d1
-		move.l	d0,d2
 
-		add.w	d2,d2
-		lea	LineFloorX,a2
-		move.w	(a2,d2.w),d2
+		move.w	d0,d2
+		move.w	d1,d3
+		add.w	#20,d3
 
-		move.w	d2,d3
-		add.w	d3,d3
-		lea	LineFloorEdge,a2
-		move.w	(a2,d3.w),d3
+		; add.w	d2,d2
+		; lea	LineFloorX,a2
+		; move.w	(a2,d2.w),d2
+
+		; move.w	d2,d3
+		; add.w	d3,d3
+		; lea	LineFloorEdge,a2
+		; move.w	(a2,d3.w),d3
 
 		add.w	#R_PAD,d0
 		add.w	#R_PAD,d2
 
-		tst.w	d2
-		blt	.skipLine2
-		cmp.w	#PF2_W,d2
-		bge	.skipLine2
+		; tst.w	d2
+		; blt	.skipLine2
+		; cmp.w	#PF2_W,d2
+		; bge	.skipLine2
 
 		bsr	DrawLine
 .skipLine2
