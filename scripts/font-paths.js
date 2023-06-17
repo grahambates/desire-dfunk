@@ -5,21 +5,23 @@ const fs = require("fs");
 const xScale = 0.7;
 const SPACE_WIDTH = 15;
 
+// dc.w	$6cf,$d6f,$e71,$ed1
+
 const greets = [
-	["SLIPSTREAM", "zosilla"],
-	["RIFT", "NameSmile"],
-	["LOGICOMA", "zosilla"],
-	["TUHB", "RabbitFire"],
-	["BITSHIFTERS", "zosilla"],
-	["MELON", "NameSmile"],
-	["ABYSS", "RabbitFire"],
-	["PROXIMA", "zosilla"],
-	["FATZONE", "NameSmile"],
-	["RESISTANCE", "zosilla"],
-	["INSANE", "RabbitFire"],
-	["FOCUS DESIGN", "zosilla"],
-	["MOODS PLATEAU", "zosilla"],
-	["FIVE FINGER PUNCH", "zosilla"],
+	["SLIPSTREAM", "zosilla", "$6cf"],
+	["RIFT", "NameSmile", "$d6f"],
+	["LOGICOMA", "zosilla", "$e71"],
+	["TUHB", "RabbitFire", "$ed1"],
+	["BITSHIFTERS", "zosilla", "$6cf"],
+	["MELON", "NameSmile", "$d6f"],
+	["ABYSS", "RabbitFire", "$e71"],
+	["PROXIMA", "zosilla", "$ed1"],
+	["FATZONE", "NameSmile", "$6cf"],
+	["RESISTANCE", "zosilla", "$d6f"],
+	["INSANE", "RabbitFire", "$e71"],
+	["FOCUS DESIGN", "zosilla", "$ed1"],
+	["MOODS PLATEAU", "zosilla", "$6cf"],
+	["FIVE FINGER PUNCH", "zosilla", "$d6f"],
 ];
 
 const fonts = {};
@@ -101,9 +103,10 @@ console.log(" even");
 console.log(`Greets:`);
 
 greets.forEach((g) => {
-	console.log(` dc.w ${getWidth(g)}`);
-	console.log(` dc.l ${g[1]}FontTable-65*4`);
-	console.log(` dc.l ${makeLabel(g)}`);
+	console.log(` dc.w ${getWidth(g)}`); // Width
+	console.log(` dc.w ${g[2]}`); // Color
+	console.log(` dc.l ${g[1]}FontTable-65*4`); // Font
+	console.log(` dc.l ${makeLabel(g)}`); // Text data
 });
 console.log(" dc.w -1");
 

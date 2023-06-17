@@ -18,6 +18,7 @@ DUDE_W = 96
 DUDE_BW = DUDE_W/8
 DUDE_H = 150/2
 DUDE_Y = 60
+DUDE_X = 6
 
 DIW_W = 320
 DIW_H = 256
@@ -175,10 +176,14 @@ Frame:
 		clr.w	bltdmod(a6)
 		move.w	#FILL_HEIGHT<<6!(PF2_BW/2),bltsize(a6)
 
+		; rest position data:
 		lea	WordPositions,a4
 		move.w	#XGRID_MAX_VIS,(a4)+
+		move.w	#0,(a4)+
 		move.w	#XGRID_MAX_VIS,(a4)+
+		move.w	#0,(a4)+
 		move.w	#XGRID_MAX_VIS,(a4)+
+		move.w	#0,(a4)+
 
 ; Draw text:
 		move.l	CurrFrame,d0
@@ -188,21 +193,24 @@ Frame:
 		lea	WordPositions,a4
 .gr
 		move.w	(a1)+,d1	; d1 = x pos of text
+		move.w	(a1)+,d2	; d2 = color
 		blt	.grDone		; EOF
 		move.l	(a1)+,a5	; a5 = font table
 		move.l	(a1)+,a3	; a3 = glyph
 
-		add.w	#GREET_SPACE,d0	;
-			; Done if text is off-right
+		add.w	#GREET_SPACE,d0
+
+		; Done if text is off-right
 		cmp.w	#XGRID_MAX_VIS,d0
 		bge	.grDone
-		move.w	d0,a2
-		add.w	d1,d0
+		move.w	d0,a2		; x used for draw
+		add.w	d1,d0		; add width for next
 		; Don't draw if off-left
 		cmp.w	#XGRID_MIN_VIS,d0
 		blt	.gr
 		; Draw
 		move.w	a2,(a4)+
+		move.w	d2,(a4)+
 		bsr	DrawWord
 
 		bra	.gr
@@ -212,9 +220,11 @@ Frame:
 		lea	WordPositions+2,a0
 		lea	TextPos2,a1
 		lea	XGrid,a2
+
+		move.w	(a0)+,TextCol1
 		moveq	#2-1,d7
 .col
-		move.w	(a0)+,d0
+		movem.w	(a0)+,d0/d3
 		add.w	d0,d0
 		move.w	(a2,d0),d0
 		sub.w	#L_PAD,d0
@@ -222,15 +232,24 @@ Frame:
 		add.w	#$38,d0
 		bset	#0,d0
 		move.w	#color13,d1	; set color by default
+		move.w	#$e1,d2
 
 ; Skip if too far right(!)
-		cmp.w	#$d0,d0
+		cmp.w	#$e0,d0
 		ble	.noSkip
 		move.w	#$1fe,d0	; noop the wait
 		move.w	d0,d1		; and the color set
 .noSkip
+
+		cmp.w	#$c0,d0
+		ble	.noSkip1
+		move.w	#$1fe,d2	; noop the wait
+.noSkip1
+
 		move.w	d0,(a1)
-		move.w	d1,4(a1)
+		move.w	d1,4(a1)	; color index or nop
+		move.w	d3,6(a1)	; color value
+		move.w	d2,TextEol
 		lea	TextPos3-TextPos2(a1),a1
 .next		dbf	d7,.col
 
@@ -320,7 +339,9 @@ Frame:
 
 		move.w	#0,(a1)+	; end clear list
 
+		; move.w	#$f00,color00(a6)
 		jsr	WaitEOF
+		; move.w	#$0,color00(a6)
 		cmp.l	#DUDE_END_FRAME,CurrFrame
 		blt	Frame
 
@@ -530,7 +551,7 @@ DrawDude:
 		ext.w	d2
 		add.w	#DUDE_Y,d2
 		mulu	#PF1_BW*PF1_BPLS,d2
-		add.l	#4,d2
+		add.l	#DUDE_X,d2
 		ror.w	#4,d1
 
 		WAIT_BLIT
@@ -641,7 +662,11 @@ Width:		dc.w	0
 Data:
 ********************************************************************************
 
-WordPositions:	ds.w	4		; TODO
+WordPositions:	ds.w	4*2
+
+Cols:
+		dc.w	$6cf,$d6f,$e71,$ed1
+		dc.w	$6cf,$d6f,$e71,$ed1
 
 Offsets:
 		dc.b	0,-1
@@ -714,7 +739,12 @@ TextCol2	dc.w	$f0f
 TextPos3	dc.w	$3b,$80fe
 		dc.w	color13
 TextCol3	dc.w	$0ff
-		dc.w	$38+(334/2)!1,$80fe
+TextEol		COP_WAITH 0,$e0
+
+		; dc.w	color13
+		; dc.w	$0ff
+		; COP_WAITH 0,$e0
+
 		COP_SKIPV DIW_YSTRT+FILL_HEIGHT
 		dc.w	copjmp2,0
 

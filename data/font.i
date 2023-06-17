@@ -797,45 +797,59 @@ tFIVEFINGERPUNCH: dc.b "FIVE FINGER PUNCH",0
  even
 Greets:
  dc.w 160
+ dc.w $6cf
  dc.l zosillaFontTable-65*4
  dc.l tSLIPSTREAM
  dc.w 78
+ dc.w $d6f
  dc.l NameSmileFontTable-65*4
  dc.l tRIFT
  dc.w 128
+ dc.w $e71
  dc.l zosillaFontTable-65*4
  dc.l tLOGICOMA
  dc.w 85
+ dc.w $ed1
  dc.l RabbitFireFontTable-65*4
  dc.l tTUHB
  dc.w 176
+ dc.w $6cf
  dc.l zosillaFontTable-65*4
  dc.l tBITSHIFTERS
  dc.w 115
+ dc.w $d6f
  dc.l NameSmileFontTable-65*4
  dc.l tMELON
  dc.w 108
+ dc.w $e71
  dc.l RabbitFireFontTable-65*4
  dc.l tABYSS
  dc.w 112
+ dc.w $ed1
  dc.l zosillaFontTable-65*4
  dc.l tPROXIMA
  dc.w 161
+ dc.w $6cf
  dc.l NameSmileFontTable-65*4
  dc.l tFATZONE
  dc.w 160
+ dc.w $d6f
  dc.l zosillaFontTable-65*4
  dc.l tRESISTANCE
  dc.w 119
+ dc.w $e71
  dc.l RabbitFireFontTable-65*4
  dc.l tINSANE
  dc.w 178
+ dc.w $ed1
  dc.l zosillaFontTable-65*4
  dc.l tFOCUSDESIGN
  dc.w 194
+ dc.w $6cf
  dc.l zosillaFontTable-65*4
  dc.l tMOODSPLATEAU
  dc.w 244
+ dc.w $d6f
  dc.l zosillaFontTable-65*4
  dc.l tFIVEFINGERPUNCH
  dc.w -1
