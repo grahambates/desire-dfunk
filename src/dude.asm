@@ -151,7 +151,7 @@ Dude_Effect:
 ; Sprites
 
 		lea	CopSprPt+2,a0
-		lea	Sprite,a1
+		lea	Sprite+2,a1
 
 		move.l	a1,d0
 		swap	d0
@@ -818,9 +818,13 @@ CopBplsFixed:
 
 		incbin	data/dude-bg.COP
 		dc.w	color12,$414
-		; dc.w	color13,$fff
+		dc.w	color13,$000
 		dc.w	color14,$101
 		dc.w	color15,$000
+
+		; Sprite
+		dc.w	$1a2,$000
+		dc.w	$1a4,$414
 
 
 ; loop C
