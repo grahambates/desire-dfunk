@@ -834,8 +834,7 @@ Bg:
 
 ; TODO:
 ; Lamp posts
-; fix floor
 ; blit padding on bg
 ; pre-render dude frames?
 ; try to save bytes on bss
-; colors flashing
+; double line glitch
