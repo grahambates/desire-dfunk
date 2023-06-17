@@ -1,16 +1,3 @@
-; TODO: table for muls?
-; Lamp posts
-; fix floor
-; clear list for lines
-; blit padding on bg
-
-; pre-render dude frames?
-; try to save bytes on bss
-
-; light colours / flashing
-
-; perf
-
 		include	src/_main.i
 		include	dude.i
 
@@ -769,3 +756,12 @@ Anim:
 
 Bg:
 		incbin	data/dude-bg.BPL
+
+
+; TODO: table for muls?
+; Lamp posts
+; fix floor
+; blit padding on bg
+; pre-render dude frames?
+; try to save bytes on bss
+; light colours / flashing
