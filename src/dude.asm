@@ -657,10 +657,6 @@ Data:
 
 WordPositions:	ds.w	4*2
 
-Cols:
-		dc.w	$6cf,$d6f,$e71,$ed1
-		dc.w	$6cf,$d6f,$e71,$ed1
-
 Offsets:
 		dc.b	0,-1
 		dc.b	0,-2
