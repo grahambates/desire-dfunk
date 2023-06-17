@@ -804,5 +804,3 @@ Bg:
 ; pre-render dude frames?
 ; try to save bytes on bss
 ; colors flashing
-
-; right minterm for draw line
