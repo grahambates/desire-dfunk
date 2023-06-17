@@ -231,25 +231,18 @@ Frame:
 		lsr	d0
 		add.w	#$38,d0
 		bset	#0,d0
-		move.w	#color13,d1	; set color by default
-		move.w	#$e1,d2
+		move.w	#color13,d1	; Color to set - maybe nop
 
 ; Skip if too far right(!)
-		cmp.w	#$e0,d0
+		cmp.w	#$d0,d0
 		ble	.noSkip
 		move.w	#$1fe,d0	; noop the wait
 		move.w	d0,d1		; and the color set
 .noSkip
 
-		cmp.w	#$c0,d0
-		ble	.noSkip1
-		move.w	#$1fe,d2	; noop the wait
-.noSkip1
-
-		move.w	d0,(a1)
+		move.w	d0,(a1)		; wait for color change or nop
 		move.w	d1,4(a1)	; color index or nop
 		move.w	d3,6(a1)	; color value
-		move.w	d2,TextEol
 		lea	TextPos3-TextPos2(a1),a1
 .next		dbf	d7,.col
 
@@ -722,7 +715,7 @@ CopBplsFixed:
 
 		incbin	data/dude-bg.COP
 		dc.w	color12,$414
-		dc.w	color13,$fff
+		; dc.w	color13,$fff
 		dc.w	color14,$101
 		dc.w	color15,$000
 
@@ -741,9 +734,9 @@ TextPos3	dc.w	$3b,$80fe
 TextCol3	dc.w	$0ff
 TextEol		COP_WAITH 0,$e0
 
-		; dc.w	color13
-		; dc.w	$0ff
-		; COP_WAITH 0,$e0
+		dc.w	color13
+		dc.w	$0f8a
+		COP_WAITH 0,$e0
 
 		COP_SKIPV DIW_YSTRT+FILL_HEIGHT
 		dc.w	copjmp2,0
