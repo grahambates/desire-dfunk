@@ -176,9 +176,9 @@ Frame:
 		move.w	#FILL_HEIGHT<<6!(PF2_BW/2),bltsize(a6)
 
 		lea	WordPositions,a4
-		move.w	#$38+(DIW_W/2)!1,(a4)+
-		move.w	#$38+(DIW_W/2)!1,(a4)+
-		move.w	#$38+(DIW_W/2)!1,(a4)+
+		move.w	#XGRID_MAX_VIS,(a4)+
+		move.w	#XGRID_MAX_VIS,(a4)+
+		move.w	#XGRID_MAX_VIS,(a4)+
 
 ; Draw text:
 		move.l	CurrFrame,d0
@@ -193,17 +193,18 @@ Frame:
 		move.l	(a1)+,a3	; a3 = glyph
 
 		add.w	#GREET_SPACE,d0	;
+			; Done if text is off-right
+		cmp.w	#XGRID_MAX_VIS,d0
+		bge	.grDone
 		move.w	d0,a2
 		add.w	d1,d0
 		; Don't draw if off-left
 		cmp.w	#XGRID_MIN_VIS,d0
 		blt	.gr
 		; Draw
-		move.w	d0,(a4)+
+		move.w	a2,(a4)+
 		bsr	DrawWord
-		; Done if text is off-right
-		cmp.w	#XGRID_MAX_VIS,d0
-		bge	.grDone
+
 		bra	.gr
 .grDone
 
@@ -216,13 +217,22 @@ Frame:
 		move.w	(a0)+,d0
 		add.w	d0,d0
 		move.w	(a2,d0),d0
+		sub.w	#L_PAD,d0
 		lsr	d0
-		; add.w	#$38,d0
-		add.w	#$38-12,d0
+		add.w	#$38,d0
 		bset	#0,d0
+		move.w	#color13,d1	; set color by default
+
+; Skip if too far right(!)
+		cmp.w	#$d0,d0
+		ble	.noSkip
+		move.w	#$1fe,d0	; noop the wait
+		move.w	d0,d1		; and the color set
+.noSkip
 		move.w	d0,(a1)
+		move.w	d1,4(a1)
 		lea	TextPos3-TextPos2(a1),a1
-		dbf	d7,.col
+.next		dbf	d7,.col
 
 ; Fill text:
 		move.l	DrawBufferB(pc),a0
@@ -698,13 +708,13 @@ Cop2LcC		dc.w	cop2lch,0
 CopLoopC
 		dc.w	color13
 TextCol1	dc.w	$ff0
-TextPos2	dc.w	$38+(100/2)!1,$80fe
+TextPos2	dc.w	$3b,$80fe
 		dc.w	color13
 TextCol2	dc.w	$f0f
-TextPos3	dc.w	$38+(200/2)!1,$80fe
+TextPos3	dc.w	$3b,$80fe
 		dc.w	color13
 TextCol3	dc.w	$0ff
-		COP_WAITH 0,$e0
+		dc.w	$38+(334/2)!1,$80fe
 		COP_SKIPV DIW_YSTRT+FILL_HEIGHT
 		dc.w	copjmp2,0
 
@@ -757,6 +767,11 @@ Anim:
 Bg:
 		incbin	data/dude-bg.BPL
 
+
+; could use top playfield for text?
+; does this help?
+; doesn't have padding
+; doesn't matter - can change source and modulo fot top
 
 ; TODO: table for muls?
 ; Lamp posts
