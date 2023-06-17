@@ -280,10 +280,10 @@ Frame:
 
 		move.w	d0,d3
 		add.w	d3,d3
-		lea	LineTop,a2
+		lea	WallTop,a2
 		move.w	(a2,d3.w),d1
 		move.l	d0,d2
-		lea	LineBottom,a2
+		lea	WallBottom,a2
 		move.w	(a2,d3.w),d3
 		bsr	DrawLine
 .skipLine
@@ -297,61 +297,17 @@ Frame:
 ; This means that bottom edge X can contain negative numbers up to -R_PAD
 		sub.l	#R_PAD/8,a0
 
-		move.l	CurrFrame,d1
-		divu	#XGRID_SIZE,d1
-		swap	d1
-		move.w	#XGRID_SIZE,d0
-		sub.w	d1,d0
-
-		add.w	d0,d0
-		lea	XGrid,a2
-		move.w	(a2,d0.w),d0	; d0 = x in screen pixels
-
-		; check bounds:
-		cmp.w	#L_PAD,d0
-		blt	.skipLine2
-		cmp.w	#PF2_W,d0
-		bge	.skipLine2
-
-		move.w	d0,d3
-		add.w	d3,d3
-		lea	LineBottom,a2
-		move.w	(a2,d3.w),d1
-		addq	#1,d1
-
-		; tmp bottom values:
-		; move.w	d0,d2
-		; move.w	d1,d3
-		; add.w	#30,d3
-
-		move.w	d0,d3
-		sub.w	#L_PAD,d3
-		add.w	d3,d3
-		lea	LineFloorX,a2
-		move.w	(a2,d3.w),d2
-		lea	LineFloorEdge,a2
-		move.w	(a2,d3.w),d3
-
-
-		; lerp L_PAD -> L_PAD+DIW
-		; bottom x/y
-		; sub lpad for offset and then
-		; lerp 0 -> DIW
-
-		; wait, shouldn't this be
-		; lerp 0 -> DIW+R_PAD?
-
-		; Put back right padding to adjust for screen offset
-		; This should mean that all x coordinates are now positive
-		add.w	#R_PAD,d0
-
-		; tst.w	d2
-		; blt	.skipLine2
-		; cmp.w	#PF2_W,d2
-		; bge	.skipLine2
-
-		bsr	DrawLine
-.skipLine2
+		move.l	CurrFrame,d0
+		neg.w	d0
+		and.w	#$3f,d0
+		add.w	#XGRID_MIN_VIS,d0
+.floorL
+		bsr	DrawFloorLine
+		add.w	#$40,d0
+		cmp.w	#XGRID_SIZE-1,d0
+		bge	.floorDone
+		bra	.floorL
+.floorDone
 
 		move.w	#0,(a1)+	; end clear list
 
@@ -425,8 +381,8 @@ DrawLine:
 		addx.w	d5,d5
 		and.w	#15,d0
 		ror.w	#4,d0
-		; or.w	#$a4a,d0
-		or.w	#$b4a,d0
+		or.w	#$a4a,d0
+		; or.w	#$0bca,d0
 
 		WAIT_BLIT
 		move.w	d2,bltaptl(a6)
@@ -435,7 +391,8 @@ DrawLine:
 		lsl.w	#6,d3
 		addq.w	#2,d3
 		move.w	d0,bltcon0(a6)
-		move.b	.oct(pc,d5.w),bltcon1+1(a6)
+		move.b	.oct(pc,d5.w),d6
+		move.b	d6,bltcon1+1(a6)
 		move.l	d4,bltcpt(a6)
 		move.l	d4,bltdpt(a6)
 		movem.w	d1/d2,bltbmod(a6)
@@ -446,11 +403,11 @@ DrawLine:
 		move.w	d2,(a1)+
 		move.w	d3,(a1)+
 		move.l	d4,(a1)+
-		move.b	.oct(pc,d5.w),(a1)+
+		move.b	d6,(a1)+
 		clr.b	(a1)+
 
 .done		rts
-.oct		dc.b	3,3+64,19,19+64,11,11+64,23,23+64
+.oct		dc.b	1,1+64,17,17+64,9,9+64,21,21+64
 
 
 ********************************************************************************
@@ -658,6 +615,37 @@ DrawWord:
 		bra	.char
 .done
 		movem.l	(sp)+,d0/a0/a1/a4
+		rts
+
+********************************************************************************
+; d0 = x
+; a0 = draw buffer with offset -R_PAD
+DrawFloorLine:
+		move.w	d0,-(sp)
+		add.w	d0,d0
+		lea	XGrid,a2
+		move.w	(a2,d0.w),d0	; d0 = x in screen pixels
+
+		move.w	d0,d3
+		add.w	d3,d3
+		lea	WallBottom,a2
+		move.w	(a2,d3.w),d1
+		addq	#1,d1
+
+		move.w	d0,d3
+		sub.w	#L_PAD,d3
+		add.w	d3,d3
+		lea	LineFloorX,a2
+		move.w	(a2,d3.w),d2
+		lea	LineFloorY,a2
+		move.w	(a2,d3.w),d3
+
+		; Put back right padding to adjust for screen offset
+		; This should mean that all x coordinates are now positive
+		add.w	#R_PAD,d0
+		bsr	DrawLine
+.skipLine2
+		move.w	(sp)+,d0
 		rts
 
 
