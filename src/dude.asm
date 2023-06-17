@@ -222,14 +222,28 @@ Frame:
 ; Set color positions:
 		lea	WordPositions+2,a0
 		lea	TextPos2,a1
-		lea	XGrid,a2
+		lea	TextPos2A,a2
+		lea	XGrid,a3
 
-		move.w	(a0)+,TextCol1
+		move.l	CurrFrame,d6
+		move.w	d6,d5
+		lsr	#3,d5
+		and.w	#3<<1,d5
+		lea	Cols,a4
+		move.w	(a4,d5),d5	; highlight color
+
+		move.w	(a0)+,d0
+		move.w	d0,TextCol1
+		btst	d5,d6
+		beq	.noHl
+		move.w	d5,d0
+.noHl
+		move.w	d0,TextCol1A
 		moveq	#2-1,d7
 .col
 		movem.w	(a0)+,d0/d3
 		add.w	d0,d0
-		move.w	(a2,d0),d0
+		move.w	(a3,d0),d0
 		sub.w	#L_PAD,d0
 		lsr	d0
 		add.w	#$38,d0
@@ -242,9 +256,20 @@ Frame:
 		move.w	d0,d1		; and the color set
 .noSkip
 		move.w	d0,(a1)		; wait for color change or nop
+		move.w	d0,(a2)
 		move.w	d1,4(a1)	; color index or nop
+		move.w	d1,4(a2)
 		move.w	d3,6(a1)	; color value
+
+		add.w	#$20,d6
+		btst	#6,d6
+		beq	.noHl2
+		move.w	d5,d3
+.noHl2
+		move.w	d3,6(a2)
+
 		lea	TextPos3-TextPos2(a1),a1
+		lea	TextPos3-TextPos2(a2),a2
 .next		dbf	d7,.col
 
 ;--------------------------------------------------------------------------------
@@ -668,6 +693,9 @@ Data:
 
 WordPositions:	ds.w	4*2
 
+Cols:		dc.w	$6cf,$d6f,$e71,$ed1
+		; dc.w	$ff0,$f0f,$0ff,$fff
+
 Offsets:
 		dc.b	0,-1
 		dc.b	0,-2
@@ -742,8 +770,14 @@ TextCol3	dc.w	$0ff
 TextEol		COP_WAITH 0,$e0
 
 		dc.w	color13
-TextAlt		dc.w	$0f8a
-		COP_WAITH 0,$e0
+TextCol1A	dc.w	$ff0
+TextPos2A	dc.w	$3b,$80fe
+		dc.w	color13
+TextCol2A	dc.w	$f0f
+TextPos3A	dc.w	$3b,$80fe
+		dc.w	color13
+TextCol3A	dc.w	$0ff
+TextEolA	COP_WAITH 0,$e0
 
 		COP_SKIPV DIW_YSTRT+FILL_HEIGHT
 		dc.w	copjmp2,0
