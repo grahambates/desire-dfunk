@@ -167,6 +167,7 @@ Frame:
 
 		bsr	ClearLines
 
+;--------------------------------------------------------------------------------
 ; Clear filled text area
 		move.l	DrawBufferB(pc),a0
 		add.l	#TOP_PAD*PF2_BW,a0
@@ -185,6 +186,7 @@ Frame:
 		move.w	#XGRID_MAX_VIS,(a4)+
 		move.w	#0,(a4)+
 
+;--------------------------------------------------------------------------------
 ; Draw text:
 		move.l	CurrFrame,d0
 		neg.w	d0		; d0 = x pos
@@ -216,6 +218,7 @@ Frame:
 		bra	.gr
 .grDone
 
+;--------------------------------------------------------------------------------
 ; Set color positions:
 		lea	WordPositions+2,a0
 		lea	TextPos2,a1
@@ -232,20 +235,19 @@ Frame:
 		add.w	#$38,d0
 		bset	#0,d0
 		move.w	#color13,d1	; Color to set - maybe nop
-
 ; Skip if too far right(!)
 		cmp.w	#$d0,d0
 		ble	.noSkip
 		move.w	#$1fe,d0	; noop the wait
 		move.w	d0,d1		; and the color set
 .noSkip
-
 		move.w	d0,(a1)		; wait for color change or nop
 		move.w	d1,4(a1)	; color index or nop
 		move.w	d3,6(a1)	; color value
 		lea	TextPos3-TextPos2(a1),a1
 .next		dbf	d7,.col
 
+;--------------------------------------------------------------------------------
 ; Fill text:
 		move.l	DrawBufferB(pc),a0
 		add.l	#PF2_BW*(FILL_HEIGHT+TOP_PAD)-1,a0
@@ -258,6 +260,7 @@ Frame:
 
 		bsr	InitDrawLine
 
+;--------------------------------------------------------------------------------
 ; Vertical lines:
 		move.l	DrawBufferB(pc),a0
 		move.l	DrawClearList(pc),a1
@@ -285,6 +288,7 @@ Frame:
 		bsr	DrawLine
 .skipLine
 
+;--------------------------------------------------------------------------------
 ; Floor lines:
 		bsr	InitDrawLine
 		move.l	DrawBufferB(pc),a0
@@ -731,7 +735,7 @@ TextCol3	dc.w	$0ff
 TextEol		COP_WAITH 0,$e0
 
 		dc.w	color13
-		dc.w	$0f8a
+TextAlt		dc.w	$0f8a
 		COP_WAITH 0,$e0
 
 		COP_SKIPV DIW_YSTRT+FILL_HEIGHT
@@ -786,16 +790,10 @@ Anim:
 Bg:
 		incbin	data/dude-bg.BPL
 
-
-; could use top playfield for text?
-; does this help?
-; doesn't have padding
-; doesn't matter - can change source and modulo fot top
-
-; TODO: table for muls?
+; TODO:
 ; Lamp posts
 ; fix floor
 ; blit padding on bg
 ; pre-render dude frames?
 ; try to save bytes on bss
-; light colours / flashing
+; colors flashing
