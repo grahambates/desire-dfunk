@@ -148,7 +148,28 @@ Dude_Effect:
 		add.l	#PF2_BPL,a0	;next ptr
 		dbf	d7,.l1
 
-		move.w	#DMAF_SETCLR!DMAF_BLITHOG,dmacon(a6)
+; Sprites
+
+		lea	CopSprPt+2,a0
+		lea	Sprite,a1
+
+		move.l	a1,d0
+		swap	d0
+		move.w	d0,(a0)
+		move.w	a1,4(a0)
+		lea	8(a0),a0
+
+		move.l	#NullSprite,d0
+		move.w	d0,d1
+		swap	d0
+		moveq	#7-1,d7
+.spr
+		move.w	d0,(a0)
+		move.w	d1,4(a0)
+		lea	8(a0),a0
+		dbf	d7,.spr
+
+		move.w	#DMAF_SETCLR!DMAF_BLITHOG!DMAF_SPRITE,dmacon(a6)
 
 		lea	Cop,a0
 		lea	Vbi,a1
@@ -750,6 +771,8 @@ Offsets:
 		data_c
 ********************************************************************************
 
+NullSprite:	dc.l	0
+
 Cop:
 		dc.w	diwstrt,DIW_STRT
 		dc.w	diwstop,DIW_STOP
@@ -769,6 +792,23 @@ CopBpls:
 		; pf2 buffer
 		dc.w	bpl5pt,0
 		dc.w	bpl5ptl,0
+CopSprPt:
+		dc.w	spr0pth,0
+		dc.w	spr0ptl,0
+		dc.w	spr1pth,0
+		dc.w	spr1ptl,0
+		dc.w	spr2pth,0
+		dc.w	spr2ptl,0
+		dc.w	spr3pth,0
+		dc.w	spr3ptl,0
+		dc.w	spr4pth,0
+		dc.w	spr4ptl,0
+		dc.w	spr5pth,0
+		dc.w	spr5ptl,0
+		dc.w	spr6pth,0
+		dc.w	spr6ptl,0
+		dc.w	spr7pth,0
+		dc.w	spr7ptl,0
 CopBplsFixed:
 		; pf2 fixed
 		dc.w	bpl1pt,0
@@ -858,6 +898,9 @@ Anim:
 
 Bg:
 		incbin	data/dude-bg.BPL
+
+Sprite:
+		incbin	data/lamppost.SPR
 
 ; TODO:
 ; Lamp posts

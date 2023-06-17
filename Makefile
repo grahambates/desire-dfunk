@@ -3,7 +3,7 @@ vasm_objects := $(addprefix obj/, $(patsubst %.asm,%.o,$(notdir $(vasm_sources))
 objects := $(vasm_objects)
 deps := $(objects:.o=.d)
 dude_images := $(wildcard assets/dude_walking_16_frames/*.png)
-data := data/girl-head.BPL data/girl-body.BPL obj/tables_shade1.o data/tex.rgb data/DFunk-vert.BPL data/dude_walking.BPL data/credit-gigabates.BPL data/credit-maze.BPL data/credit-steffest.BPL data/dude-bg.BPL data/dfunk320.BPL data/dfunk320b.BPL data/font.i data/persp.i
+data := data/girl-head.BPL data/girl-body.BPL obj/tables_shade1.o data/tex.rgb data/DFunk-vert.BPL data/dude_walking.BPL data/credit-gigabates.BPL data/credit-maze.BPL data/credit-steffest.BPL data/dude-bg.BPL data/dfunk320.BPL data/dfunk320b.BPL data/font.i data/persp.i data/lamppost.SPR
 
 program = out/a
 OUT = $(program)
@@ -114,6 +114,8 @@ data/dude_walking.BPL : $(dude_images)
 	$(KINGCON) assets/dude_walking_16_frames-c/dude_walking_b_1.png data/dude_walking -I -A -F=3
 data/dude-bg.BPL : assets/dude-walking-bg2.png
 	$(KINGCON) assets/dude-walking-bg2.png data/dude-bg -F=2 -C=8
+data/lamppost.SPR : assets/lamppost.png
+	$(KINGCON) $< data/lamppost -F=s16 -SX=128
 
 # Font data
 data/font.i data/persp.i : assets/KARNIVOR.svg scripts/font-paths.js

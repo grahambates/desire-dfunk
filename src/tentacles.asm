@@ -11,9 +11,9 @@ INNER_SHIFT = 4
 DIW_W = 320
 DIW_H = 256
 BPLS = 4
-SCROLL = 1							; enable playfield scroll?
+SCROLL = 1				; enable playfield scroll?
 INTERLEAVED = 0
-DPF = 0								; enable dual playfield?
+DPF = 0					; enable dual playfield?
 
 ; Screen buffer:
 SCREEN_W = DIW_W+CIRCLES_PAD
@@ -23,15 +23,15 @@ SCREEN_H = DIW_H
 ; Derived
 
 COLORS = 1<<BPLS
-SCREEN_BW = SCREEN_W/16*2					; byte-width of 1 bitplane line
+SCREEN_BW = SCREEN_W/16*2		; byte-width of 1 bitplane line
 		ifne	INTERLEAVED
-SCREEN_MOD = SCREEN_BW*(BPLS-1)					; modulo (interleaved)
-SCREEN_BPL = SCREEN_BW						; bitplane offset (interleaved)
+SCREEN_MOD = SCREEN_BW*(BPLS-1)		; modulo (interleaved)
+SCREEN_BPL = SCREEN_BW			; bitplane offset (interleaved)
 		else
-SCREEN_MOD = 0							; modulo (non-interleaved)
-SCREEN_BPL = SCREEN_BW*SCREEN_H					; bitplane offset (non-interleaved)
+SCREEN_MOD = 0				; modulo (non-interleaved)
+SCREEN_BPL = SCREEN_BW*SCREEN_H		; bitplane offset (non-interleaved)
 		endc
-SCREEN_SIZE = SCREEN_BW*SCREEN_H*BPLS				; byte size of screen buffer
+SCREEN_SIZE = SCREEN_BW*SCREEN_H*BPLS	; byte size of screen buffer
 DIW_BW = DIW_W/16*2
 DIW_MOD = SCREEN_BW-DIW_BW+SCREEN_MOD-SCROLL*2
 DIW_SIZE = DIW_BW*DIW_H*BPLS
@@ -92,7 +92,7 @@ Tentacles_Effect:
 		lea	8(a0),a0
 		dbf	d7,.sprSlice
 
-		move.l	#NullSprite,d1
+		move.l	#NullSprite,d0
 		move.w	d0,d1
 		swap	d0
 		moveq	#8-4-1,d7
@@ -121,8 +121,8 @@ Frame:
 		move.l	a1,a2
 		moveq	#4-1,d7
 .sprSlice:
-		move.w	(a1)+,d0				; offset
-		lea	(a2,d0.w),a3				; sprite struct
+		move.w	(a1)+,d0	; offset
+		lea	(a2,d0.w),a3	; sprite struct
 		moveq	#1,d1
 		and.w	d3,d1
 		bset	#1,d1
@@ -171,7 +171,7 @@ Frame:
 
 		move.l	CurrFrame,d6
 
-		moveq	#15,d0					; last 4 bits go in bplcon1 and save later for adjustment
+		moveq	#15,d0		; last 4 bits go in bplcon1 and save later for adjustment
 		and.w	d6,d0
 		not.w	d0
 		move.w	d0,Scroll
@@ -180,7 +180,7 @@ Frame:
 		move.w	d0,d1
 		lsl.w	#4,d0
 		add.w	d1,d0
-		move.w	d0,CopScroll+2				; write to copper
+		move.w	d0,CopScroll+2	; write to copper
 		; word value added to bpl address
 		lsr.w	#4,d6
 		add.w	d6,d6
@@ -232,7 +232,7 @@ Frame:
 
 		ext.l	d0
 		divs	#150,d0
-		add.w	#$f0,d0					; min scale
+		add.w	#$f0,d0		; min scale
 		move.w	d0,Scale
 
 ; d6 = outer start angle
@@ -251,7 +251,7 @@ Frame:
 		move.w	d6,d4
 		and.w	#$7fe,d4
 		move.w	(a3,d4.w),d0
-		asr	d0					; / 2 for pERsPECtIve
+		asr	d0		; / 2 for pERsPECtIve
 
 		; y = cos(a)
 		add.w	#$1fe,d4
@@ -271,23 +271,23 @@ Frame:
 		and.w	#$7fe,d4
 		move.w	(a3,d4.w),d2
 		asr.w	#INNER_SHIFT,d2
-		add.w	d2,d0					; d0 = x
+		add.w	d2,d0		; d0 = x
 		muls	Scale,d0
 		swap	d0
-		sub.w	Scroll,d0				; adjust for hscroll in bplcon1
+		sub.w	Scroll,d0	; adjust for hscroll in bplcon1
 
 		; y += cos(a1)
 		add.w	#$1fe,d4
 		and.w	#$7fe,d4
 		move.w	(a3,d4.w),d2
 		asr.w	#INNER_SHIFT,d2
-		add.w	d2,d1					; d1 = y
+		add.w	d2,d1		; d1 = y
 		muls	Scale,d1
 		swap	d1
 
-		move.w	Scale,d2				; d2 = radius
+		move.w	Scale,d2	; d2 = radius
 		lsr.w	#6,d2
-		move.w	d5,d3					; d3 = color
+		move.w	d5,d3		; d3 = color
 		; add.w d7,d3
 		addq	#1,d3
 		jsr	DrawTentacle
@@ -329,7 +329,7 @@ DrawTentacle:
 		move.w	d2,d4
 		subq	#1,d4
 ; mulu	#Blit_SIZEOF,d4
-		lsl.w	#3,d4					; optimise
+		lsl.w	#3,d4		; optimise
 		ext.l	d4
 		lea	BltCircSizes,a0
 		lea	(a0,d4.w),a0
@@ -340,18 +340,18 @@ DrawTentacle:
 		moveq	#15,d4
 		and.w	d0,d4
 ; Offset dest for x/y/color
-		muls	#SCREEN_BW,d1				; d1 = yOffset (bytes)
-		asr.w	#3,d0					; d0 = xOffset (bytes)
-		add.w	d0,d1					; d1 = totalOffset = yOffset + xOffset
-		move.l	a1,d5					; d5 = dest pointer with offset
+		muls	#SCREEN_BW,d1	; d1 = yOffset (bytes)
+		asr.w	#3,d0		; d0 = xOffset (bytes)
+		add.w	d0,d1		; d1 = totalOffset = yOffset + xOffset
+		move.l	a1,d5		; d5 = dest pointer with offset
 		ext.l	d1
 		add.l	d1,d5
 
 		WAIT_BLIT
 		move.l	d6,bltamod(a6)
 		move.w	d6,bltcmod(a6)
-		lsl.w	#2,d4					; d4 = offset into bltcon table
-		move.l	.bltcon(pc,d4),d4			; d4 = BLTCON0/1
+		lsl.w	#2,d4		; d4 = offset into bltcon table
+		move.l	.bltcon(pc,d4),d4 ; d4 = BLTCON0/1
 
 		bra	.s
 		; Table for combined minterm and shifts for bltcon0/bltcon1
@@ -364,7 +364,7 @@ DrawTentacle:
 ; Fill/clear each bpl to create color (not interleaved)
 		moveq	#BPLS-2,d0
 .bpl
-		move.l	d4,d6					; d6 = BLTCON0/1
+		move.l	d4,d6		; d6 = BLTCON0/1
 ; change bltcon0 to clear inside shape if bit not set in colour value
 		btst	d0,d3
 		bne	.fill
@@ -392,7 +392,7 @@ DrawTentacle:
 		ble	.nope
 		subq	#1,d2
 ; mulu	#Blit_SIZEOF,d2
-		lsl.w	#3,d2					; optimise
+		lsl.w	#3,d2		; optimise
 		ext.l	d2
 		lea	BltCircSizes,a0
 		lea	(a0,d2.w),a0
