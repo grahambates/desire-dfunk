@@ -72,6 +72,8 @@ Vbi:
 		divu	#$180,d0
 		swap	d0
 		add.w	#XGRID_MIN_VIS,d0
+		cmp.w	#XGRID_SIZE,d0
+		bge	.skip
 		add.w	d0,d0
 		move.w	(a1,d0.w),d0
 		sub.w	#L_PAD,d0
@@ -81,6 +83,7 @@ Vbi:
 		move.w	(a2,d0.w),d1
 		move.l	LineFloorX,a1
 		move.w	(a1,d0.w),d0
+
 		add.w	#DIW_XSTRT-H_PAD,d0
 		add.w	#DIW_YSTRT-TOP_PAD,d1
 		; hstart lower
@@ -112,7 +115,7 @@ Vbi:
 		move.b	d1,(a4)+	; vstop
 		move.b	d3,(a4)+	; hstart lower  / vstop upper
 
-		rts
+.skip		rts
 
 PokeBpls:
 		lea	CopBpls+2,a1
@@ -189,6 +192,7 @@ LERP_TBL	macro
 		move.l	a0,TextY
 		bsr	InitTextY
 
+		bsr	InitScreenMuls
 
 ; set pointers in copper loops
 		lea	Cop2LcA+2,a0
@@ -606,10 +610,15 @@ DrawLineBlit:
 		move.w	d3,bltsize(a6)
 .done		rts
 .oct		dc.b	3,3+64,19,19+64,11,11+64,23,23+64
-ScreenMuls:
-		rept	PF2_H
-		dc.w	PF2_BW*REPTN
-		endr
+ScreenMuls:	ds.w	PF2_H
+
+InitScreenMuls:
+		lea	ScreenMuls(pc),a0
+		moveq	#0,d0
+		move.w	#PF2_H-1,d7
+.l		move.w	d0,(a0)+
+		add.w	#PF2_BW,d0
+		dbf	d7,.l
 
 ********************************************************************************
 ClearLines:
@@ -1041,7 +1050,6 @@ Sprite2:
 		incbin	data/lamppost.SPR
 
 ; TODO:
-; widths wrong
 ; double line glitch
 
 ; blit padding on bg
