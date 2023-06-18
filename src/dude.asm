@@ -76,9 +76,9 @@ Vbi:
 		sub.w	#L_PAD,d0
 
 		add.w	d0,d0
-		lea	LineFloorY,a2
+		move.l	LineFloorY,a2
 		move.w	(a2,d0.w),d1
-		lea	LineFloorX,a1
+		move.l	LineFloorX,a1
 		move.w	(a1,d0.w),d0
 		add.w	#DIW_XSTRT-H_PAD,d0
 		add.w	#DIW_YSTRT-TOP_PAD,d1
@@ -166,6 +166,22 @@ Dude_Effect:
 		move.l	a0,DrawClearList
 		jsr	AllocPublic
 		move.l	a0,ViewClearList
+
+; lerp tables
+LERP_TBL	macro
+		move.l	#(\3)*2,d0
+		jsr	AllocPublic
+		move.l	a0,\4
+		move.l	#\1,d0
+		move.l	#\2,d1
+		move.w	#\3-1,d2
+		bsr	MakeLerpTbl
+		endm
+
+		LERP_TBL 62+TOP_PAD,46+TOP_PAD,PF2_W,WallTop
+		LERP_TBL 177+TOP_PAD,227+TOP_PAD,PF2_W,WallBottom
+		LERP_TBL 194+TOP_PAD,273+TOP_PAD,DIW_W+R_PAD,LineFloorY
+		LERP_TBL 0,PF2_W,DIW_W+R_PAD,LineFloorX
 
 ; set pointers in copper loops
 		lea	Cop2LcA+2,a0
@@ -738,16 +754,16 @@ DrawFloorLine:
 
 		move.w	d0,d3
 		add.w	d3,d3
-		lea	WallBottom,a2
+		move.l	WallBottom,a2
 		move.w	(a2,d3.w),d1
 		addq	#1,d1
 
 		move.w	d0,d3
 		sub.w	#L_PAD,d3
 		add.w	d3,d3
-		lea	LineFloorX,a2
+		move.l	LineFloorX,a2
 		move.w	(a2,d3.w),d2
-		lea	LineFloorY,a2
+		move.l	LineFloorY,a2
 		move.w	(a2,d3.w),d3
 
 		; Put back right padding to adjust for screen offset
@@ -770,14 +786,33 @@ DrawWallLine:
 
 		move.w	d0,d3
 		add.w	d3,d3
-		lea	WallTop,a2
+		move.l	WallTop(pc),a2
 		move.w	(a2,d3.w),d1
 		move.l	d0,d2
-		lea	WallBottom,a2
+		move.l	WallBottom,a2
 		move.w	(a2,d3.w),d3
 		bsr	DrawLine
 .skipLine
 		movem.l	(sp)+,d0-d1/a2
+		rts
+
+********************************************************************************
+; d0.l = from
+; d1.l = to
+; d2.w = steps-1
+; a0 = dest
+MakeLerpTbl:
+		sub.l	d0,d1		; delta
+		lsl.l	#8,d1		; increment (fp)
+		divs	d2,d1
+		ext.l	d1
+		lsl.l	#8,d0		; current (fp)
+.l
+		add.l	d1,d0
+		move.l	d0,d3
+		asr.l	#8,d3
+		move.w	d3,(a0)+
+		dbf	d2,.l
 		rts
 
 
@@ -791,6 +826,11 @@ DrawBufferB	dc.l	0
 ViewBufferB	dc.l	0
 DrawClearList	dc.l	0
 ViewClearList	dc.l	0
+
+WallTop:	dc.l	0
+WallBottom:	dc.l	0
+LineFloorY:	dc.l	0
+LineFloorX:	dc.l	0
 
 Width:		dc.w	0
 

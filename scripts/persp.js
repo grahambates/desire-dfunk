@@ -40,18 +40,6 @@ console.log("XGRID_MIN_VIS=" + xGrid.findIndex((v) => v > L_PAD));
 console.log("XGrid:");
 console.log(" dc.w " + xGrid.join(","));
 
-console.log("WallTop:");
-console.log(" dc.w " + lerp(62 + TOP_PAD, 46 + TOP_PAD, W).join(","));
-console.log("WallBottom:");
-console.log(" dc.w " + lerp(177 + TOP_PAD, 227 + TOP_PAD, W).join(","));
-
-console.log("LineFloorY:");
-console.log(
-	" dc.w " + lerp(194 + TOP_PAD, 273 + TOP_PAD, DIW_W + R_PAD).join(",")
-);
-console.log("LineFloorX:");
-console.log(" dc.w " + lerp(0, W, DIW_W + R_PAD).join(","));
-
 const textY = 26 + TOP_PAD;
 
 console.log("TextMul2:");
