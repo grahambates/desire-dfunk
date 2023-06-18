@@ -121,8 +121,11 @@ function getWidth([str, name]) {
 		const width =
 			char === 32
 				? SPACE_WIDTH
-				: fonts[name].glyphs[char - 65].width;
-		w += Math.round(width * xScale * fonts[name].scale + 2);
+				: fonts[name].glyphs[char - 65].width *
+						xScale *
+						fonts[name].scale +
+				  2;
+		w += Math.round(width);
 	}
 	return w;
 }

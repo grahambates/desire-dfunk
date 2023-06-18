@@ -903,7 +903,7 @@ Greets:
  dc.w $ed1
  dc.l NameSmileFontTable-65*4
  dc.l tMELON
- dc.w 178
+ dc.w 191
  dc.w $6cf
  dc.l zosillaFontTable-65*4
  dc.l tFOCUSDESIGN
@@ -911,7 +911,7 @@ Greets:
  dc.w $d6f
  dc.l NameSmileFontTable-65*4
  dc.l tPROXIMA
- dc.w 244
+ dc.w 270
  dc.w $e71
  dc.l zosillaFontTable-65*4
  dc.l tFIVEFINGERPUNCH
@@ -923,7 +923,7 @@ Greets:
  dc.w $6cf
  dc.l NameSmileFontTable-65*4
  dc.l tRESISTANCE
- dc.w 194
+ dc.w 207
  dc.w $d6f
  dc.l zosillaFontTable-65*4
  dc.l tMOODSPLATEAU
