@@ -68,7 +68,8 @@ Vbi:
 		move.l	CurrFrame,d0
 		subq	#1,d0
 		neg.w	d0
-		and.w	#$1ff,d0
+		divu	#$180,d0
+		swap	d0
 		add.w	#XGRID_MIN_VIS,d0
 		add.w	d0,d0
 		move.w	(a1,d0.w),d0
@@ -312,7 +313,7 @@ Frame:
 		; hightlight for first color?
 		move.w	(a0)+,d0
 		move.w	d0,TextCol1
-		btst	d5,d6
+		btst	#5,d6
 		beq	.noHl
 		move.w	d5,d0
 .noHl
@@ -971,8 +972,9 @@ Sprite2:
 		incbin	data/lamppost.SPR
 
 ; TODO:
-; Lamp posts
+; widths wrong
+; double line glitch
+
 ; blit padding on bg
 ; pre-render dude frames?
 ; try to save bytes on bss
-; double line glitch
