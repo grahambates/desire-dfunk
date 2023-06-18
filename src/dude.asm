@@ -61,6 +61,55 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 Vbi:
 ********************************************************************************
 
+; Sprite
+		lea	Sprite,a3
+		lea	Sprite2+2,a4
+		lea	XGrid,a1
+		move.l	CurrFrame,d0
+		subq	#1,d0
+		neg.w	d0
+		and.w	#$1ff,d0
+		add.w	#XGRID_MIN_VIS,d0
+		add.w	d0,d0
+		move.w	(a1,d0.w),d0
+		sub.w	#L_PAD,d0
+
+		add.w	d0,d0
+		lea	LineFloorY,a2
+		move.w	(a2,d0.w),d1
+		lea	LineFloorX,a1
+		move.w	(a1,d0.w),d0
+		add.w	#DIW_XSTRT-H_PAD,d0
+		add.w	#DIW_YSTRT-TOP_PAD,d1
+		; hstart lower
+		move.w	d0,d3
+		and.b	#1,d3
+		lsr.w	d0
+		; vstop upper
+		move.w	d1,d4
+		lsr	#7,d4
+		and.b	#2,d4
+		or.b	d4,d3
+
+		move.b	#DIW_YSTRT,(a3)+ ; vstart
+		move.b	d0,(a3)+	; hstart upper
+		move.b	d1,(a3)+	; vstop
+		move.b	d3,(a3)+	; hstart lower  / vstop upper
+
+		; vstart upper
+
+		move.w	d1,d2
+		sub.w	#49,d2
+		move.w	d2,d4
+		lsr	#6,d4
+		and.b	#4,d4
+		or.b	d4,d3
+
+		move.b	d2,(a4)+	; vstart
+		move.b	d0,(a4)+	; hstart upper
+		move.b	d1,(a4)+	; vstop
+		move.b	d3,(a4)+	; hstart lower  / vstop upper
+
 		rts
 
 PokeBpls:
@@ -151,8 +200,15 @@ Dude_Effect:
 ; Sprites
 
 		lea	CopSprPt+2,a0
-		lea	Sprite+2,a1
 
+		lea	Sprite2+2,a1
+		move.l	a1,d0
+		swap	d0
+		move.w	d0,(a0)
+		move.w	a1,4(a0)
+		lea	8(a0),a0
+
+		lea	Sprite,a1
 		move.l	a1,d0
 		swap	d0
 		move.w	d0,(a0)
@@ -162,7 +218,7 @@ Dude_Effect:
 		move.l	#NullSprite,d0
 		move.w	d0,d1
 		swap	d0
-		moveq	#7-1,d7
+		moveq	#6-1,d7
 .spr
 		move.w	d0,(a0)
 		move.w	d1,4(a0)
@@ -816,18 +872,19 @@ CopBplsFixed:
 		dc.w	bpl3pt,0
 		dc.w	bpl3ptl,0
 
+		; BG palette
 		incbin	data/dude-bg.COP
 		dc.w	color12,$414
 		dc.w	color13,$000
 		dc.w	color14,$101
 		dc.w	color15,$000
 
-		; Sprite
-		dc.w	$1a2,$000
-		dc.w	$1a4,$414
+		; Sprite palette
+		dc.w	color17,$000
+		dc.w	color18,$111
+		dc.w	color19,$000
 
-
-; loop C
+		; Loop for interlaced effect on text
 Cop2LcC		dc.w	cop2lch,0
 		dc.w	cop2lcl,0
 CopLoopC
@@ -853,6 +910,8 @@ TextEolA	COP_WAITH 0,$e0
 
 		COP_SKIPV DIW_YSTRT+FILL_HEIGHT
 		dc.w	copjmp2,0
+
+		dc.w	color13,0
 
 ; loop A
 Cop2LcA		dc.w	cop2lch,0
@@ -904,6 +963,11 @@ Bg:
 		incbin	data/dude-bg.BPL
 
 Sprite:
+		dc.l	0
+		rept	255
+		dc.l	$07a00040
+		endr
+Sprite2:
 		incbin	data/lamppost.SPR
 
 ; TODO:

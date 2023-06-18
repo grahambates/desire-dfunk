@@ -47,7 +47,7 @@ console.log(" dc.w " + lerp(177 + TOP_PAD, 227 + TOP_PAD, W).join(","));
 
 console.log("LineFloorY:");
 console.log(
-	" dc.w " + lerp(193 + TOP_PAD, 273 + TOP_PAD, DIW_W + R_PAD).join(",")
+	" dc.w " + lerp(194 + TOP_PAD, 273 + TOP_PAD, DIW_W + R_PAD).join(",")
 );
 console.log("LineFloorX:");
 console.log(" dc.w " + lerp(0, W, DIW_W + R_PAD).join(","));
