@@ -8,6 +8,7 @@ L_PAD = 32
 R_PAD = 48
 H_PAD = L_PAD+R_PAD
 FILL_HEIGHT = 52
+TEXT_Y = 26+TOP_PAD
 
 CLEAR_LIST_ITEM_SZ = 5*2+4+2
 
@@ -169,7 +170,7 @@ Dude_Effect:
 
 ; lerp tables
 LERP_TBL	macro
-		move.l	#(\3)*2,d0
+		move.l	#\3*2,d0
 		jsr	AllocPublic
 		move.l	a0,\4
 		move.l	#\1,d0
@@ -180,8 +181,14 @@ LERP_TBL	macro
 
 		LERP_TBL 62+TOP_PAD,46+TOP_PAD,PF2_W,WallTop
 		LERP_TBL 177+TOP_PAD,227+TOP_PAD,PF2_W,WallBottom
-		LERP_TBL 194+TOP_PAD,273+TOP_PAD,DIW_W+R_PAD,LineFloorY
-		LERP_TBL 0,PF2_W,DIW_W+R_PAD,LineFloorX
+		LERP_TBL 194+TOP_PAD,273+TOP_PAD,(DIW_W+R_PAD),LineFloorY
+		LERP_TBL 0,PF2_W,(DIW_W+R_PAD),LineFloorX
+
+		move.l	#29*64,d0
+		jsr	AllocPublic
+		move.l	a0,TextY
+		bsr	InitTextY
+
 
 ; set pointers in copper loops
 		lea	Cop2LcA+2,a0
@@ -720,7 +727,7 @@ DrawWord:
 		move.w	(a4,d2.w),d2	; Translate x to screen x in perspective grid LUT
 
 		; Scale y for x position
-		lea	TextMul2,a4
+		move.l	TextY,a4
 		lsl.w	#6,d3
 		move.w	d2,d5
 		asr	#3,d5
@@ -817,6 +824,27 @@ MakeLerpTbl:
 
 
 ********************************************************************************
+; a0 = table
+InitTextY:
+		move.l	#TEXT_Y<<16,d3	; start value
+		move.l	#-(TEXT_Y*(8<<16))/PF2_W,d0 ; increment
+		moveq	#29-1,d7
+.m0
+		move.l	d3,d1		; reset to start value
+		moveq	#64-1,d6
+.m1
+		move.l	d1,d2		; fp to int
+		swap	d2
+		move.b	d2,(a0)+	; write to tbl
+		add.l	d0,d1		; add increment
+		dbf	d6,.m1
+		add.l	#$353,d0	; increase scale ((8<<16)*0.65)/PF2_W,d0
+		add.l	#1<<16,d3	; increase start value
+		dbf	d7,.m0
+		rts
+
+
+********************************************************************************
 Vars:
 ********************************************************************************
 
@@ -831,6 +859,7 @@ WallTop:	dc.l	0
 WallBottom:	dc.l	0
 LineFloorY:	dc.l	0
 LineFloorX:	dc.l	0
+TextY:		dc.l	0
 
 Width:		dc.w	0
 
