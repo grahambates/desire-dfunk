@@ -227,65 +227,65 @@ z		equr	d7
 		lea	Cos1,cos
 
 		move.w	(sin,x),d2
-		FPMULS	(sin,y),d2				; d2 = sin(X)*sin(Y)
+		FPMULS	(sin,y),d2	; d2 = sin(X)*sin(Y)
 		move.w	(cos,x),d3
-		FPMULS	(sin,z),d3				; d3 = sin(Z)*cos(X)
+		FPMULS	(sin,z),d3	; d3 = sin(Z)*cos(X)
 		move.w	(cos,x),d4
-		FPMULS	(cos,z),d4				; d4 = cos(X)*cos(Z)
+		FPMULS	(cos,z),d4	; d4 = cos(X)*cos(Z)
 
 ; A = cos(Y)*cos(Z)
 		move.w	(cos,y),d0
-		FPMULS	(cos,z),d0				; cos(Y)*cos(Z)
+		FPMULS	(cos,z),d0	; cos(Y)*cos(Z)
 		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatA-SMCLoop(smc)
 ; B = sin(X)*sin(Y)*cos(Z)−cos(X)*sin(Z)
-		move.w	d2,d0					; sin(X)*sin(Y)
-		FPMULS	(cos,z),d0				; sin(X)*sin(Y)*cos(Z)
-		move.w	(cos,x),d1				; cos(X)
-		FPMULS	(sin,z),d1				; cos(X)*sin(Z)
-		sub.w	d1,d0					; sin(X)*sin(Y)*cos(Z)-cos(X)*sin(Z)
+		move.w	d2,d0		; sin(X)*sin(Y)
+		FPMULS	(cos,z),d0	; sin(X)*sin(Y)*cos(Z)
+		move.w	(cos,x),d1	; cos(X)
+		FPMULS	(sin,z),d1	; cos(X)*sin(Z)
+		sub.w	d1,d0		; sin(X)*sin(Y)*cos(Z)-cos(X)*sin(Z)
 		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatB-SMCLoop(smc)
 ; C = cos(X)*sin(Y)*cos(Z)+sin(X)*sin(Z)
-		move.w	d4,d0					; cos(X)*cos(Z)
-		FPMULS	(sin,y),d0				; cos(X)*cos(Z)*sin(Y)
-		move.w	(sin,x),d1				; sin(X)
-		FPMULS	(sin,z),d1				; sin(X)*sin(Z)
-		add.w	d1,d0					; cos(X)*cos(Z)*sin(Y)+sin(X)*sin(Z)
+		move.w	d4,d0		; cos(X)*cos(Z)
+		FPMULS	(sin,y),d0	; cos(X)*cos(Z)*sin(Y)
+		move.w	(sin,x),d1	; sin(X)
+		FPMULS	(sin,z),d1	; sin(X)*sin(Z)
+		add.w	d1,d0		; cos(X)*cos(Z)*sin(Y)+sin(X)*sin(Z)
 		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatC-SMCLoop(smc)
 ; D = cos(Y)*sin(Z)
 		move.w	(cos,y),d0
-		FPMULS	(sin,z),d0				; cos(Y)*sin(Z)
+		FPMULS	(sin,z),d0	; cos(Y)*sin(Z)
 		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatD-SMCLoop(smc)
 ; E = sin(X)*sin(Y)*sin(Z)+cos(X)*cos(Z)
-		move.w	d2,d0					; sin(X)*sin(Y)
-		FPMULS	(sin,z),d0				; sin(X)*sin(Y)*sin(Z)
-		add.w	d4,d0					; sin(X)*sin(Y)*sin(Z)+cos(X)*cos(Z)
+		move.w	d2,d0		; sin(X)*sin(Y)
+		FPMULS	(sin,z),d0	; sin(X)*sin(Y)*sin(Z)
+		add.w	d4,d0		; sin(X)*sin(Y)*sin(Z)+cos(X)*cos(Z)
 		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatE-SMCLoop(smc)
 ; F = cos(X)*sin(Y)*sin(Z)−sin(X)*cos(Z)
-		move.w	d3,d0					; sin(Z)*cos(X)
-		FPMULS	(sin,y),d0				; cos(X)*sin(Y)*sin(Z)
-		move.w	(sin,x),d1				; sin(X)
-		FPMULS	(cos,z),d1				; sin(X)*cos(Z)
+		move.w	d3,d0		; sin(Z)*cos(X)
+		FPMULS	(sin,y),d0	; cos(X)*sin(Y)*sin(Z)
+		move.w	(sin,x),d1	; sin(X)
+		FPMULS	(cos,z),d1	; sin(X)*cos(Z)
 		sub.w	d1,d0
 		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatF-SMCLoop(smc)
 ; G = −sin(Y)
-		move.w	(sin,y),d0				; sin(Y)
-		neg.w	d0					; -sin(Y)
+		move.w	(sin,y),d0	; sin(Y)
+		neg.w	d0		; -sin(Y)
 		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatG-SMCLoop(smc)
 ; H = sin(X)*cos(Y)
-		move.w	(sin,x),d0				; sin(X)
-		FPMULS	(cos,y),d0				; sin(X)*cos(Y)
+		move.w	(sin,x),d0	; sin(X)
+		FPMULS	(cos,y),d0	; sin(X)*cos(Y)
 		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatH-SMCLoop(smc)
 ; I = cos(X)*cos(Y)
-		move.w	(cos,x),d0				; cos(X)
-		FPMULS	(cos,y),d0				; cos(X)*cos(Y)
+		move.w	(cos,x),d0	; cos(X)
+		FPMULS	(cos,y),d0	; cos(X)*cos(Y)
 		asr.w	#SIN_SHIFT,d0
 		move.b	d0,MatI-SMCLoop(smc)
 
@@ -314,25 +314,25 @@ draw		equr	a1
 clear		equr	a2
 divtbl		equr	a3
 multbl		equr	a5
-tx		equr	d0					; transformed
+tx		equr	d0		; transformed
 ty		equr	d1
 tz		equr	d2
-ox		equr	d3					; original
+ox		equr	d3		; original
 oy		equr	d4
 oz		equr	d5
 r		equr	d6
 
 		move.l	DrawPoints,points
 		move.l	DrawBuffer,draw
-		lea	DIW_BW/2+DIW_H/2*SCREEN_BW(draw),draw	; centered with top/left padding
+		lea	DIW_BW/2+DIW_H/2*SCREEN_BW(draw),draw ; centered with top/left padding
 		move.l	DrawClearList,clear
-		lea	MulsTable+256*127+128,multbl		; start at middle of table (0x)
+		lea	MulsTable+256*127+128,multbl ; start at middle of table (0x)
 
 		move.w	#POINTS_COUNT-1,d7
 SMCLoop:
-__SMC__ = $7f							; Values to be replaced in self-modifying code
-		movem.w	(points)+,ox-oz/r			; d0 = x, d1 = y, d2 = z, d6 = r
-		move.l	a0,-(sp)				; out of registers :-(
+__SMC__ = $7f				; Values to be replaced in self-modifying code
+		movem.w	(points)+,ox-oz/r ; d0 = x, d1 = y, d2 = z, d6 = r
+		move.l	a0,-(sp)	; out of registers :-(
 Martix:
 ; Get Z first - skip rest if <=0:
 ; z'=G*x+H*y+I*z
@@ -364,7 +364,7 @@ MatF		add.b	__SMC__(multbl,oz.w),ty
 ;-------------------------------------------------------------------------------
 Colour:
 		move.w	tz,d3
-		sub.w	a0,d3					; TODO: this is dumb
+		sub.w	a0,d3		; TODO: this is dumb
 		asr.w	#5,d3
 		lsl.w	#2,d3
 		lea	ScreenOffsets,a0
@@ -376,7 +376,7 @@ Perspective:
 		ext.w	tx
 		add.w	tz,tz
 		lea	DivTab,divtbl
-		move.w	(divtbl,tz),d5				; d5 = 1/z
+		move.w	(divtbl,tz),d5	; d5 = 1/z
 		muls	d5,tx
 		asr.l	#15-DIST_SHIFT,tx
 		muls	d5,ty
@@ -391,7 +391,7 @@ Draw:
 
 SMCNext		move.l	(sp)+,a0
 		dbf	d7,SMCLoop
-		move.l	#0,(clear)+				; End clear list
+		move.l	#0,(clear)+	; End clear list
 
 		bra	Frame
 		rts
@@ -428,12 +428,12 @@ BuildPalette:
 		move.w	#31-1,d6
 .col
 		lea	Colors+12,a2
-		moveq	#0,d0					; r
-		moveq	#0,d1					; g
-		moveq	#0,d2					; b
-		moveq	#5-1,d5					; iterate channels
+		moveq	#0,d0		; r
+		moveq	#0,d1		; g
+		moveq	#0,d2		; b
+		moveq	#5-1,d5		; iterate channels
 .chan1
-		move.w	-(a2),d4				; Channel color
+		move.w	-(a2),d4	; Channel color
 		move.w	d6,d3
 		addq	#1,d3
 		btst	d5,d3
@@ -524,7 +524,7 @@ START = -$80+PAD
 		move.w	d0,(a0)+
 		move.w	d1,(a0)+
 		move.w	d2,(a0)+
-		move.w	#6,(a0)+				; r
+		move.w	#6,(a0)+	; r
 
 		add.w	#INC<<8,d2
 		dbf	d5,.z
@@ -589,8 +589,8 @@ InitLogo:
 		moveq	#2,d3
 		moveq	#6-1,d7
 .letter
-		move.b	(a0)+,d0				; x offset
-		move.b	(a0)+,d6				; count-1
+		move.b	(a0)+,d0	; x offset
+		move.b	(a0)+,d6	; count-1
 		ext.w	d6
 .pt
 		move.b	(a0)+,d1
@@ -600,12 +600,12 @@ InitLogo:
 		sub.b	#2,d2
 		lsl.b	#3,d1
 		lsl.b	#3,d2
-		move.b	d1,(a1)+				; x
+		move.b	d1,(a1)+	; x
 		clr.b	(a1)+
-		move.b	d2,(a1)+				; y
+		move.b	d2,(a1)+	; y
 		clr.b	(a1)+
-		clr.w	(a1)+					; z
-		move.w	d3,(a1)+				; r
+		clr.w	(a1)+		; z
+		move.w	d3,(a1)+	; r
 		dbf	d6,.pt
 		dbf	d7,.letter
 		rts
@@ -620,7 +620,7 @@ LerpPoints:
 		movem.w	(a0)+,d0-d3
 ; write initial values to tmp
 		move.w	d3,d4
-		lsl.w	#8,d4					; r needs to be FP too
+		lsl.w	#8,d4		; r needs to be FP too
 		movem.w	d0-d2/d4,(a4)
 		addq	#8,a4
 ; get deltas
@@ -725,9 +725,9 @@ ZoomBase:	dc.w	1500
 DrawPoints:	dc.l	0
 
 ParticlesSpeed:
-ParticlesSpeedX: dc.w	0					;-$100
-ParticlesSpeedY: dc.w	0					;$400
-ParticlesSpeedZ: dc.w	0					;-$200
+ParticlesSpeedX: dc.w	0		;-$100
+ParticlesSpeedY: dc.w	0		;$400
+ParticlesSpeedZ: dc.w	0		;-$200
 
 
 Allocated:
@@ -762,26 +762,29 @@ Colors:
 		; ; green / cyan
 		; dc.w $123,$164,$3a4,$4c8,$5dc,$5ef ; https://gradient-blaster.grahambates.com/?points=123@0,3a4@2,5ef@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
 		; ; pink / cyan
-		dc.w	$024,$636,$a39,$a7b,$9bd,$5ef		; https://gradient-blaster.grahambates.com/?points=123@0,a39@2,5ef@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
+		dc.w	$024,$636,$a39,$a7b,$9bd,$5ef ; https://gradient-blaster.grahambates.com/?points=123@0,a39@2,5ef@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
 		; ; bright pink / cyan
 		; dc.w $123,$737,$d0b,$c8d,$abe,$5ef ; https://gradient-blaster.grahambates.com/?points=123@0,d1b@2,5ef@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
 
 		; bright pink / blue
-		dc.w	$123,$228,$40d,$84d,$b5e,$f5d		; https://gradient-blaster.grahambates.com/?points=123@0,41d@2,f5d@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
+		; dc.w	$123,$228,$40d,$84d,$b5e,$f5d ; https://gradient-blaster.grahambates.com/?points=123@0,41d@2,f5d@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
 
 		; dc.w	$000,$f00,$0f0,$00f,$0ff,$fff ; test
 		; dc.w $011,$344,$766,$ba8,$fda ; nic orange
 		; dc.w $011,$235,$468,$79c,$acf ; nice blue
 		; dc.w $011,$344,$576,$9b8,$cfa ; nice green
-		dc.w	$123,$336,$649,$86a,$a7b,$b9b
-		dc.w	$000,$324,$649,$86a,$a7b,$b9b		; https://gradient-blaster.grahambates.com/?points=001@0,649@2,b9b@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
-		dc.w	$011,$334,$757,$b8a,$fae,$fff		; nice pink
+
+		;; dc.w	$123,$336,$649,$86a,$a7b,$b9b
+		; dc.w	$000,$324,$649,$86a,$a7b,$b9b		; https://gradient-blaster.grahambates.com/?points=001@0,649@2,b9b@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
+		; dc.w	$011,$334,$757,$b8a,$fae,$fff		; nice pink
+
 		; dc.w	$011,$345,$768,$bab,$fdf		; nice
 		; dc.w	$020,$453,$787,$bca,$fff		; dark green
 		; dc.w	$020,$353,$687,$aba,$eff		; green screen
-		dc.w	$101,$334,$668,$aab,$eff		; simple
-		dc.w	$420,$743,$a65,$db8,$ffd
-		dc.w	$114,$437,$869,$cbb,$ffd
+		;; dc.w	$101,$334,$668,$aab,$eff		; simple
+
+		;; dc.w	$420,$743,$a65,$db8,$ffd
+		; dc.w	$114,$437,$869,$cbb,$ffd
 
 Sin1:
 		dc.w	0,804,1608,2410,3212,4011,4808,5602
@@ -964,7 +967,7 @@ SpherePointsData:
 
 LogoPointsData:
 ; D
-		dc.b	0,12-1					; x,count
+		dc.b	0,12-1		; x,count
 		dc.b	0,0,0,1,0,2,0,3,0,4
 		dc.b	1,0,2,0
 		dc.b	3,1,3,2,3,3

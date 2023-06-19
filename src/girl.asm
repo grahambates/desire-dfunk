@@ -134,7 +134,7 @@ Frame:
 		swap	d1
 		neg.w	d1
 
-		move.w	#0,d2					; y2
+		move.w	#0,d2		; y2
 
 		tst.w	d1
 		bge	.pos
@@ -161,7 +161,7 @@ Frame:
 		bsr	BlitHead
 
 		jsr	WaitEOF
-		move.w	#DMAF_BLITHOG,dmacon(a6)		; unhog the blitter
+		move.w	#DMAF_BLITHOG,dmacon(a6) ; unhog the blitter
 		cmp.l	#GIRL_END_FRAME,CurrFrame
 		blt	Frame
 
@@ -184,17 +184,17 @@ ClearScreen:
 ; d1.w = y
 BlitHead:
 		lea	Head,a1
-		lea	HEAD_BW(a1),a2				; mask
+		lea	HEAD_BW(a1),a2	; mask
 ; y offset
 		mulu	#SCREEN_BW*BPLS,d1
 		add.w	d1,a0
 ; x offset
-		moveq	#$f,d1					; 0-15 shift
+		moveq	#$f,d1		; 0-15 shift
 		and.w	d0,d1
-		lsl	#2,d1					; offset for bltcon table
-		lsr.w	#3,d0					; byte offset
+		lsl	#2,d1		; offset for bltcon table
+		lsr.w	#3,d0		; byte offset
 		add.w	d0,a0
-		move.w	#DMAF_SETCLR!DMAF_BLITHOG,dmacon(a6)	; hog the blitter
+		move.w	#DMAF_SETCLR!DMAF_BLITHOG,dmacon(a6) ; hog the blitter
 		WAIT_BLIT
 		move.l	.bltcon(pc,d1.w),bltcon0(a6)
 		move.l	#(SCREEN_BW-HEAD_BW)<<16!HEAD_BW,bltcmod(a6)
@@ -285,9 +285,9 @@ BlitBody:
 		move.w	#BODY_BW-2,bltamod(a6)
 		move.w	#(SCREEN_BW-2),bltdmod(a6)
 
-		move.w	#2,d5					; byte increment - controls direction
+		move.w	#2,d5		; byte increment - controls direction
 DX = BODY_W/16-1
-		move.w	d2,d3					; dy
+		move.w	d2,d3		; dy
 		sub.w	d1,d3
 		bge	.pos
 		lea	DX*2(a1),a1
@@ -314,8 +314,8 @@ DX = BODY_W/16-1
 		; if D > 0
 		tst.w	d4
 		ble	.noInc
-		add.w	#SCREEN_BW*BPLS,d1			; y = y + 1 (pre multiplied)
-		sub.w	#DX*2,d4				; D = D - 2*dx
+		add.w	#SCREEN_BW*BPLS,d1 ; y = y + 1 (pre multiplied)
+		sub.w	#DX*2,d4	; D = D - 2*dx
 .noInc
 		; D = D + 2*dy
 		add.w	d3,d4
@@ -349,8 +349,8 @@ Cop:
 		dc.w	bplcon0,(BPLS+2)<<12!$200!(1<<10)
 		dc.w	color00,$90c
 		dc.w	color01,$323
-		dc.w	color02,$666
-		dc.w	color03,$eca
+		dc.w	color02,$eca
+		dc.w	color03,$666
 		dc.w	color09,$000
 		dc.w	color10,$fff
 		dc.w	color11,$fff

@@ -1,7 +1,7 @@
 		include	src/_main.i
 		include	image.i
 
-IMAGE_END_FRAME = $1000
+IMAGE_END_FRAME = $100
 
 ; Color indexes
 GRAD_COL = color05
@@ -13,6 +13,11 @@ D_GRAD_Y = 11
 D_GRAD_H = 58
 LETTERS_GRAD_Y = 70
 LETTERS_GRAD_H = 52
+		sub.l	a0,a0
+		sub.l	a0,a0
+		sub.l	a0,a0
+
+		movem.l	(sp),a0-a2
 
 ; Screen
 DIW_W = 320
