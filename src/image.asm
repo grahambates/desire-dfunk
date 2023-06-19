@@ -1,5 +1,6 @@
 		include	src/_main.i
 		include	image.i
+		include	tunnel.i
 
 IMAGE_END_FRAME = $200
 
@@ -158,6 +159,7 @@ DoCycle:
 ********************************************************************************
 Image_Effect:
 ********************************************************************************
+		jsr	Free
 		jsr	ResetFrameCounter
 		lea	Cop,a0
 		lea	Image_Vbi,a1
@@ -187,6 +189,8 @@ Image_Effect:
 .l		move.w	(a1)+,(a0)
 		lea	16(a0),a0
 		dbf	d0,.l
+
+		jsr	Tunnel_Setup
 
 Frame:
 		jsr	WaitEOF

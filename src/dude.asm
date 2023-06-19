@@ -143,11 +143,12 @@ PokeBpls:
 ********************************************************************************
 Dude_Effect:
 ********************************************************************************
-		jsr	ResetFrameCounter
-		jsr	Free
+
 		lea	BlankCop,a0
 		sub.l	a1,a1
 		jsr	StartEffect
+		jsr	ResetFrameCounter
+		jsr	Free
 
 ; Allocate mem
 		move.l	#PF1_SIZE,d0
@@ -168,8 +169,11 @@ Dude_Effect:
 		move.l	#CLEAR_LIST_ITEM_SZ*10,d0
 		jsr	AllocPublic
 		move.l	a0,DrawClearList
+		clr.l	(a0)
+
 		jsr	AllocPublic
 		move.l	a0,ViewClearList
+		clr.l	(a0)
 
 ; lerp tables
 LERP_TBL	macro

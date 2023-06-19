@@ -58,13 +58,7 @@ Script:
 
 
 ********************************************************************************
-Tunnel_Effect:
-		jsr	ResetFrameCounter
-		jsr	Free
-		lea	BlankCop,a0
-		sub.l	a1,a1
-		jsr	StartEffect
-
+Tunnel_Setup:
 		move.l	#SRC_SIZE*2*SHADES,d0
 		jsr	AllocPublic
 		move.l	a0,Shades
@@ -90,6 +84,12 @@ Tunnel_Effect:
 		lea	SRC_SIZE*2(a1),a1
 		addq	#1,d0
 		dbf	d7,.f
+		rts
+
+
+********************************************************************************
+Tunnel_Effect:
+		jsr	ResetFrameCounter
 
 		move.l	Cop,a0
 		sub.l	a1,a1
@@ -146,7 +146,7 @@ InitDrawTable:
 		and.w	d0,d2
 		add.w	d2,d2
 ; Shade
-		lsl.l	#4,d0					; lsr 12
+		lsl.l	#4,d0		; lsr 12
 		swap	d0
 		and.w	#$f,d0
 		; Special case for shade 0: just write Immediate zero for black
@@ -178,7 +178,7 @@ InitDrawTable:
 		rts
 
 .shadeLut:
-		dc.w	0,0					; not used
+		dc.w	0,0		; not used
 		dc.w	3,-32768
 		dc.w	3,-16384
 		dc.w	3,0
@@ -207,7 +207,7 @@ InitChunky:
 		move.w	#DIW_YSTRT+1,d0
 		move.w	#CHUNKY_H-1,d7
 .row
-		move.l	a0,a1					; Store address for jump
+		move.l	a0,a1		; Store address for jump
 		addq	#8,a1
 
 		addq	#3,d0
@@ -215,7 +215,7 @@ InitChunky:
 		bne	.ok
 		subq	#1,d0
 .ok
-		move.l	#color02<<16!BG_COL,(a0)+		;CopC_OddCols
+		move.l	#color02<<16!BG_COL,(a0)+ ;CopC_OddCols
 		; skip 3
 		move.l	#color04<<16!BG_COL,(a0)+
 		move.l	#color05<<16!BG_COL,(a0)+
@@ -246,7 +246,7 @@ InitChunky:
 		move.l	#color30<<16!BG_COL,(a0)+
 		move.l	#color31<<16!BG_COL,(a0)+
 
-		move.w	#$80,d1					;CopC_Wait
+		move.w	#$80,d1		;CopC_Wait
 		and.w	d0,d1
 		move.b	d1,(a0)+
 		move.b	#$5d,(a0)+
@@ -256,13 +256,13 @@ InitChunky:
 .evenCol	move.l	#color00<<16!BG_COL,(a0)+
 		dbf	d6,.evenCol
 
-		move.l	#color00<<16!BG_COL,(a0)+		;CopC_Bg
-		move.w	#(cop2lc+2),(a0)+			;CopC_Loc
+		move.l	#color00<<16!BG_COL,(a0)+ ;CopC_Bg
+		move.w	#(cop2lc+2),(a0)+ ;CopC_Loc
 		move.w	a1,(a0)+
-		move.b	d0,(a0)+				;CopC_Skip
+		move.b	d0,(a0)+	;CopC_Skip
 		move.b	#31,(a0)+
 		move.w	#$ffff,(a0)+
-		move.l	#copjmp2<<16,(a0)+			;CopC_Jmp
+		move.l	#copjmp2<<16,(a0)+ ;CopC_Jmp
 		dbf	d7,.row
 
 		; end copper
@@ -336,7 +336,7 @@ FadeRGB:
 		move.l	a1,a4
 		add.l	#SRC_SIZE,a4
 		lsl.w	#4,d0
-		add.l	d0,a2					; Move to row in LUTs for fade value
+		add.l	d0,a2		; Move to row in LUTs for fade value
 		add.l	d0,a3
 		moveq	#0,d1
 		moveq	#0,d2
@@ -345,15 +345,15 @@ FadeRGB:
 .unroll		equ	16
 		move.w	#SRC_W*SRC_H/.unroll-1,d0
 .l		rept	.unroll
-		move.b	(a0)+,d1				; r
+		move.b	(a0)+,d1	; r
 		move.b	(a2,d1),d1
 		move.b	d1,(a1)+
 		move.b	d1,(a4)+
-		move.b	(a0)+,d1				; g
+		move.b	(a0)+,d1	; g
 		move.b	d1,d2
 		lsr	#4,d2
 		move.b	(a3,d2),d2
-		and.w	d4,d1					; b
+		and.w	d4,d1		; b
 		or.b	(a2,d1),d2
 		move.b	d2,(a1)+
 		move.b	d2,(a4)+
@@ -464,7 +464,7 @@ PanOffs:	dc.l	0
 Draw:
 ;-------------------------------------------------------------------------------
 		move.l	Cop(pc),a1
-		move.l	sp,.stack				; Free up a7 register for an extra shade - this means we can't use jsr
+		move.l	sp,.stack	; Free up a7 register for an extra shade - this means we can't use jsr
 		lea	CopChunky+CopC_EvenCols+2(a1),a0
 		lea	CopChunky+CopC_OddCols+2(a1),a1
 		move.l	DrawTbl,a2
@@ -486,7 +486,7 @@ Draw:
 		move.w	Y(pc),d1
 		; mulu        #SRC_W*2,d1
 		; lsl.w	#8,d1					; OPT
-		lsl.w	#7,d1					; OPT
+		lsl.w	#7,d1		; OPT
 		ext.l	d1
 		add.w	d0,d1
 		add.l	d1,a3
@@ -574,7 +574,7 @@ Draw:
 		add.w	d0,d0
 		sub.l	d0,a0
 		sub.l	d0,a1
-		move.l	d0,PanOffs				; store
+		move.l	d0,PanOffs	; store
 
 		move.w	PanY(pc),d0
 		mulu	#ROW_BW,d0
@@ -585,13 +585,13 @@ Draw:
 		sub.w	Top(pc),d0
 		bra	.next
 .l
-		move.w	CHUNKY_W*6(a2),d1			; stash instructions before SMC
+		move.w	CHUNKY_W*6(a2),d1 ; stash instructions before SMC
 		move.l	CHUNKY_W*6+2(a2),d2
-		move.w	#$4ef9,CHUNKY_W*6(a2)			; insert `jmp .ret`
+		move.w	#$4ef9,CHUNKY_W*6(a2) ; insert `jmp .ret`
 		move.l	#.ret,CHUNKY_W*6+2(a2)
 		jmp	(a2)
 .ret
-		move.w	d1,CHUNKY_W*6(a2)			; restore originl instructions
+		move.w	d1,CHUNKY_W*6(a2) ; restore originl instructions
 		move.l	d2,CHUNKY_W*6+2(a2)
 		lea	CopC_SIZEOF(a0),a0
 		lea	CopC_SIZEOF(a1),a1
