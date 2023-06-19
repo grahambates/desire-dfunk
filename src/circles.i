@@ -13,11 +13,12 @@ Blit_Mod	rs.w	1
 Blit_Sz		rs.w	1
 Blit_SIZEOF	rs.b	0
 
-	xref	Circles_Precalc
-	xref	ClearCircles
-	xref	DrawCircle
-	xref	BlitCircle
-	xref	Plot
-	xref	BltCircSizes
-	xref 	ClearList1
-	xref 	ClearList2
+		xdef	Circles_Precalc
+		xdef	ClearCircles
+		xdef	DrawCircle
+		xdef	BlitCircle
+		xdef	Plot
+		xdef	BltCircSizes
+		xdef	ClearList1
+		xdef	ClearList2
+		xdef	DrawCircleFill

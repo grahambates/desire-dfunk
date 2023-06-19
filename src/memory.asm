@@ -3,6 +3,8 @@
 
 CHIP_BUFFER_SIZE = 1024*200
 PUBLIC_BUFFER_SIZE = 1024*290
+; CHIP_BUFFER_SIZE = 1024*10
+; PUBLIC_BUFFER_SIZE = 1024*10
 
 ********************************************************************************
 ; Memory
