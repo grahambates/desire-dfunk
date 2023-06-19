@@ -1,7 +1,7 @@
 		include	src/_main.i
 		include	image.i
 
-IMAGE_END_FRAME = $100
+IMAGE_END_FRAME = $200
 
 ; Color indexes
 GRAD_COL = color05

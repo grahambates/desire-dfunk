@@ -1,7 +1,7 @@
 		include	src/_main.i
 		include	dude.i
 
-DUDE_END_FRAME = $1000
+DUDE_END_FRAME = $400
 
 TOP_PAD = 13
 L_PAD = 32
