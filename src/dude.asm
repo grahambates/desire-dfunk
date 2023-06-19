@@ -1001,13 +1001,13 @@ CopLoopA
 		incbin	data/dude_walking.COP
 		COP_WAITH 0,$e0
 		dc.w	bpl1mod,PF1_MOD
-		dc.w	color01,$000
-		dc.w	color02,$414
-		dc.w	color03,$a28
-		dc.w	color04,$f8a
-		dc.w	color05,$000
-		dc.w	color06,$556
-		dc.w	color07,$5a5
+		dc.w	$182,$000
+		dc.w	$186,$414
+		dc.w	$184,$a28
+		dc.w	$18c,$f8a
+		dc.w	$188,$000
+		dc.w	$18a,$556
+		dc.w	$18e,$5a5
 		COP_WAITH 0,$e0
 		COP_SKIPV $80
 		dc.w	copjmp2,0
@@ -1020,15 +1020,14 @@ CopLoopB
 		incbin	data/dude_walking.COP
 		COP_WAITH $80,$e0
 		dc.w	bpl1mod,PF1_MOD
-		dc.w	color01,$000
-		dc.w	color02,$414
-		dc.w	color03,$a28
-		dc.w	color04,$f8a
-		dc.w	color05,$000
-		dc.w	color06,$556
-		dc.w	color07,$5a5
+		dc.w	$182,$000
+		dc.w	$186,$414
+		dc.w	$184,$a28
+		dc.w	$18c,$f8a
+		dc.w	$188,$000
+		dc.w	$18a,$556
+		dc.w	$18e,$5a5
 		COP_WAITH $80,$e0
-		; COP_SKIPV DUDE_Y+DIW_YSTRT+DUDE_H*2
 		COP_SKIPV $ff
 		dc.w	copjmp2,0
 

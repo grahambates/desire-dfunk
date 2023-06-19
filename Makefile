@@ -2,7 +2,7 @@ vasm_sources := $(wildcard src/*.asm)
 vasm_objects := $(addprefix obj/, $(patsubst %.asm,%.o,$(notdir $(vasm_sources))))
 objects := $(vasm_objects)
 deps := $(objects:.o=.d)
-dude_images := $(wildcard assets/dude_walking_16_frames/*.png)
+dude_images := $(wildcard assets/walking_dude_v2/*.iff)
 data := data/girl-head.BPL data/girl-body.BPL obj/tables_shade1.o data/tex.rgb data/DFunk-vert.SPR data/dude_walking.BPL data/credit-gigabates.BPL data/credit-maze.BPL data/credit-steffest.BPL data/dude-bg.BPL data/dfunk_ordered.BPL data/font.i data/persp.i data/lamppost.SPR
 
 program = out/a
@@ -109,7 +109,7 @@ data/dfunk_ordered.BPL : assets/dfunk_ordered.iff
 
 # Dude walking
 data/dude_walking.BPL : $(dude_images)
-	$(KINGCON) assets/dude_walking_16_frames-c/dude_walking_b_1.png data/dude_walking -I -A -F=3
+	$(KINGCON) assets/walking_dude_v2/1.iff data/dude_walking -I -A -F=3 -C
 data/dude-bg.BPL : assets/dude-walking-bg2.png
 	$(KINGCON) assets/dude-walking-bg2.png data/dude-bg -F=2 -C=8
 data/lamppost.SPR : assets/lamppost.png
