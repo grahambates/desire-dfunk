@@ -1,29 +1,25 @@
 		include	src/_main.i
 		include	image.i
 
-IMAGE_END_FRAME = $200
+IMAGE_END_FRAME = $1000
 
 ; Color indexes
-GRAD_COL = $186
-HIGHLIGHT_COL = $196
+GRAD_COL = color05
+HIGHLIGHT_COL = color24
 LETTERS_COL = $198
 
 ; Copper positions
-D_GRAD_Y = 21
+D_GRAD_Y = 11
 D_GRAD_H = 58
-LETTERS_GRAD_Y = 77
+LETTERS_GRAD_Y = 70
 LETTERS_GRAD_H = 52
-DOT2_Y = 12
-DOT3_Y = 147
-DOT4_Y = 155
-DOT5_Y = 169
 
 ; Screen
 DIW_W = 320
-DIW_H = 180
+DIW_H = 150
 SCREEN_W = DIW_W
 SCREEN_H = DIW_H
-BPLS = 4
+BPLS = 5
 
 ;-------------------------------------------------------------------------------
 ; Derived
@@ -66,49 +62,35 @@ Image_Vbi:
 		move.w	d1,TopBorder-Cop(a5)
 		move.w	d1,BottomBorder-Cop(a5)
 
-		; dots
-		move.w	#$30,d2
-		move.w	#$3e,d3
-		move.w	d0,d1
-		lsr	#2,d1
-		and.w	d3,d1
-		lea	DGradientData1(pc),a0
-		add.w	d2,d1
-		and.w	d3,d1
-		move.w	(a0,d1.w),Dot1-Cop(a5)
-		lea	DGradientData2(pc),a0
-		add.w	d2,d1
-		and.w	d3,d1
-		move.w	(a0,d1.w),Dot2-Cop(a5)
-		lea	DGradientData3(pc),a0
-		add.w	d2,d1
-		and.w	d3,d1
-		move.w	(a0,d1.w),Dot3-Cop(a5)
-		lea	DGradientData1(pc),a0
-		add.w	d2,d1
-		and.w	d3,d1
-		move.w	(a0,d1.w),Dot4-Cop(a5)
-		lea	DGradientData4(pc),a0
-		add.w	d2,d1
-		and.w	d3,d1
-		move.w	(a0,d1.w),Dot5-Cop(a5)
+		lea	FastCycleGoldCols(pc),a0
+		lea	FastCycleGold+2,a1
+		moveq	#6,d2
+		moveq	#3,d3
+		bsr	DoCycle
 
-		; cycle letters
-		move.w	d0,d1
-		neg.w	d1
-		lsr.l	#4,d1
-		and.w	#3<<1,d1
-		lea	Cols(pc),a0
-		lea	(a0,d1.w),a0
-		lea	LETTERS_COL(a6),a1
-		move.l	(a0)+,(a1)+
-		move.l	(a0)+,(a1)+
+		lea	MediumCycleBlueCols(pc),a0
+		lea	MediumCycleBlue+2,a1
+		moveq	#7,d2
+		moveq	#4,d3
+		bsr	DoCycle
+
+		lea	MediumCyclePurpleCols(pc),a0
+		lea	MediumCyclePurple+2,a1
+		moveq	#3,d2
+		moveq	#4,d3
+		bsr	DoCycle
+
+		lea	SlowCycleFunkCols(pc),a0
+		lea	SlowCycleFunk+2,a1
+		moveq	#4,d2
+		moveq	#5,d3
+		bsr	DoCycle
 
 		; highlight
-		move.w	#$777,HIGHLIGHT_COL(a6)
+		move.w	#$777,ColHighlight
 		btst	#6,d0
 		beq	.odd
-		move.w	#$fff,HIGHLIGHT_COL(a6)
+		move.w	#$fff,ColHighlight
 .odd
 
 		; d gradient
@@ -119,7 +101,7 @@ Image_Vbi:
 .dgrad
 		move.w	d0,d1
 		lsr	#1,d1
-		and.w	#$7e,d1
+		and.w	#$3e,d1
 		move.w	(a0,d1),(a1)
 		lea	8(a1),a1
 		addq	#1,d0
@@ -147,6 +129,27 @@ Image_Vbi:
 
 		rts
 
+
+********************************************************************************
+; a0 = colors
+; a1 = copper
+; d1 = pos
+; d2 = colour count
+; d3 = speed shift
+DoCycle:
+		move.l	d0,d1
+		neg.w	d1
+		lsr.l	d3,d1
+		divu	d2,d1
+		swap	d1
+		add.w	d1,d1
+		lea	(a0,d1.w),a0
+		subq	#1,d2
+.l		move.w	(a0)+,(a1)
+		addq	#4,a1
+		dbf	d2,.l
+		rts
+
 ********************************************************************************
 Image_Effect:
 ********************************************************************************
@@ -167,6 +170,19 @@ Image_Effect:
 		swap	d0
 		move.w	d0,(a0)
 
+		lea	Cop2LcD+2,a0
+		move.l	#CopLoopD,d0
+		move.w	d0,4(a0)
+		swap	d0
+		move.w	d0,(a0)
+
+		lea	BottomGradient+2,a0
+		lea	BottomGradCols,a1
+		moveq	#14-1,d0
+.l		move.w	(a1)+,(a0)
+		lea	16(a0),a0
+		dbf	d0,.l
+
 Frame:
 		jsr	WaitEOF
 		cmp.l	#IMAGE_END_FRAME,CurrFrame
@@ -178,31 +194,31 @@ Frame:
 Data:
 ********************************************************************************
 
-DGradientData:
+SlowCycleFunkCols:
+		dc.w	$ed1,$e71,$d6f,$6cf
+		dc.w	$ed1,$e71,$d6f,$6cf
+FastCycleGoldCols:
+		dc.w	$443,$664,$886,$a97,$775,$765
+		dc.w	$443,$664,$886,$a97,$775,$765
+MediumCyclePurpleCols:
+		dc.w	$747,$434,$323
+		dc.w	$747,$434,$323
+MediumCycleBlueCols:
+		dc.w	$112,$122,$122,$123,$233,$7ac,$567
+		dc.w	$112,$122,$122,$123,$233,$7ac,$567
+
+BottomGradCols:
+; https://gradient-blaster.grahambates.com/?points=446@0,335@4,224@6,112@11,111@13&steps=14&blendMode=linear&ditherMode=off&target=amigaOcs
+		dc.w	$446,$446,$335,$335,$335,$224,$224,$113
+		dc.w	$113,$113,$112,$112,$111,$111
+
+
 ; https://gradient-blaster.grahambates.com/?points=123@0,a08@16,123@31&steps=32&blendMode=lab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=63
-DGradientData1:
+DGradientData:
 		dc.w	$123,$223,$223,$324,$324,$424,$424,$525
 		dc.w	$625,$625,$626,$726,$816,$817,$917,$a18
 		dc.w	$a08,$a18,$917,$817,$826,$726,$726,$526
 		dc.w	$525,$525,$425,$324,$324,$223,$123,$123
-; https://gradient-blaster.grahambates.com/?points=123@0,10a@16,123@31&steps=32&blendMode=lab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=63
-DGradientData2:
-		dc.w	$123,$123,$114,$124,$125,$115,$125,$216
-		dc.w	$116,$217,$117,$218,$108,$119,$009,$10a
-		dc.w	$10a,$10a,$109,$109,$118,$118,$117,$117
-		dc.w	$116,$216,$115,$124,$114,$123,$123,$123
-; https://gradient-blaster.grahambates.com/?points=123@0,0a3@16,123@31&steps=32&blendMode=lab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=63
-DGradientData3:
-		dc.w	$123,$123,$123,$133,$243,$143,$153,$253
-		dc.w	$263,$273,$273,$273,$183,$193,$093,$1a3
-		dc.w	$0a3,$1a3,$193,$183,$183,$173,$263,$163
-		dc.w	$253,$253,$143,$143,$133,$133,$123,$123
-; https://gradient-blaster.grahambates.com/?points=123@0,0aa@16,123@31&steps=32&blendMode=lab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=63
-DGradientData4:
-		dc.w	$123,$123,$124,$134,$145,$145,$155,$156
-		dc.w	$166,$167,$077,$178,$188,$199,$099,$0aa
-		dc.w	$0aa,$0aa,$099,$089,$188,$178,$167,$167
-		dc.w	$156,$156,$145,$144,$134,$133,$123,$123
 
 ; https://gradient-blaster.grahambates.com/?points=bfc@0,f1c@57,bfd@63&steps=64&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=26
 LGradientData:
@@ -219,10 +235,6 @@ Bars:
 		dc.w	$b9c,$c9c,$c9b,$c99,$ca9,$cb9,$cc9,$bc9
 		dc.w	$ac9,$9c9,$9cb,$9cc,$9bc,$9ac,$99c,$a9c
 
-Cols:
-		dc.w	$6cf,$d6f,$e71,$ed1
-		dc.w	$6cf,$d6f,$e71,$ed1
-
 
 ********************************************************************************
 		data_c
@@ -236,17 +248,46 @@ Cop:
 		dc.w	bpl1mod,DIW_MOD
 		dc.w	bpl2mod,DIW_MOD
 		dc.w	bplcon0,BPLS<<12!$200
-		; incbin	data/dfunk320.COP
-		dc.w	$180,$000
-		dc.w	$182,$111
-		dc.w	$184,$213
-		dc.w	$188,$325
-		dc.w	$18a,$547
+
+		dc.w	$180,$111
+		dc.w	$182,$213
+		dc.w	$184,$325
+		dc.w	$186,$000
+		dc.w	$188,$547
+		; dc.w	color05,$6b7
 		dc.w	$18c,$879
-		dc.w	$18e,$98c
+		dc.w	$18e,$bbc
 		dc.w	$190,$a9c
-		dc.w	$192,$bbc
+		dc.w	$192,$98c
 		dc.w	$194,$668
+FastCycleGold:
+		dc.w	color15,0
+		dc.w	color19,0
+		dc.w	color11,0
+		dc.w	color18,0
+		dc.w	color13,0
+		dc.w	color12,0
+MediumCyclePurple:
+		dc.w	color17,0
+		dc.w	color14,0
+		dc.w	color16,0
+SlowCycleFunk:
+		dc.w	color20,0
+		dc.w	color23,0
+		dc.w	color21,0
+		dc.w	color22,0
+ColHighlight:
+		dc.w	color24,0
+MediumCycleBlue:
+		dc.w	color26,0
+		dc.w	color30,0
+		dc.w	color28,0
+		dc.w	color25,0
+		dc.w	color29,0
+		dc.w	color27,0
+		dc.w	color31,0
+
+		COP_WAITV 20		; align borders
 
 Cop2LcA		dc.w	cop2lch,0
 		dc.w	cop2lcl,0
@@ -266,12 +307,6 @@ TopBorder:	dc.w	$fff
 		COP_WAITV DIW_YSTRT
 		dc.w	color00,$000
 
-		dc.w	GRAD_COL
-Dot1:		dc.w	$fff
-		COP_WAITV DIW_YSTRT+DOT2_Y
-		dc.w	GRAD_COL
-Dot2:		dc.w	$f0f
-
 		COP_WAITV DIW_YSTRT+D_GRAD_Y
 DGradient:
 .y		set	DIW_YSTRT+D_GRAD_Y
@@ -288,39 +323,54 @@ LettersGradient:
 		COP_WAITH $80,$e0
 		endr
 
-		COP_WAITV DIW_YSTRT+147
-		dc.w	GRAD_COL
-Dot3:		dc.w	$ff0
-		COP_WAITV DIW_YSTRT+155
-		dc.w	GRAD_COL
-Dot4:		dc.w	$f0f
-		COP_WAITV DIW_YSTRT+169
-		dc.w	GRAD_COL
-Dot5:		dc.w	$0ff
-
-		; pal fix
-		COP_WAIT $ff,$de
+BottomGradient:
+		rept	14*2
+		dc.w	GRAD_COL,$000
+		COP_WAITH $80,$e0
+		endr
 
 		; bottom border
-		COP_WAITV DIW_YSTOP+1
+		COP_WAITV DIW_YSTOP
 		dc.w	color00
 BottomBorder:	dc.w	$fff
-		COP_WAITV DIW_YSTOP+2
+		COP_WAITV DIW_YSTOP+1
 		dc.w	color00,$000
-		; bottom loop
+
+		; bottom loop 1
 Cop2LcB		dc.w	cop2lch,0
 		dc.w	cop2lcl,0
 CopLoopB
 		dc.w	color00,$000
 		dc.w	color00,$111
+		COP_WAITH $80,$e0
+		dc.w	color00,$111
+		dc.w	color00,$000
+		COP_WAITH $80,$e0
+		COP_SKIPV $fe
+		dc.w	copjmp2,0
+
+		dc.w	color00,$000
+		dc.w	color00,$111
+		COP_WAITH $80,$e0
+		dc.w	color00,$111
+		dc.w	color00,$000
+		COP_WAITH $80,$e0
+
+		; bottom loop 2
+Cop2LcD		dc.w	cop2lch,0
+		dc.w	cop2lcl,0
+CopLoopD
+		dc.w	color00,$000
+		dc.w	color00,$111
 		COP_WAITH $0,$e0
 		dc.w	color00,$111
 		dc.w	color00,$000
 		COP_WAITH $0,$e0
-		COP_SKIPV DIW_YSTOP+50
+		COP_SKIPV $40
 		dc.w	copjmp2,0
+
 
 		dc.l	-2
 
 Image:
-		incbin	data/dfunk320.BPL
+		incbin	data/dfunk_ordered.BPL

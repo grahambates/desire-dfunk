@@ -3,7 +3,7 @@ vasm_objects := $(addprefix obj/, $(patsubst %.asm,%.o,$(notdir $(vasm_sources))
 objects := $(vasm_objects)
 deps := $(objects:.o=.d)
 dude_images := $(wildcard assets/dude_walking_16_frames/*.png)
-data := data/girl-head.BPL data/girl-body.BPL obj/tables_shade1.o data/tex.rgb data/DFunk-vert.SPR data/dude_walking.BPL data/credit-gigabates.BPL data/credit-maze.BPL data/credit-steffest.BPL data/dude-bg.BPL data/dfunk320.BPL data/dfunk320b.BPL data/font.i data/persp.i data/lamppost.SPR
+data := data/girl-head.BPL data/girl-body.BPL obj/tables_shade1.o data/tex.rgb data/DFunk-vert.SPR data/dude_walking.BPL data/credit-gigabates.BPL data/credit-maze.BPL data/credit-steffest.BPL data/dude-bg.BPL data/dfunk_ordered.BPL data/font.i data/persp.i data/lamppost.SPR
 
 program = out/a
 OUT = $(program)
@@ -104,10 +104,8 @@ data/DFunk-vert.SPR : assets/DFunk-vert.png
 	$(KINGCON) $< data/DFunk-vert -F=s16 -SX=128
 
 # Static logo screen
-data/dfunk320.BPL : assets/dfunk320.png
-	$(KINGCON) $< data/dfunk320 -F=4 -C
-data/dfunk320b.BPL : assets/dfunk320b.png
-	$(KINGCON) $< data/dfunk320b -F=5 -C
+data/dfunk_ordered.BPL : assets/dfunk_ordered.iff
+	$(KINGCON) $< data/dfunk_ordered -F=5 -C
 
 # Dude walking
 data/dude_walking.BPL : $(dude_images)
