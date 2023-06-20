@@ -133,9 +133,10 @@ Metabobs_Effect:
 		move.l	a0,ViewTmp
 		bsr	ClearScreen
 
-		move.l	#Q_SIZE*10,d0
+		move.l	#Q_SIZE,d0
 		jsr	AllocChip
 		move.l	a0,DrawCopQueue
+		jsr	AllocChip
 		move.l	a0,ViewCopQueue
 
 		move.l	#BOB_BPL*SIZE_COUNT,d0
@@ -206,7 +207,7 @@ PokeCop:
 		dbf	d7,.l0
 
 		lea	Cop2Lc+2,a0
-		move.l	DrawCopQueue(pc),d0
+		move.l	ViewCopQueue(pc),d0
 		move.w	d0,4(a0)
 		swap	d0
 		move.w	d0,(a0)
