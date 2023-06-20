@@ -1,7 +1,7 @@
 		include	src/_main.i
 		include	src/metabobs.i
 
-METABOBS_END_FRAME = $100
+METABOBS_END_FRAME = 40
 
 ;********************************************************************************
 ; Faux metaballs effect

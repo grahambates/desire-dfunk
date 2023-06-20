@@ -22,8 +22,7 @@ elf_objects := $(addprefix obj/, $(patsubst %.asm,%.elf,$(notdir $(sources))))
 hunk_objects := $(addprefix obj/, $(patsubst %.asm,%.o,$(notdir $(sources))))
 deps := $(elf_objects:.elf=.d)
 
-dude_images := $(wildcard assets/walking_dude_v2/*.iff)
-data := data/girl-head.BPL data/girl-body.BPL obj/tables_shade1.o data/tex.rgb data/DFunk-vert.SPR data/dude_walking.BPL data/credit-gigabates.BPL data/credit-maze.BPL data/credit-steffest.BPL data/dude-bg.BPL data/dfunk_ordered.BPL data/font.i data/persp.i data/lamppost.SPR
+data = obj/tables_shade1.o
 
 all: out/$(exe)
 	cp $< $(program).exe
@@ -70,6 +69,7 @@ clean:
 $(deps): obj/%.d : src/%.asm
 	$(info Building dependencies for $<)
 	$(VASM) $(VASMFLAGS) -quiet -depend=make -o $(patsubst %.d,%.elf,$@) $(CURDIR)/$< > $@
+	$(VASM) $(VASMFLAGS) -quiet -depend=make -o $(patsubst %.d,%.o,$@) $(CURDIR)/$< >> $@
 
 
 #-------------------------------------------------------------------------------
@@ -119,7 +119,7 @@ data/dfunk_ordered.BPL : assets/dfunk_ordered.iff
 	$(KINGCON) $< data/dfunk_ordered -F=5 -C
 
 # Dude walking
-data/dude_walking.BPL : $(dude_images)
+data/dude_walking.BPL : $(wildcard assets/walking_dude_v2/*.iff)
 	$(KINGCON) assets/walking_dude_v2/1.iff data/dude_walking -I -A -F=3 -C
 data/dude-bg.BPL : assets/dude-walking-bg2.png
 	$(KINGCON) assets/dude-walking-bg2.png data/dude-bg -F=2 -C=8
