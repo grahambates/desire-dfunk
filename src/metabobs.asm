@@ -173,12 +173,12 @@ Frame:
 		exg	d6,d7		; cop queue
 		movem.l	d0-d7,DblBuffers
 
-		bsr	PokeCop
 		bsr	Clear
 		bsr	Update
 		bsr	DrawBobs
 
 		jsr	WaitEOF
+		bsr	PokeCop
 
 		bsr	DrawSprites
 		bra	Frame
