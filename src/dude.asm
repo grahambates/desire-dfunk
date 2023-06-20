@@ -163,8 +163,10 @@ Dude_Effect:
 		move.l	#PF2_SIZE+PF2_BW*TOP_PAD,d0
 		jsr	AllocChip
 		move.l	a0,DrawBufferB
+		bsr	ClearScreen
 		jsr	AllocChip
 		move.l	a0,ViewBufferB
+		bsr	ClearScreen
 
 		move.l	#CLEAR_LIST_ITEM_SZ*10,d0
 		jsr	AllocPublic
@@ -452,9 +454,7 @@ DrawWall:
 
 		move.w	#0,(a1)+	; end clear list
 
-		; move.w	#$f00,color00(a6)
 		jsr	WaitEOF
-		; move.w	#$0,color00(a6)
 		cmp.l	#DUDE_END_FRAME,CurrFrame
 		blt	Frame
 

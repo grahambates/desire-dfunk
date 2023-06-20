@@ -72,6 +72,7 @@ Girl_Effect:
 		jsr	ResetFrameCounter
 		jsr	Free
 
+
 		lea	Script,a0
 		jsr	Commander_Init
 
@@ -87,6 +88,7 @@ Girl_Effect:
 		move.l	#SCREEN_BW*SCREEN_H,d0
 		jsr	AllocChip
 		move.l	a0,CredScreen
+		bsr	ClearScreen
 
 		lea	Cop,a0
 		lea	Girl_Vbi,a1

@@ -1,6 +1,8 @@
 		include	src/_main.i
 		include	rotate.i
 
+ROTATE_END_FRAME = $400
+
 DIW_W = CIRCLES_DIW_W
 DIW_H = CIRCLES_DIW_H
 SCREEN_W = CIRCLES_SCREEN_W
@@ -393,7 +395,10 @@ SMCNext		move.l	(sp)+,a0
 		dbf	d7,SMCLoop
 		move.l	#0,(clear)+	; End clear list
 
-		bra	Frame
+		jsr	WaitEOF
+		cmp.l	#ROTATE_END_FRAME,CurrFrame
+		blt	Frame
+
 		rts
 
 
