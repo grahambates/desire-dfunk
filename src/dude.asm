@@ -967,6 +967,8 @@ CopBplsFixed:
 		dc.w	color18,$111
 		dc.w	color19,$000
 
+		; COP_WAITV DIW_YSTRT
+
 		; Loop for interlaced effect on text
 Cop2LcC		dc.w	cop2lch,0
 		dc.w	cop2lcl,0

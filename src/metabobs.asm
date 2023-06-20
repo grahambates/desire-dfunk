@@ -118,6 +118,37 @@ BPLCON0V = BPLS<<(12+DPF)!DPF<<10!$200
 ********************************************************************************
 Metabobs_Effect:
 ;-------------------------------------------------------------------------------
+		jsr	Free
+		move.l	#SCREEN_SIZE,d0
+		jsr	AllocChip
+		move.l	a0,DrawBuffer
+		bsr	ClearScreen
+		jsr	AllocChip
+		move.l	a0,ViewBuffer
+		bsr	ClearScreen
+		jsr	AllocChip
+		move.l	a0,DrawTmp
+		bsr	ClearScreen
+		jsr	AllocChip
+		move.l	a0,ViewTmp
+		bsr	ClearScreen
+
+		move.l	#Q_SIZE*10,d0
+		jsr	AllocChip
+		move.l	a0,DrawCopQueue
+		move.l	a0,ViewCopQueue
+
+		move.l	#BOB_BPL*SIZE_COUNT,d0
+		jsr	AllocChip
+		move.l	a0,Circles
+
+		move.l	#GROUP_SIZE*GROUP_COUNT,d0
+		jsr	AllocChip
+		move.l	a0,Groups
+
+		move.l	#(SprDatE-SprDat+6)*BALL_COUNT*2,d0
+		jsr	AllocChip
+		move.l	a0,Sprites
 
 		bsr	InitSprites
 		bsr	InitCircles
@@ -125,28 +156,14 @@ Metabobs_Effect:
 		bsr	InitBlitter
 		bsr	InitCopQueues
 
-
 		lea	Cop,a0
 		lea	Interrupt,a1
 		jsr	StartEffect
 
-Frame:
-		bsr	Clear
-		bsr	Update
-		bsr	DrawBobs
 
 		move.w	#DMAF_SETCLR!DMAF_BLITHOG,dmacon(a6) ; Hog the blitter
-		jsr	WaitEOF
-		move.w	#DMAF_BLITHOG,dmacon(a6) ; Unhog
 
-		bsr	DrawSprites
-		bra	Frame
-		rts
-
-
-********************************************************************************
-Interrupt:
-;-------------------------------------------------------------------------------
+Frame:
 ; Flip double buffers
 		movem.l	DblBuffers(pc),d0-d7
 		exg	d0,d1		; screen
@@ -154,17 +171,54 @@ Interrupt:
 		exg	d4,d5		; offsets
 		exg	d6,d7		; cop queue
 		movem.l	d0-d7,DblBuffers
-; Set bpl ptrs
-		move.l	ViewScreen(pc),a0
-		lea	bpl0pt(a6),a1
-		moveq	#BPLS-1,d0
-.l:		move.l	a0,(a1)+
-		lea	SCREEN_BPL(a0),a0
-		dbf	d0,.l
-; Set cop2 location for queue
-		move.l	ViewCopQueue(pc),cop2lc(a6)
+
+		bsr	PokeCop
+		bsr	Clear
+		bsr	Update
+		bsr	DrawBobs
+
+		jsr	WaitEOF
+
+		bsr	DrawSprites
+		bra	Frame
+
+		move.w	#DMAF_BLITHOG,dmacon(a6) ; Unhog
 		rts
 
+
+********************************************************************************
+Interrupt:
+;-------------------------------------------------------------------------------
+		rts
+
+
+PokeCop:
+		lea	CopBpls+2,a1
+		move.l	DrawBuffer(pc),a0
+		moveq	#BPLS-1,d7
+.l0:
+		move.l	a0,d2
+		swap	d2
+		move.w	d2,(a1)
+		move.w	a0,4(a1)
+		addq.w	#8,a1
+		add.l	#SCREEN_BPL,a0
+		dbf	d7,.l0
+
+		lea	Cop2Lc+2,a0
+		move.l	DrawCopQueue(pc),d0
+		move.w	d0,4(a0)
+		swap	d0
+		move.w	d0,(a0)
+		rts
+
+ClearScreen:
+		WAIT_BLIT
+		move.l	a0,bltdpt(a6)
+		move.l	#$01000000,bltcon0(a6)
+		clr.l	bltdmod(a6)
+		move.w	#(SCREEN_H*BPLS)<<6!(SCREEN_BW/2),bltsize(a6)
+		rts
 
 ********************************************************************************
 * Routines:
@@ -175,7 +229,7 @@ Interrupt:
 ;-------------------------------------------------------------------------------
 InitSprites:
 		lea	SprPtrs,a0	; Pointers to sprite structs
-		lea	Sprites,a1	; Sprite structs data
+		move.l	Sprites,a1	; Sprite structs data
 		moveq	#0,d2
 
 		; Create a sprite for each ball:
@@ -216,17 +270,18 @@ InitSprites:
 ; This means that the smallest (first) circle is BALL_R-SIZE_COUNT+1
 ;-------------------------------------------------------------------------------
 InitCircles:
-		lea	Circles,a0
+		move.l	Circles(pc),a0
 		; Initial radius for smallest circle
 		moveq	#BALL_R-SIZE_COUNT+1,d0
+		moveq	#BALL_R,d1	; x
+		moveq	#BALL_R,d2	; y
 		; Init common blitter regs
 		move.l	#-1,bltafwm(a6)
 		move.l	#0,bltamod(a6)
 		moveq	#SIZE_COUNT-1,d7
 .l:
-		move.w	#BOB_BW,d1
 		; Draw the circle outline
-		jsr	DrawCircleFill
+		jsr	DrawCircleFillTmp
 		; Blitter fill
 		lea	BOB_BPL-1(a0),a1 ; offset for descending blit
 		WAIT_BLIT
@@ -237,6 +292,110 @@ InitCircles:
 		lea	BOB_BPL(a0),a0	; next bpl
 		addq	#1,d0
 		dbf	d7,.l
+		rts
+
+********************************************************************************
+; Draw circle for blitter fill
+;-------------------------------------------------------------------------------
+; a0 - Dest ptr
+; d0 - Radius
+; d1 - center X
+; d2 - center Y
+;-------------------------------------------------------------------------------
+DrawCircleFillTmp:
+		movem.l	d0-a7,-(sp)
+		move.w	d0,d4		; x = r
+		moveq	#0,d5		; y = 0
+		neg.w	d0		; P = 1 - r
+		addq	#1,d0
+
+; Plot first point:
+		move.w	d4,d6		; X,Y
+		moveq	#0,d7
+		bsr	.plot
+		move.w	d4,d6		; -X,Y
+		neg.w	d6
+		moveq	#0,d7
+		bsr	.plot
+
+.l:
+		cmp.w	d5,d4		; x > y?
+		ble	.done
+
+		tst.w	d0		; P < 0?
+		blt	.inside
+		subq	#1,d4		; x--;
+		sub.w	d4,d0		; P -= x
+		sub.w	d4,d0		; P -= x
+
+.inside:
+
+		addq	#1,d5		; y++
+
+		add.w	d5,d0		; P += y
+		add.w	d5,d0		; P += y
+		addq	#1,d0		; P += 1
+
+		cmp.w	d5,d4		; x < y?
+		blt	.done
+
+; Plot:
+
+; Only mirror y if x will  change on next loop
+; Avoid multiple pixels on same row as the breaks blitter fill
+		tst.w	d0		; if (P >= 0)
+		blt	.noMirror
+		cmp.w	d5,d4		; if (x != y):
+		beq	.noMirror
+		move.w	d5,d6		; Y,X
+		move.w	d4,d7
+		bsr	.plot
+		move.w	d5,d6		; -Y,X
+		neg.w	d6
+		move.w	d4,d7
+		bsr	.plot
+		move.w	d5,d6		; Y,-X
+		move.w	d4,d7
+		neg.w	d7
+		bsr	.plot
+		move.w	d5,d6		; -Y,-X
+		neg.w	d6
+		move.w	d4,d7
+		neg.w	d7
+		bsr	.plot
+.noMirror:
+		move.w	d4,d6		; X,Y
+		move.w	d5,d7
+		bsr	.plot
+		move.w	d4,d6		; -X,Y
+		neg.w	d6
+		move.w	d5,d7
+		bsr	.plot
+		move.w	d4,d6		; X,-Y
+		move.w	d5,d7
+		neg.w	d7
+		bsr	.plot
+		move.w	d4,d6		; -X,-Y
+		neg.w	d6
+		move.w	d5,d7
+		neg.w	d7
+		bsr	.plot
+
+		bra	.l
+
+.done:
+		movem.l	(sp)+,d0-a7
+		rts
+
+.plot:
+		add.w	d1,d6
+		add.w	d2,d7
+		muls	#BOB_BW,d7
+		move.w	d6,d3
+		not.w	d3
+		asr.w	#3,d6
+		add.w	d7,d6
+		bset	d3,(a0,d6.w)
 		rts
 
 ********************************************************************************
@@ -251,9 +410,9 @@ InitBlitter:
 InitCopQueues:
 ;-------------------------------------------------------------------------------
 		move.w	#2,copcon(a6)	; copper danger mode to allow blit queue
-		lea	CopQueue,a0
+		move.l	ViewCopQueue,a0
 		bsr	InitCopQueue
-		lea	CopQueue2,a0
+		move.l	DrawCopQueue,a0
 
 
 ********************************************************************************
@@ -399,8 +558,8 @@ Q_SIZE = Q_OUTER_STRT+Q_OUTER_SIZE+4*4
 ;-------------------------------------------------------------------------------
 InitCircleGroups:
 		moveq	#GROUP_COUNT-1,d7
-		lea	Groups,a0
-		lea	Circles,a1
+		move.l	Groups(pc),a0
+		move.l	Circles(pc),a1
 		lea	GroupPtrs,a2
 		lea	CirclePtrs,a3
 .l:
@@ -595,7 +754,7 @@ DrawSprites:
 ;-------------------------------------------------------------------------------
 DrawBobs:
 		movem.l	d0-a6,-(sp)
-		move.l	DrawScreen(pc),d6
+		move.l	DrawBuffer(pc),d6
 		lea	CirclePtrs,a0	; Individual circles
 		move.l	DrawTmp(pc),a1	; Temp buffer
 		move.l	DrawOffsets(pc),a2 ; Offsets for clear
@@ -681,14 +840,24 @@ DrawBobs:
 
 DblBuffers:
 ;-------------------------------------------------------------------------------
-DrawScreen:	dc.l	Screen2
-ViewScreen:	dc.l	Screen
-DrawTmp:	dc.l	Tmp2
-ViewTmp:	dc.l	Tmp
+DrawBuffer:	dc.l	0
+ViewBuffer:	dc.l	0
+DrawTmp:	dc.l	0
+ViewTmp:	dc.l	0
 DrawOffsets:	dc.l	Offsets2
 ViewOffsets:	dc.l	Offsets
-DrawCopQueue:	dc.l	CopQueue2
-ViewCopQueue:	dc.l	CopQueue
+DrawCopQueue:	dc.l	0
+ViewCopQueue:	dc.l	0
+
+; Circle sizes as individual bitplanes
+; Generated by InitCircles
+Circles:	dc.l	0
+
+; Interleaved image data pairs:
+; Data for outer circles with bitplanes in ascending and descending size order
+Groups:		dc.l	0
+
+Sprites:	dc.l	0
 
 
 ********************************************************************************
@@ -801,6 +970,19 @@ Cop:
 		dc.w	bpl1mod,DIW_MOD
 		dc.w	bpl2mod,DIW_MOD
 		dc.w	dmacon,DMAF_SETCLR!DMAF_SPRITE
+
+CopBpls:
+		dc.w	bpl0pt,0
+		dc.w	bpl0ptl,0
+		dc.w	bpl1pt,0
+		dc.w	bpl1ptl,0
+		dc.w	bpl2pt,0
+		dc.w	bpl2ptl,0
+		dc.w	bpl3pt,0
+		dc.w	bpl3ptl,0
+		dc.w	bpl4pt,0
+		dc.w	bpl4ptl,0
+
 CopPal:
 		dc.w	color00,COL_BG	; 00000
 		dc.w	color01,COL_FILL ; 00001
@@ -836,31 +1018,7 @@ CopPal:
 		dc.w	color30,COL_HL2	; 11010
 		dc.w	color31,COL_HL3	; 11011
 
+Cop2Lc		dc.w	cop2lch,0
+		dc.w	cop2lcl,0
 		dc.w	copjmp2,0
 CopE:
-
-*******************************************************************************
-		bss_c
-*******************************************************************************
-
-; Screen buffers:
-Screen:		ds.b	SCREEN_SIZE
-Screen2:	ds.b	SCREEN_SIZE
-; Temporary blit buffers:
-Tmp:		ds.b	SCREEN_SIZE
-Tmp2:		ds.b	SCREEN_SIZE
-
-; Copper blit queues:
-; Populated by InitCopQueues
-CopQueue:	ds.b	Q_SIZE
-CopQueue2:	ds.b	Q_SIZE
-
-; Circle sizes as individual bitplanes
-; Generated by InitCircles
-Circles:	ds.b	BOB_BPL*SIZE_COUNT
-
-; Interleaved image data pairs:
-; Data for outer circles with bitplanes in ascending and descending size order
-Groups:		ds.b	GROUP_SIZE*GROUP_COUNT
-
-Sprites:	ds.b	(SprDatE-SprDat+6)*BALL_COUNT*2
