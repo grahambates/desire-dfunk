@@ -190,7 +190,9 @@ Circles_Precalc:
 		add.w	d4,d3
 		move.w	d3,(a1)+
 ; Draw the circle outline
+		move.w	d0,d2		; x = radius
 		bsr	DrawCircleFill
+		add.w	d2,d2		; convert back to diameter
 ; Next bpl:
 		mulu	d2,d1		; offset = byte width * diameter
 		lea	(a0,d1.w),a0
@@ -219,10 +221,10 @@ Circles_Precalc:
 ; a0 - Dest ptr
 ; d0 - Radius
 ; d1 - byte width
+; d2 - x
 ;-------------------------------------------------------------------------------
 DrawCircleFill:
-		movem.l	d0-a7,-(sp)
-		move.w	d0,d2
+		movem.l	d0-a6,-(sp)
 		move.w	d0,d4		; d4 = x = r
 		moveq	#0,d5		; d5 = y = 0
 		neg.w	d0		; d0 = P = 1 - r
@@ -306,7 +308,7 @@ DrawCircleFill:
 		bra	.l
 
 .done:
-		movem.l	(sp)+,d0-a7
+		movem.l	(sp)+,d0-a6
 		rts
 
 .plot:

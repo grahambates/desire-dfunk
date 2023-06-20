@@ -297,7 +297,8 @@ InitCircles:
 		moveq	#SIZE_COUNT-1,d7
 .l:
 		; Draw the circle outline
-		jsr	DrawCircleFillTmp
+		move.w	#BOB_BW,d1
+		jsr	DrawCircleFill
 		; Blitter fill
 		lea	BOB_BPL-1(a0),a1 ; offset for descending blit
 		WAIT_BLIT
@@ -310,109 +311,6 @@ InitCircles:
 		dbf	d7,.l
 		rts
 
-********************************************************************************
-; Draw circle for blitter fill
-;-------------------------------------------------------------------------------
-; a0 - Dest ptr
-; d0 - Radius
-; d1 - center X
-; d2 - center Y
-;-------------------------------------------------------------------------------
-DrawCircleFillTmp:
-		movem.l	d0-a6,-(sp)
-		move.w	d0,d4		; x = r
-		moveq	#0,d5		; y = 0
-		neg.w	d0		; P = 1 - r
-		addq	#1,d0
-
-; Plot first point:
-		move.w	d4,d6		; X,Y
-		moveq	#0,d7
-		bsr	.plot
-		move.w	d4,d6		; -X,Y
-		neg.w	d6
-		moveq	#0,d7
-		bsr	.plot
-
-.l:
-		cmp.w	d5,d4		; x > y?
-		ble	.done
-
-		tst.w	d0		; P < 0?
-		blt	.inside
-		subq	#1,d4		; x--;
-		sub.w	d4,d0		; P -= x
-		sub.w	d4,d0		; P -= x
-
-.inside:
-
-		addq	#1,d5		; y++
-
-		add.w	d5,d0		; P += y
-		add.w	d5,d0		; P += y
-		addq	#1,d0		; P += 1
-
-		cmp.w	d5,d4		; x < y?
-		blt	.done
-
-; Plot:
-
-; Only mirror y if x will  change on next loop
-; Avoid multiple pixels on same row as the breaks blitter fill
-		tst.w	d0		; if (P >= 0)
-		blt	.noMirror
-		cmp.w	d5,d4		; if (x != y):
-		beq	.noMirror
-		move.w	d5,d6		; Y,X
-		move.w	d4,d7
-		bsr	.plot
-		move.w	d5,d6		; -Y,X
-		neg.w	d6
-		move.w	d4,d7
-		bsr	.plot
-		move.w	d5,d6		; Y,-X
-		move.w	d4,d7
-		neg.w	d7
-		bsr	.plot
-		move.w	d5,d6		; -Y,-X
-		neg.w	d6
-		move.w	d4,d7
-		neg.w	d7
-		bsr	.plot
-.noMirror:
-		move.w	d4,d6		; X,Y
-		move.w	d5,d7
-		bsr	.plot
-		move.w	d4,d6		; -X,Y
-		neg.w	d6
-		move.w	d5,d7
-		bsr	.plot
-		move.w	d4,d6		; X,-Y
-		move.w	d5,d7
-		neg.w	d7
-		bsr	.plot
-		move.w	d4,d6		; -X,-Y
-		neg.w	d6
-		move.w	d5,d7
-		neg.w	d7
-		bsr	.plot
-
-		bra	.l
-
-.done:
-		movem.l	(sp)+,d0-a6
-		rts
-
-.plot:
-		add.w	d1,d6
-		add.w	d2,d7
-		muls	#BOB_BW,d7
-		move.w	d6,d3
-		not.w	d3
-		asr.w	#3,d6
-		add.w	d7,d6
-		bset	d3,(a0,d6.w)
-		rts
 
 ********************************************************************************
 InitBlitter:

@@ -1,7 +1,7 @@
 		include	src/_main.i
 		include	rotate.i
 
-ROTATE_END_FRAME = $400
+ROTATE_END_FRAME = $1000
 
 DIW_W = CIRCLES_DIW_W
 DIW_H = CIRCLES_DIW_H
