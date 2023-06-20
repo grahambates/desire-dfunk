@@ -1,7 +1,7 @@
 		include	src/_main.i
 		include	src/metabobs.i
 
-METABOBS_END_FRAME = 40
+METABOBS_END_FRAME = $200
 
 ;********************************************************************************
 ; Faux metaballs effect
@@ -167,6 +167,12 @@ Metabobs_Effect:
 		bsr	InitBlitter
 		bsr	InitCopQueues
 
+		lea	Cop2Lc+2,a0
+		move.l	#CopEnd,d0
+		move.w	d0,4(a0)
+		swap	d0
+		move.w	d0,(a0)
+
 		lea	Cop,a0
 		lea	Metabobs_Vbi,a1
 		jsr	StartEffect
@@ -212,12 +218,16 @@ PokeCop:
 		add.l	#SCREEN_BPL,a0
 		dbf	d7,.l0
 
+		; Don't load the copper queue until it's populated
+		move.l	ViewOffsets(pc),a0
+		tst.l	(a0)
+		beq	.skip
 		lea	Cop2Lc+2,a0
 		move.l	ViewCopQueue(pc),d0
 		move.w	d0,4(a0)
 		swap	d0
 		move.w	d0,(a0)
-		rts
+.skip		rts
 
 ClearScreen:
 		WAIT_BLIT
@@ -1004,3 +1014,4 @@ Cop2Lc		dc.w	cop2lch,0
 		dc.w	cop2lcl,0
 		dc.w	copjmp2,0
 CopE:
+CopEnd:		dc.l	-2
