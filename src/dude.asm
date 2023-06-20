@@ -144,9 +144,10 @@ PokeBpls:
 Dude_Effect:
 ********************************************************************************
 
-		lea	BlankCop,a0
-		sub.l	a1,a1
-		jsr	StartEffect
+
+		moveq	#0,d0
+		jsr	BlankScreen
+
 		jsr	ResetFrameCounter
 		jsr	Free
 
@@ -920,6 +921,7 @@ Cop:
 		dc.w	bpl1mod,PF1_MOD
 		dc.w	bpl2mod,PF2_MOD
 		dc.w	bplcon0,BPLS<<12!$200!(1<<10)
+		dc.w	bplcon2,$24
 CopBpls:
 		; pf1
 		dc.w	bpl0pt,0

@@ -14,13 +14,14 @@
 
 		xdef	_start
 
-		xref	Random32
-		xref	WaitEOF
+		xdef	Random32
+		xdef	WaitEOF
 
-		xref	VBlank
-		xref	CurrFrame
+		xdef	VBlank
+		xdef	CurrFrame
 
-		xref	StartEffect
-		xref	InstallCopper
-		xref	ResetFrameCounter
-		xref	BlankCop
+		xdef	StartEffect
+		xdef	InstallCopper
+		xdef	ResetFrameCounter
+		xdef	BlankCop
+		xdef	BlankScreen

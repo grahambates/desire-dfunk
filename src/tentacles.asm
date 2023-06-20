@@ -458,6 +458,7 @@ Cop:
 		dc.w	bpl1mod,DIW_MOD
 		dc.w	bpl2mod,DIW_MOD
 		dc.w	bplcon0,BPLS<<(12+DPF)!DPF<<10!$200
+		dc.w	bplcon2,$24
 		dc.w	dmacon,DMAF_SETCLR!DMAF_SPRITE
 CopBplPt:
 		rept	BPLS

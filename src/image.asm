@@ -14,11 +14,6 @@ D_GRAD_Y = 11
 D_GRAD_H = 58
 LETTERS_GRAD_Y = 70
 LETTERS_GRAD_H = 52
-		sub.l	a0,a0
-		sub.l	a0,a0
-		sub.l	a0,a0
-
-		movem.l	(sp),a0-a2
 
 ; Screen
 DIW_W = 320

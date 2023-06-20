@@ -2,7 +2,7 @@
 		include	"tunnel.i"
 
 TUNNEL_END_FRAME = $400
-BG_COL = $024
+BG_COL = $0
 
 SRC_W = 64
 SRC_H = 64
@@ -150,11 +150,11 @@ InitDrawTable:
 		swap	d0
 		and.w	#$f,d0
 		; Special case for shade 0: just write Immediate zero for black
-		bne	.notZero
-		move.w	#$337c,d1
-		clr.w	d2
-		bra	.set
-.notZero
+; 		bne	.notZero
+; 		move.w	#$337c,d1
+; 		clr.w	d2
+; 		bra	.set
+; .notZero
 
 		lsl.w	#2,d0
 		move.l	.shadeLut(pc,d0.w),d0
@@ -178,7 +178,7 @@ InitDrawTable:
 		rts
 
 .shadeLut:
-		dc.w	0,0		; not used
+		dc.w	3,-32768	; not used
 		dc.w	3,-32768
 		dc.w	3,-16384
 		dc.w	3,0

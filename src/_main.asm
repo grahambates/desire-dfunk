@@ -38,9 +38,9 @@ Demo:
 
 ;-------------------------------------------------------------------------------
 ; Effects
-		jsr	Metabobs_Effect
-		jsr	Girl_Effect
-		jsr	Tentacles_Effect
+		; jsr	Metabobs_Effect
+		; jsr	Girl_Effect
+		; jsr	Tentacles_Effect
 		jsr	Image_Effect
 		jsr	Tunnel_Effect
 		jsr	Dude_Effect
@@ -107,6 +107,13 @@ InstallCopper:
 		move.w	d0,(a1)
 		move.w	a0,4(a1)
 		rts
+
+********************************************************************************
+; d0.w - bg color
+BlankScreen:
+		lea	BlankCop,a0
+		sub.l	a1,a1
+		bra	StartEffect
 
 ********************************************************************************
 ResetFrameCounter:
@@ -189,5 +196,6 @@ BlankCop:
 		dc.w	diwstrt,$2c81
 		dc.w	diwstop,$2cc1
 		dc.w	bplcon0,$200
-		dc.w	color00,$024
+		dc.w	color00
+BlankBg		dc.w	$024
 		dc.l	-2
