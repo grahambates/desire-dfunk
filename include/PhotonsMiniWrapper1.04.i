@@ -4,7 +4,7 @@
 Start:		move.l	4.w,a6		;Exec library base address in a6
 		sub.l	a4,a4
 		btst	#0,297(a6)	;68000 CPU?
-		beq.s	.yes68k
+		beq	.yes68k
 		lea	.GetVBR(pc),a5	;else fetch vector base address to a4:
 		jsr	-30(a6)		;enter Supervisor mode
 
@@ -13,7 +13,7 @@ Start:		move.l	4.w,a6		;Exec library base address in a6
 .yes68k:	lea	.GfxLib(pc),a1	;either way return to here and open
 		jsr	-408(a6)	;graphics library
 		tst.l	d0		;if not OK,
-		beq.s	.quit		;exit program.
+		beq	.quit		;exit program.
 		move.l	d0,a5		;a5=gfxbase
 
 		move.l	a5,a6
@@ -24,11 +24,11 @@ Start:		move.l	4.w,a6		;Exec library base address in a6
 *--- save int+dma ---*
 
 		lea	$dff000,a6
-		bsr.s	WaitEOF		;wait out the current frame
+		bsr	WaitEOF		;wait out the current frame
 		move.l	$1c(a6),-(sp)	;save intena+intreq
 		move.w	2(a6),-(sp)	;and dma
 		move.l	$6c(a4),-(sp)	;and also the VB int vector for sport.
-		bsr.s	AllOff		;turn off all interrupts+DMA
+		bsr	AllOff		;turn off all interrupts+DMA
 
 *--- call demo ---*
 
@@ -38,8 +38,8 @@ Start:		move.l	4.w,a6		;Exec library base address in a6
 
 *--- restore all ---*
 
-		bsr.s	WaitEOF		;wait out the demo's last frame
-		bsr.s	AllOff		;turn off all interrupts+DMA
+		bsr	WaitEOF		;wait out the demo's last frame
+		bsr	AllOff		;turn off all interrupts+DMA
 		move.l	(sp)+,$6c(a4)	;restore VB vector
 		move.l	38(a5),$80(a6)	;and copper pointers
 		move.l	50(a5),$84(a6)
@@ -48,8 +48,26 @@ Start:		move.l	4.w,a6		;Exec library base address in a6
 		move.w	(sp)+,$96(a6)	;restore DMA
 		or.w	d2,(sp)
 		move.w	(sp)+,$9a(a6)	;restore interrupt mask
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
+		nop
 		or.w	(sp)+,d2
-		bsr.s	IntReqD2	;restore interrupt requests
+		bsr	IntReqD2	;restore interrupt requests
 
 		move.l	a5,a6
 		move.l	(sp)+,a1
@@ -69,14 +87,14 @@ Start:		move.l	4.w,a6		;Exec library base address in a6
 .GfxLib:	dc.b	"graphics.library",0,0
 
 WaitEOF:				;wait for end of frame
-		bsr.s	WaitBlitter
+		bsr	WaitBlitter
 		move.w	#$138,d0
 WaitRaster:				;Wait for scanline d0. Trashes d1.
 .l:		move.l	4(a6),d1
 		lsr.l	#1,d1
 		lsr.w	#7,d1
 		cmp.w	d0,d1
-		bne.s	.l		;wait until it matches (eq)
+		bne	.l		;wait until it matches (eq)
 		rts
 
 AllOff:		move.w	#$7fff,d2	;clear all bits
@@ -90,5 +108,5 @@ IntReqD2:
 WaitBlitter:				;wait until blitter is finished
 		tst.w	(a6)		;for compatibility with A1000
 .loop:		btst	#6,2(a6)
-		bne.s	.loop
+		bne	.loop
 		rts

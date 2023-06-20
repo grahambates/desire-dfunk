@@ -65,11 +65,11 @@ clean:
 	$(info Cleaning...)
 	@$(RM) obj/* out/*.*
 
-# -include $(deps)
+-include $(deps)
 
 $(deps): obj/%.d : src/%.asm
 	$(info Building dependencies for $<)
-	$(VASM) $(VASMFLAGS) -depend=make -o $(patsubst %.d,%.elf,$@) $(CURDIR)/$< > $@
+	$(VASM) $(VASMFLAGS) -quiet -depend=make -o $(patsubst %.d,%.elf,$@) $(CURDIR)/$< > $@
 
 
 #-------------------------------------------------------------------------------
