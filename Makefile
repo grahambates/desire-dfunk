@@ -1,49 +1,65 @@
-vasm_sources := $(wildcard src/*.asm)
-vasm_objects := $(addprefix obj/, $(patsubst %.asm,%.o,$(notdir $(vasm_sources))))
-objects := $(vasm_objects)
-deps := $(objects:.o=.d)
-dude_images := $(wildcard assets/walking_dude_v2/*.iff)
-data := data/girl-head.BPL data/girl-body.BPL obj/tables_shade1.o data/tex.rgb data/DFunk-vert.SPR data/dude_walking.BPL data/credit-gigabates.BPL data/credit-maze.BPL data/credit-steffest.BPL data/dude-bg.BPL data/dfunk_ordered.BPL data/font.i data/persp.i data/lamppost.SPR
+name=a
+program=out/a
 
-program = out/a
-OUT = $(program)
-CC = m68k-amiga-elf-gcc
-VASM = ~/amiga/bin/vasmm68k_mot
-KINGCON = ~/amiga/bin/kingcon
-AMIGATOOLS = /Users/batesgw1/.nvm/versions/node/v16.17.0/bin/amigatools
+BUILD=elf
 DEBUG = 1
 
+CC = m68k-amiga-elf-gcc
+VASM = ~/amiga/bin/vasmm68k_mot
+VLINK = ~/amiga/bin/vlink
+VLINKFLAGS = -bamigahunk -Bstatic
+KINGCON = ~/amiga/bin/kingcon
+AMIGATOOLS = ~/.nvm/versions/node/v16.17.0/bin/amigatools
 CCFLAGS = -g -MP -MMD -m68000 -Ofast -nostdlib -Wextra -Wno-unused-function -Wno-volatile-register-var -fomit-frame-pointer -fno-tree-loop-distribution -flto -fwhole-program -fno-exceptions
-LDFLAGS = -Wl,--emit-relocs,-Ttext=0,-Map=$(OUT).map
-VASMFLAGS = -m68000 -Felf -opt-fconst -nowarn=62 -dwarf=3 -x -DDEBUG=$(DEBUG)
-
+LDFLAGS = -Wl,--emit-relocs,-Ttext=0,-Map=$(program).map
+VASMFLAGS = -m68000 -opt-fconst -nowarn=62 -x -DDEBUG=$(DEBUG)
 FSUAE = /Applications/FS-UAE-3.app/Contents/MacOS/fs-uae
 FSUAEFLAGS = --hard_drive_0=./out --floppy_drive_0_sounds=off --video_sync=1 --automatic_input_grab=0
 
-all: $(OUT).exe
+exe = $(name).$(BUILD).exe
+sources := $(wildcard src/*.asm)
+elf_objects := $(addprefix obj/, $(patsubst %.asm,%.elf,$(notdir $(sources))))
+hunk_objects := $(addprefix obj/, $(patsubst %.asm,%.o,$(notdir $(sources))))
+deps := $(elf_objects:.elf=.d)
 
-run: $(OUT).exe
-	@echo sys:a.exe > out/s/startup-sequence
+dude_images := $(wildcard assets/walking_dude_v2/*.iff)
+data := data/girl-head.BPL data/girl-body.BPL obj/tables_shade1.o data/tex.rgb data/DFunk-vert.SPR data/dude_walking.BPL data/credit-gigabates.BPL data/credit-maze.BPL data/credit-steffest.BPL data/dude-bg.BPL data/dfunk_ordered.BPL data/font.i data/persp.i data/lamppost.SPR
+
+all: out/$(exe)
+	cp $< $(program).exe
+
+run: all
+	@echo sys:$(name).exe > out/s/startup-sequence
 	$(FSUAE) $(FSUAEFLAGS)
 
-run-dist: $(OUT).shrinkled.exe
-	@echo sys:a.shrinkled.exe > out/s/startup-sequence
-	$(FSUAE) $(FSUAEFLAGS)
-
-dist: DEBUG = 0
-dist: $(OUT).shrinkled.exe
-
-$(OUT).shrinkled.exe: $(OUT).exe
+# BUILD=dist (shrinkled)
+out/$(name).dist.exe: out/$(name).elf.exe
 	Shrinkler -h -9 -T decrunch.txt $< $@
 
-$(OUT).exe: $(OUT).elf
-	$(info Elf2Hunk $(program).exe)
-	@elf2hunk $(OUT).elf $(OUT).exe -s
+# BUILD=hunk (vasm/vlink)
+out/$(name).hunk.exe: $(hunk_objects) out/$(name).hunk-debug.exe
+	$(info Linking (stripped) $@)
+	$(VLINK) $(VLINKFLAGS) -S $(hunk_objects) -o $@
+out/$(name).hunk-debug.exe: $(hunk_objects)
+	$(info Linking $@)
+	$(VLINK) $(VLINKFLAGS) $(hunk_objects) -o $@
+$(hunk_objects): obj/%.o : src/%.asm $(data)
+	$(info )
+	$(info Assembling $@)
+	@$(VASM) $(VASMFLAGS) -Fhunk -linedebug -o $@ $(CURDIR)/$<
 
-$(OUT).elf: $(objects)
-	$(info Linking $(program).elf)
-	$(CC) $(CCFLAGS) $(LDFLAGS) $(objects) -o $@
-	@m68k-amiga-elf-objdump --disassemble --no-show-raw-ins --visualize-jumps -S $@ >$(OUT).s
+# BUILD=elf (GCC/Bartman)
+out/$(name).elf.exe: $(program).elf
+	$(info Elf2Hunk $@)
+	@elf2hunk $< $@ -s
+$(program).elf: $(elf_objects)
+	$(info Linking $@)
+	$(CC) $(CCFLAGS) $(LDFLAGS) $(elf_objects) -o $@
+	@m68k-amiga-elf-objdump --disassemble --no-show-raw-ins --visualize-jumps -S $@ >$(program).dasm.txt
+$(elf_objects): obj/%.elf : src/%.asm $(data)
+	$(info )
+	$(info Assembling $<)
+	@$(VASM) $(VASMFLAGS) -Felf -dwarf=3 -o $@ $(CURDIR)/$<
 
 clean:
 	$(info Cleaning...)
@@ -51,14 +67,9 @@ clean:
 
 # -include $(deps)
 
-$(vasm_objects): obj/%.o : src/%.asm $(data)
-	$(info )
-	$(info Assembling $<)
-	@$(VASM) $(VASMFLAGS) -o $@ $(CURDIR)/$<
-
 $(deps): obj/%.d : src/%.asm
 	$(info Building dependencies for $<)
-	$(VASM) $(VASMFLAGS) -depend=make -o $(patsubst %.d,%.o,$@) $(CURDIR)/$< > $@
+	$(VASM) $(VASMFLAGS) -depend=make -o $(patsubst %.d,%.elf,$@) $(CURDIR)/$< > $@
 
 
 #-------------------------------------------------------------------------------
