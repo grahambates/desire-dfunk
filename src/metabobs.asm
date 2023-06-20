@@ -1,6 +1,8 @@
 		include	src/_main.i
 		include	src/metabobs.i
 
+METABOBS_END_FRAME = $100
+
 ;********************************************************************************
 ; Faux metaballs effect
 ;-------------------------------------------------------------------------------
@@ -115,10 +117,18 @@ BPLCON0V = BPLS<<(12+DPF)!DPF<<10!$200
 * Entry points:
 ********************************************************************************
 
+
+********************************************************************************
+Metabobs_Vbi:
+;-------------------------------------------------------------------------------
+		rts
+
 ********************************************************************************
 Metabobs_Effect:
 ;-------------------------------------------------------------------------------
+		jsr	ResetFrameCounter
 		jsr	Free
+
 		move.l	#SCREEN_SIZE,d0
 		jsr	AllocChip
 		move.l	a0,DrawBuffer
@@ -158,9 +168,8 @@ Metabobs_Effect:
 		bsr	InitCopQueues
 
 		lea	Cop,a0
-		lea	Interrupt,a1
+		lea	Metabobs_Vbi,a1
 		jsr	StartEffect
-
 
 		move.w	#DMAF_SETCLR!DMAF_BLITHOG,dmacon(a6) ; Hog the blitter
 
@@ -181,15 +190,12 @@ Frame:
 		bsr	PokeCop
 
 		bsr	DrawSprites
-		bra	Frame
+		cmp.l	#METABOBS_END_FRAME,CurrFrame
+		blt	Frame
 
-		move.w	#DMAF_BLITHOG,dmacon(a6) ; Unhog
-		rts
+		move.w	#DMAF_BLITHOG!DMAF_SPRITE,dmacon(a6)
+		move.w	#0,copcon(a6)
 
-
-********************************************************************************
-Interrupt:
-;-------------------------------------------------------------------------------
 		rts
 
 
@@ -233,7 +239,7 @@ InitSprites:
 		move.l	Sprites,a1	; Sprite structs data
 		moveq	#0,d2
 
-		; Create a sprite for each ball:
+		; Create sprite 1 for each ball:
 		moveq	#BALL_COUNT-1,d0
 .sprite:
 		move.l	a1,(a0)+	; Store pointer to sprite struct
@@ -246,8 +252,7 @@ InitSprites:
 		move.w	d2,(a1)+	; End of sprite struct
 		dbf	d0,.sprite
 
-
-		; Create another sprite for each ball:
+		; Create sprite 2 for each ball:
 		moveq	#BALL_COUNT-1,d0
 .sprite2:
 		move.l	a1,(a0)+	; Store pointer to sprite struct
@@ -304,7 +309,7 @@ InitCircles:
 ; d2 - center Y
 ;-------------------------------------------------------------------------------
 DrawCircleFillTmp:
-		movem.l	d0-a7,-(sp)
+		movem.l	d0-a6,-(sp)
 		move.w	d0,d4		; x = r
 		moveq	#0,d5		; y = 0
 		neg.w	d0		; P = 1 - r
@@ -385,7 +390,7 @@ DrawCircleFillTmp:
 		bra	.l
 
 .done:
-		movem.l	(sp)+,d0-a7
+		movem.l	(sp)+,d0-a6
 		rts
 
 .plot:
@@ -441,7 +446,7 @@ Q_BLTBPTL = 9*4+2
 Q_SPR_ITEM = 4*2
 Q_SPR_SIZE = 8*Q_SPR_ITEM
 ; Set all sprites to null
-		move.l	#NullSpr,d0
+		move.l	0,d0
 		rept	8
 		swap	d0
 		COPQ_MOVEW d0,(spr0pth+REPTN*4)
@@ -836,7 +841,7 @@ DrawBobs:
 
 
 ********************************************************************************
-* Variables
+Vars:
 ********************************************************************************
 
 DblBuffers:
@@ -860,9 +865,19 @@ Groups:		dc.l	0
 
 Sprites:	dc.l	0
 
+Offsets:	ds.l	BALL_COUNT*2
+Offsets2:	ds.l	BALL_COUNT*2
+
+CirclePtrs:
+		ds.l	GROUP_COUNT
+GroupPtrs:
+		ds.l	GROUP_COUNT
+
+SprPtrs:	ds.l	BALL_COUNT*2	; Pointers to sprite structs
+
 
 ********************************************************************************
-* Data
+Data:
 ********************************************************************************
 
 Sin1:
@@ -914,22 +929,7 @@ Ball_Y		rs.w	1
 Ball_Scale	rs.w	1
 Ball_SIZEOF	rs.b	0
 
-Balls:
-		dc.w	0		; x
-		dc.w	0		; y
-		dc.w	0		; scale
-
-		dc.w	0		; x
-		dc.w	0		; y
-		dc.w	4		; scale
-
-		dc.w	0		; x
-		dc.w	0		; y
-		dc.w	2		; scale
-
-		dc.w	0		; x
-		dc.w	0		; y
-		dc.w	3		; scale
+Balls:		ds.b	Ball_SIZEOF*BALL_COUNT
 
 SprDat:
 		incbin	"data/ball-highlight-b.SPR"
@@ -940,28 +940,9 @@ SprDat2E:
 
 
 *******************************************************************************
-		bss
-*******************************************************************************
-
-Offsets:	ds.l	BALL_COUNT*2
-Offsets2:	ds.l	BALL_COUNT*2
-
-CirclePtrs:
-		ds.l	GROUP_COUNT
-GroupPtrs:
-		ds.l	GROUP_COUNT
-
-SprPtrs:	ds.l	BALL_COUNT*2	; Pointers to sprite structs
-
-
-*******************************************************************************
 		data_c
 *******************************************************************************
 
-NullSpr:	dc.l	$20002100,$0,$0
-
-;--------------------------------------------------------------------------------
-; Main copper list::
 Cop:
 		dc.w	diwstrt,DIW_STRT
 		dc.w	diwstop,DIW_STOP
