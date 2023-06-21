@@ -38,13 +38,13 @@ Commander_Process:
 		beq	.finished
 		move.l	d1,a5
 .next		move.l	CurrFrame,d0
-		cmp.l	(a5)+,d0				; Read frameNumber and comapre to current frame
-		blt	.waiting				; Return 0 if waiting for frame
-		move.l	(a5)+,d1				; Read routine to call
-		beq	.finished				; Zero means the script is finished - return 1
-		move.l	d1,a1					; Call the routine
+		cmp.l	(a5)+,d0	; Read frameNumber and comapre to current frame
+		blt	.waiting	; Return 0 if waiting for frame
+		move.l	(a5)+,d1	; Read routine to call
+		beq	.finished	; Zero means the script is finished - return 1
+		move.l	d1,a1		; Call the routine
 		jsr	(a1)
-		move.l	a5,cmdP					; Update position
+		move.l	a5,cmdP		; Update position
 		bra	.next
 .waiting	moveq	#0,d0
 		rts
@@ -117,3 +117,7 @@ CmdSubIB:
 CmdLerpWord:
 		movem.l	(a5)+,d0-d1/a1
 		jmp	LerpWord
+
+CmdLerpPal:
+		movem.l	(a5)+,d0/d1/a0/a1
+		jmp	StartPalLerp

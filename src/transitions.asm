@@ -7,7 +7,7 @@ Lerp_Count	rs.w	1
 Lerp_Shift	rs.w	1
 Lerp_Inc	rs.l	1
 Lerp_Tmp	rs.l	1
-Lerp_Ptr	rs.l	1					; Target address pointer
+Lerp_Ptr	rs.l	1		; Target address pointer
 Lerp_SIZEOF	rs.w	0
 
 
@@ -25,19 +25,19 @@ LerpWord:
 		beq	.free
 		lea	Lerp_SIZEOF(a2),a2
 		dbf	d2,.l
-		rts						; no free slots
+		rts			; no free slots
 .free
 		moveq	#1,d2
 		lsl.w	d1,d2
-		move.w	d2,(a2)+				; count
-		move.w	d1,(a2)+				; shift
-		move.w	(a1),d3					; current value
+		move.w	d2,(a2)+	; count
+		move.w	d1,(a2)+	; shift
+		move.w	(a1),d3		; current value
 		sub.w	d3,d0
 		ext.l	d0
-		move.l	d0,(a2)+				; inc
+		move.l	d0,(a2)+	; inc
 		lsl.l	d1,d3
-		move.l	d3,(a2)+				; tmp
-		move.l	a1,(a2)+				; ptr
+		move.l	d3,(a2)+	; tmp
+		move.l	a1,(a2)+	; ptr
 		rts
 
 ********************************************************************************
@@ -46,7 +46,7 @@ LerpWord:
 LerpWordsStep:
 		lea	LerpWordsState,a0
 		moveq	#LERPS_WORDS_LEN-1,d0
-.l		tst.w	Lerp_Count(a0)				; Skip if not enabled / finished
+.l		tst.w	Lerp_Count(a0)	; Skip if not enabled / finished
 		beq	.next
 		sub.w	#1,Lerp_Count(a0)
 		movem.l	Lerp_Inc(a0),d1-d2/a1
@@ -98,7 +98,7 @@ LerpCol:
 		move.w	#$f0,d2
 
 DoLerpCol:
-		move.w	d3,d5					; R
+		move.w	d3,d5		; R
 		clr.b	d5
 		move.w	d4,d7
 		clr.b	d7
@@ -107,7 +107,7 @@ DoLerpCol:
 		muls	d0,d7
 		swap	d7
 		add.w	d5,d7
-		move.w	d3,d5					; G
+		move.w	d3,d5		; G
 		and.w	d2,d5
 		move.w	d4,d6
 		and.w	d2,d6
@@ -121,7 +121,7 @@ DoLerpCol:
 		moveq	#$f,d6
 		and.w	d6,d3
 		and.w	d6,d4
-		sub.w	d3,d4					; B
+		sub.w	d3,d4		; B
 		add.w	d4,d4
 		muls	d0,d4
 		swap	d4
@@ -131,7 +131,54 @@ DoLerpCol:
 
 
 *******************************************************************************
-		bss
+; a0 - from
+; a1 - to
+; d0.w - colors
+; d1.w - duration (pow 2)
+StartPalLerp:
+		lea	Pal(pc),a2
+		move.l	a0,(a2)+	; from
+		move.l	a1,(a2)+	; to
+		move.l	a0,(a2)+	; out
+		clr.w	(a2)+		; step
+		move.w	d0,(a2)+	; size
+		move.w	#$7fff,d0
+		lea	PalStep(pc),a1
+		bra	LerpWord
+
+
+*******************************************************************************
+LerpPalStep:
+		move.w	PalStep(pc),d0
+		cmp.w	#$7fff,d0
+		bge	.done
+
+		move.w	PalSize(pc),d1
+		move.l	PalFrom(pc),a0
+		move.l	PalTo(pc),a1
+		lea	PalTmp(pc),a2
+		move.l	a2,PalOut
+		bra	LerpPal
+
+.done		move.l	PalTo(pc),PalOut
+		rts
+
+
+*******************************************************************************
+Vars:
+*******************************************************************************
+
+Pal:
+PalFrom		dc.l	0
+PalTo		dc.l	0
+PalOut		dc.l	0
+PalStep		dc.w	$7fff
+PalSize		dc.w	32
+
+
+*******************************************************************************
+Data:
 *******************************************************************************
 
 LerpWordsState:	ds.b	Lerp_SIZEOF*LERPS_WORDS_LEN
+PalTmp:		ds.w	32

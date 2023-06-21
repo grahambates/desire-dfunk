@@ -44,6 +44,7 @@ DIW_XSTOP = DIW_XSTRT+DIW_W
 DIW_YSTOP = DIW_YSTRT+DIW_H
 
 Script:
+		dc.l	0,CmdLerpPal,16,6,PalStart,Pal
 		dc.l	0,CmdLerpWord,200,7,ZoomBase
 ; Cube
 		dc.l	$180,CmdLerpPoints,SpherePoints,CubePoints
@@ -66,6 +67,7 @@ Script:
 		dc.l	$680,CmdLerpPoints,LogoPoints,SpherePoints
 ; ; Zoom out
 		dc.l	$700,CmdLerpWord,1000,8,ZoomBase
+		dc.l	$800,CmdLerpPal,16,6,Pal,PalStart
 		dc.l	0,0
 
 SetParticles:
@@ -129,9 +131,6 @@ Rotate_Effect:
 		move.l	SpherePoints(pc),DrawPoints
 		; move.l	HeartPoints(pc),DrawPoints
 
-		lea	Pal,a0
-		bsr	LoadPalette
-
 		lea	Cop,a0
 		lea	Rotate_Vbi(pc),a1
 		jsr	StartEffect
@@ -141,8 +140,10 @@ Rotate_Effect:
 
 ********************************************************************************
 Frame:
+		move.l	PalOut,a0
+		bsr	LoadPalette
 
-		bsr	LerpPointsStep
+		bsr	LerpPointsStep	; TODO: vbi?
 
 UpdateParticles:
 		move.l	Particles(pc),a0
@@ -761,6 +762,11 @@ ScreenOffsets:	dc.l	SCREEN_BPL*2
 
 Pal:		ds.w	32
 PalE:
+
+PalStart:
+		rept	32
+		dc.w	$024
+		endr
 
 
 Colors:

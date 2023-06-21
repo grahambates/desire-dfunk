@@ -45,7 +45,9 @@ DDF_STRT = ((DIW_XSTRT-17)>>1)&$00fc-SCROLL*8
 DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 
 Script:
+		dc.l	0,CmdLerpPal,16,6,PalStart,Pal
 		dc.l	$60,CmdLerpWord,128,5,SpriteX
+		dc.l	TENTACLES_END_FRAME-(1<<6),CmdLerpPal,16,6,Pal,PalEnd
 		dc.l	TENTACLES_END_FRAME-(1<<5)-$20,CmdLerpWord,64,5,SpriteX
 		dc.l	0,0
 
@@ -55,9 +57,9 @@ Tentacles_Effect:
 ********************************************************************************
 		jsr	ResetFrameCounter
 		jsr	Free
-		; lea	BlankCop,a0
-		; sub.l	a1,a1
-		; jsr	StartEffect
+
+		move.w	#$90c,d0
+		jsr	BlankScreen
 
 		lea	Script,a0
 		jsr	Commander_Init
@@ -136,38 +138,11 @@ Frame:
 		; Horizontal scroll position frame frame count
 		move.l	CurrFrame,d0
 
-; Fade in
-		cmp.w	#64,d0
-		bgt	.noFadeIn
-		lea	PalStart,a0
-		lea	Pal,a1
-		lea	PalOut,a2
-		lsl	#8,d0
-		add.w	d0,d0
-		moveq	#COLORS-1,d1
-		jsr	LerpPal
-		bra	.loadPal
-.noFadeIn
-
-; Fade out
-		cmp.w	#TENTACLES_END_FRAME-64,d0
-		blt	.endFade
-		lea	Pal,a0
-		lea	PalEnd,a1
-		lea	PalOut,a2
-		sub.w	#TENTACLES_END_FRAME-64,d0
-		lsl	#8,d0
-		add.w	d0,d0
-		moveq	#COLORS-1,d1
-		jsr	LerpPal
-
-.loadPal
-		lea	PalOut,a0
+		move.l	PalOut,a0
 		lea	color00(a6),a1
 		moveq	#16-1,d7
 .col		move.w	(a0)+,(a1)+
 		dbf	d7,.col
-.endFade
 
 		move.l	CurrFrame,d6
 
@@ -482,8 +457,3 @@ NullSprite:
 		printt	"Tentacles: ChipData"
 		printv	*-ChipData
 
-*******************************************************************************
-		bss
-*******************************************************************************
-
-PalOut:		ds.w	COLORS

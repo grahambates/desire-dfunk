@@ -40,10 +40,10 @@ Demo:
 ;-------------------------------------------------------------------------------
 ; Effects
 		; jsr	Metabobs_Effect
-		; jsr	Girl_Effect
-		; jsr	Tentacles_Effect
-		; jsr	Image_Effect
-		; jsr	Tunnel_Effect
+		jsr	Girl_Effect
+		jsr	Tentacles_Effect
+		jsr	Image_Effect
+		jsr	Tunnel_Effect
 		jsr	Dude_Effect
 		jsr	Rotate_Effect
 		rts			; Exit demo
@@ -65,6 +65,7 @@ MainInterrupt:
 		addq.l	#1,CurrFrame-Vars(a5)
 ; Process active lerps
 		jsr	LerpWordsStep	; TODO: should this be after Commander_Process?
+		jsr	LerpPalStep
 		jsr	Commander_Process
 ; Call effect interrupt if Installed
 		move.l	VbiRoutine(pc),d0

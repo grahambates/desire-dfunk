@@ -1,4 +1,7 @@
-		xref	LerpPal
-		xref	LerpCol
-		xref	LerpWord
-		xref	LerpWordsStep
+		xdef	LerpPal
+		xdef	LerpCol
+		xdef	LerpWord
+		xdef	LerpWordsStep
+		xdef	StartPalLerp
+		xdef	LerpPalStep
+		xdef	PalOut
