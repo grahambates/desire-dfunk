@@ -922,6 +922,9 @@ Cop:
 		dc.w	bpl2mod,PF2_MOD
 		dc.w	bplcon0,BPLS<<12!$200!(1<<10)
 		dc.w	bplcon2,$24
+
+		COP_WAITV 11		; Needed when not using music wait. Not sure why.
+
 CopBpls:
 		; pf1
 		dc.w	bpl0pt,0
@@ -968,8 +971,6 @@ CopBplsFixed:
 		dc.w	color17,$000
 		dc.w	color18,$111
 		dc.w	color19,$000
-
-		; COP_WAITV DIW_YSTRT
 
 		; Loop for interlaced effect on text
 Cop2LcC		dc.w	cop2lch,0

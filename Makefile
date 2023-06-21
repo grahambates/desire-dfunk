@@ -15,6 +15,7 @@ LDFLAGS = -Wl,--emit-relocs,-Ttext=0,-Map=$(program).map
 VASMFLAGS = -m68000 -opt-fconst -nowarn=62 -x -DDEBUG=$(DEBUG)
 FSUAE = /Applications/FS-UAE-3.app/Contents/MacOS/fs-uae
 FSUAEFLAGS = --hard_drive_0=./out --floppy_drive_0_sounds=off --video_sync=1 --automatic_input_grab=0
+VAMIGA = /Applications/vAmiga.app/Contents/MacOS/vAmiga
 
 exe = $(name).$(BUILD).exe
 sources := $(wildcard src/*.asm)
@@ -30,6 +31,9 @@ all: out/$(exe)
 run: all
 	@echo sys:$(name).exe > out/s/startup-sequence
 	$(FSUAE) $(FSUAEFLAGS)
+
+run-vamiga: out/$(exe)
+	$(VAMIGA) $<
 
 # BUILD=dist (shrinkled)
 out/$(name).dist.exe: out/$(name).elf.exe

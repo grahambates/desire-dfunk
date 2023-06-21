@@ -12,6 +12,7 @@ _start:
 		include	"PhotonsMiniWrapper1.04.i"
 
 MUSIC_ENABLE = 1
+MUSIC_USE_CIA = 1
 DMASET = DMAF_SETCLR!DMAF_MASTER!DMAF_RASTER!DMAF_COPPER!DMAF_BLITTER
 INTSET = INTF_SETCLR!INTF_INTEN!INTF_VERTB|INTF_COPER
 RANDOM_SEED = $a162b2c9
@@ -41,8 +42,8 @@ Demo:
 		; jsr	Metabobs_Effect
 		; jsr	Girl_Effect
 		; jsr	Tentacles_Effect
-		jsr	Image_Effect
-		jsr	Tunnel_Effect
+		; jsr	Image_Effect
+		; jsr	Tunnel_Effect
 		jsr	Dude_Effect
 		jsr	Rotate_Effect
 		rts			; Exit demo
@@ -101,11 +102,15 @@ StartEffect:
 		move.l	a1,VbiRoutine
 ********************************************************************************
 InstallCopper:
+		ifeq	MUSIC_USE_CIA
 		move.l	a0,d0
 		swap.w	d0
 		lea	Cop2Lc+2,a1
 		move.w	d0,(a1)
 		move.w	a0,4(a1)
+		else
+		move.l	a0,cop1lc(a6)
+		endc
 		rts
 
 ********************************************************************************
@@ -142,8 +147,16 @@ StartMusic:
 		ifne	MUSIC_ENABLE
 		lea	LSPMusic,a0
 		lea	LSPBank,a1
+
+		ifeq	MUSIC_USE_CIA
 		lea	CopDma+3,a2
 		bsr	LSP_MusicInit
+		else
+		sub.l	a2,a2
+		moveq	#0,d0
+		bsr	LSP_MusicDriver_CIA_Start
+		endc
+
 		move.w	#ADKF_USE0P1,adkcon(a6)
 		endc
 		rts
@@ -158,7 +171,7 @@ CurrFrame	dc.l	0
 VbiRoutine	dc.l	0
 
 
-		; Include generic LSP player
+		include	"LightSpeedPlayer_cia.i"
 		include	"LightSpeedPlayer.i"
 
 
@@ -180,9 +193,10 @@ LSPBank:	incbin	"data/funky_shuffler.lsbank"
 ;-------------------------------------------------------------------------------
 MainCop:
 		dc.w	fmode,0
-		ifne	MUSIC_ENABLE
+		ifne	MUSIC_ENABLE^MUSIC_USE_CIA
+		COP_WAITV 15
 		dc.l	$009c8000|(1<<4) ; fire copper interrupt
-		dc.l	(11<<24)|($09fffe) ; wait scanline 11
+		COP_WAITV 15+11
 CopDma:		dc.w	dmacon,$8000
 		endc
 Cop2Lc:		dc.w	cop2lc,0	; Address of installed copper
