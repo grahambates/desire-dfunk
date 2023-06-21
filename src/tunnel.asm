@@ -53,7 +53,7 @@ CopC_SIZEOF	rs.b	0
 
 Script:
 		dc.l	$0,CmdLerpWord,0,4,Top
-		dc.l	TUNNEL_END_FRAME-(1<<6),CmdLerpWord,CHUNKY_H,4,Top
+		dc.l	TUNNEL_END_FRAME-(1<<6)-$10,CmdLerpWord,CHUNKY_H,6,Top
 		dc.l	0,0
 
 
@@ -107,6 +107,7 @@ Frame:
 		cmp.l	#TUNNEL_END_FRAME,CurrFrame
 		blt	Frame
 
+		move.w	#DMAF_SETCLR!DMAF_RASTER,dmacon(a6)
 		clr.l	spr0data(a6)
 		clr.l	spr1data(a6)
 		clr.l	spr2data(a6)

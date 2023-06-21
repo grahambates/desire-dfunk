@@ -2,8 +2,8 @@
 		include	image.i
 		include	tunnel.i
 
-; IMAGE_END_FRAME = $200
-IMAGE_END_FRAME = $20
+IMAGE_END_FRAME = $200
+; IMAGE_END_FRAME = $20
 
 ; Color indexes
 GRAD_COL = color05

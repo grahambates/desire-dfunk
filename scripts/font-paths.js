@@ -2,26 +2,27 @@ const { pathDataToPolys } = require("svg-path-to-polygons");
 const { XMLParser } = require("fast-xml-parser");
 const fs = require("fs");
 
-const xScale = 0.7;
-const SPACE_WIDTH = 15;
+const xScale = 0.6;
+const SPACE_WIDTH = 10;
 
 const colors = ["$6cf", "$d6f", "$e71", "$ed1"];
 
 const greets = [
-	["SLIPSTREAM", "zosilla"],
-	["RIFT", "NameSmile"],
-	["LOGICOMA", "zosilla"],
-	["INSANE", "RabbitFire"],
-	["FATZONE", "NameSmile"],
-	["TUHB", "RabbitFire"],
-	["BITSHIFTERS", "zosilla"],
-	["MELON", "NameSmile"],
-	["FOCUS DESIGN", "zosilla"],
-	["PROXIMA", "NameSmile"],
-	["FIVE FINGER PUNCH", "zosilla"],
-	["ABYSS", "RabbitFire"],
-	["RESISTANCE", "NameSmile"],
-	["MOODS PLATEAU", "zosilla"],
+	["SLIPSTREAM", "zosilla"], // GB
+	["RIFT", "NameSmile"], // GB
+	["INSANE", "RabbitFire"], // MZ
+	["LOGICOMA", "zosilla"], // GB
+	["FATZONE", "NameSmile"], // MZ
+	// ["TUHB", "RabbitFire"], // GB
+	// ["BITSHIFTERS", "zosilla"], // GB
+	["MELON", "RabbitFire"], // GB
+	["FOCUS DESIGN", "zosilla"], // MZ
+	["PROXIMA", "NameSmile"], // MZ
+	// ["FIVE FINGER PUNCH", "zosilla"],
+	["RESISTANCE", "zosilla"], // MZ
+	["ABYSS", "RabbitFire"], // GB
+	["MOODS PLATEAU", "zosilla"], // MZ
+	["FFP", "NameSmile"],
 ];
 
 const fonts = {};

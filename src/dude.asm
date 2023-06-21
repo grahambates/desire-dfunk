@@ -1,7 +1,7 @@
 		include	src/_main.i
 		include	dude.i
 
-DUDE_END_FRAME = $400
+DUDE_END_FRAME = $600
 
 TOP_PAD = 13
 L_PAD = 32
@@ -12,8 +12,8 @@ TEXT_Y = 26+TOP_PAD
 
 CLEAR_LIST_ITEM_SZ = 5*2+4+2
 
-SPACE_WIDTH = 15
-GREET_SPACE = 40
+SPACE_WIDTH = 10
+GREET_SPACE = 30
 
 DUDE_W = 96
 DUDE_BW = DUDE_W/8
@@ -169,7 +169,7 @@ Dude_Effect:
 		move.l	a0,ViewBufferB
 		bsr	ClearScreen
 
-		move.l	#CLEAR_LIST_ITEM_SZ*10,d0
+		move.l	#CLEAR_LIST_ITEM_SZ*20,d0
 		jsr	AllocPublic
 		move.l	a0,DrawClearList
 		clr.l	(a0)
@@ -302,6 +302,7 @@ Frame:
 ; Draw text:
 		move.l	CurrFrame,d0
 		neg.w	d0		; d0 = x pos
+		add.w	#20,d0
 		move.l	DrawBufferB(pc),a0
 		lea	Greets,a1
 		lea	WordPositions,a4
@@ -422,7 +423,7 @@ DrawWall:
 .l1
 		move.w	(a3),d0
 		lea	4(a3),a3
-		add.w	#GREET_SPACE/2,d0
+		add.w	#GREET_SPACE,d0
 		cmp.w	#XGRID_MAX_VIS,d0
 		bge	.grDone1
 		cmp.w	#XGRID_MIN_VIS,d0
