@@ -192,7 +192,9 @@ VbiRoutine	dc.l	0
 MusicPlaying	dc.w	0
 
 
+		ifne	MUSIC_USE_CIA
 		include	"LightSpeedPlayer_cia.i"
+		endc
 		include	"LightSpeedPlayer.i"
 
 
