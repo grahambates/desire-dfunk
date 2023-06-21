@@ -1,10 +1,10 @@
 		include	src/_main.i
 		include	tentacles.i
 
-TENTACLES_END_FRAME = $200
+TENTACLES_END_FRAME = $400
 
-OUTER_COUNT = 7
-INNER_COUNT = 7
+OUTER_COUNT = 8
+INNER_COUNT = 4
 INNER_SHIFT = 4
 
 ; Display window:
@@ -206,7 +206,7 @@ Frame:
 		add.w	(a3,d4.w),d0
 
 		ext.l	d0
-		divs	#150,d0
+		divs	#200,d0
 		add.w	#$f0,d0		; min scale
 		move.w	d0,Scale
 
@@ -215,10 +215,12 @@ Frame:
 		move.w	(a3,d6.w),d6
 		asr.w	#5,d6
 
+		and.w	#($400/OUTER_COUNT)*2-1,d6
+		add.w	#$400+$800,d6
+		move.w	#$800,Amt	; reset increment
+
 		; Wait for VBL before updating bpl pointers in copper
-		DebugStartIdle
 		jsr	WaitEOF
-		DebugStopIdle
 
 		moveq	#OUTER_COUNT-1,d7
 .l0
@@ -273,7 +275,14 @@ Frame:
 		add.w	#($400/INNER_COUNT)*2,d4
 		dbf	d5,.l1
 
-		add.w	#($400/OUTER_COUNT)*2,d6
+		; Shenanigans to draw in vertical order
+		move.w	Amt,a5
+		sub.w	AmtInc,a5
+		move.w	a5,Amt
+		add.w	a5,d6
+		neg.w	Amt
+		neg.w	AmtInc
+
 		dbf	d7,.l0
 
 		cmp.l	#TENTACLES_END_FRAME,CurrFrame
@@ -285,6 +294,9 @@ Frame:
 		lea	custom,a6
 
 		rts
+
+Amt		dc.w	0
+AmtInc		dc.w	$800/OUTER_COUNT
 
 
 ********************************************************************************

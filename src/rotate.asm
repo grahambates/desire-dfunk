@@ -302,9 +302,7 @@ z		equr	d7
 		ifne	PROFILE
 		move.w	#$f00,color(a6)
 		endc
-		DebugStartIdle
 		jsr	WaitEOF
-		DebugStopIdle
 
 		jsr	SwapBuffers
 
