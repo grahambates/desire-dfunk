@@ -265,7 +265,6 @@ Frame:
 		move.w	Scale,d2	; d2 = radius
 		lsr.w	#6,d2
 		move.w	d5,d3		; d3 = color
-		; add.w d7,d3
 		addq	#1,d3
 		jsr	DrawTentacle
 		movem.w	(sp)+,d0-d7
