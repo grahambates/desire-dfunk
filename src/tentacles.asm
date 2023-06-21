@@ -5,7 +5,7 @@ TENTACLES_END_FRAME = $400
 
 OUTER_COUNT = 8
 INNER_COUNT = 4
-INNER_SHIFT = 4
+; INNER_SHIFT = 4
 
 ; Display window:
 DIW_W = 320
@@ -46,7 +46,10 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 
 Script:
 		dc.l	0,CmdLerpPal,16,6,PalStart,Pal
+		dc.l	0,CmdLerpWord,$1000,8,InnerScale
 		dc.l	$60,CmdLerpWord,128,5,SpriteX
+		dc.l	$200,CmdLerpWord,$4000,7,InnerScale
+		dc.l	$300,CmdLerpWord,$1000,7,InnerScale
 		dc.l	TENTACLES_END_FRAME-(1<<6),CmdLerpPal,16,6,Pal,PalEnd
 		dc.l	TENTACLES_END_FRAME-(1<<5)-$20,CmdLerpWord,64,5,SpriteX
 		dc.l	0,0
@@ -247,7 +250,9 @@ Frame:
 		; x += sin(a1)
 		and.w	#$7fe,d4
 		move.w	(a3,d4.w),d2
-		asr.w	#INNER_SHIFT,d2
+		; asr.w	#INNER_SHIFT,d2
+		muls	InnerScale(pc),d2
+		swap	d2
 		add.w	d2,d0		; d0 = x
 		muls	Scale,d0
 		swap	d0
@@ -257,7 +262,9 @@ Frame:
 		add.w	#$1fe,d4
 		and.w	#$7fe,d4
 		move.w	(a3,d4.w),d2
-		asr.w	#INNER_SHIFT,d2
+		; asr.w	#INNER_SHIFT,d2
+		muls	InnerScale(pc),d2
+		swap	d2
 		add.w	d2,d1		; d1 = y
 		muls	Scale,d1
 		swap	d1
@@ -405,6 +412,7 @@ Vars:
 SpriteX:	dc.w	64
 Scale:		dc.w	$100
 Scroll:		dc.w	0
+InnerScale	dc.w	$800
 
 
 *******************************************************************************

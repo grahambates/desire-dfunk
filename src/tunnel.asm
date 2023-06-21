@@ -9,7 +9,7 @@ SRC_H = 64
 DEST_W = 82
 DEST_H = 112
 ROW_BW = 492
-CHUNKY_H = 90-2
+CHUNKY_H = 90-4
 CHUNKY_W = 50
 
 PAN_X = (DEST_W-CHUNKY_W)/2
@@ -264,6 +264,16 @@ InitChunky:
 		move.w	#$ffff,(a0)+
 		move.l	#copjmp2<<16,(a0)+ ;CopC_Jmp
 		dbf	d7,.row
+
+		move.l	#dmacon<<16!DMAF_RASTER,(a0)+
+		move.l	#spr0ctl<<16,(a0)+
+		move.l	#spr1ctl<<16,(a0)+
+		move.l	#spr2ctl<<16,(a0)+
+		move.l	#spr3ctl<<16,(a0)+
+		move.l	#spr4ctl<<16,(a0)+
+		move.l	#spr5ctl<<16,(a0)+
+		move.l	#spr6ctl<<16,(a0)+
+		move.l	#spr7ctl<<16,(a0)+
 
 		; end copper
 		move.l	#-2,(a0)+
@@ -640,7 +650,7 @@ CopTemplate:
 		COP_MOVE DIW_STOP,diwstop
 		COP_MOVE DDF_STRT,ddfstrt
 		COP_MOVE DDF_STOP,ddfstop
-		COP_MOVE DMAF_SETCLR!DMAF_SPRITE,dmacon
+		COP_MOVE DMAF_SETCLR!DMAF_SPRITE!DMAF_RASTER,dmacon
 		COP_MOVE -DIW_BW,bpl1mod
 		COP_MOVE -DIW_BW,bpl2mod
 		COP_MOVE BPLS<<12!$200,bplcon0
