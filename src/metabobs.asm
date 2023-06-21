@@ -68,7 +68,7 @@ COL_HL2 = $b4b
 COL_HL3 = $f4d
 
 BALL_COUNT = 4
-BALL_R = 28				; Max radius for ball
+BALL_R = 29				; Max radius for ball
 BOB_W = 64+16
 GROUP_COUNT = 5				; Number of size groups
 

@@ -15,6 +15,7 @@
 		xdef	_start
 
 		xdef	Random32
+		xdef	RandomSeed
 		xdef	WaitEOF
 
 		xdef	VBlank

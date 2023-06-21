@@ -12,7 +12,7 @@ _start:
 		include	"PhotonsMiniWrapper1.04.i"
 
 MUSIC_ENABLE = 1
-MUSIC_USE_CIA = 1
+MUSIC_USE_CIA = 0
 DMASET = DMAF_SETCLR!DMAF_MASTER!DMAF_RASTER!DMAF_COPPER!DMAF_BLITTER
 INTSET = INTF_SETCLR!INTF_INTEN!INTF_VERTB|INTF_COPER
 RANDOM_SEED = $a162b2c9
@@ -33,18 +33,19 @@ Demo:
 		jsr	Tables_Precalc
 		jsr	Circles_Precalc
 
-		bsr	StartMusic
 		move.w	#INTSET,intena(a6)
 		move.l	#MainCop,cop1lc(a6)
+
+		bsr	StartMusic
 
 ;-------------------------------------------------------------------------------
 ; Effects
 		; jsr	Metabobs_Effect
-		jsr	Girl_Effect
-		jsr	Tentacles_Effect
-		jsr	Image_Effect
-		jsr	Tunnel_Effect
-		jsr	Dude_Effect
+		; jsr	Girl_Effect
+		; jsr	Tentacles_Effect
+		; jsr	Image_Effect
+		; jsr	Tunnel_Effect
+		; jsr	Dude_Effect
 		jsr	Rotate_Effect
 		rts			; Exit demo
 
@@ -53,6 +54,13 @@ Demo:
 MainInterrupt:
 ********************************************************************************
 		movem.l	d0-a6,-(sp)
+
+		tst.w	MusicStarted
+		beq	.notStarted
+		lea	$dff0a0,a6	; always set a6 to dff0a0 before calling LSP tick
+		bsr	LSP_MusicPlayTick ; player music tick
+.notStarted
+
 		lea	custom,a6
 
 ;-------------------------------------------------------------------------------
@@ -152,13 +160,13 @@ StartMusic:
 		ifeq	MUSIC_USE_CIA
 		lea	CopDma+3,a2
 		bsr	LSP_MusicInit
+		move.w	#1,MusicStarted
+		move.w	#ADKF_USE0P1,adkcon(a6)
 		else
 		sub.l	a2,a2
 		moveq	#0,d0
 		bsr	LSP_MusicDriver_CIA_Start
 		endc
-
-		move.w	#ADKF_USE0P1,adkcon(a6)
 		endc
 		rts
 
@@ -170,6 +178,7 @@ Vars:
 VBlank		dc.l	0
 CurrFrame	dc.l	0
 VbiRoutine	dc.l	0
+MusicStarted	dc.w	0
 
 
 		include	"LightSpeedPlayer_cia.i"
@@ -195,9 +204,7 @@ LSPBank:	incbin	"data/funky_shuffler.lsbank"
 MainCop:
 		dc.w	fmode,0
 		ifne	MUSIC_ENABLE^MUSIC_USE_CIA
-		COP_WAITV 15
-		dc.l	$009c8000|(1<<4) ; fire copper interrupt
-		COP_WAITV 15+11
+		COP_WAITV 11
 CopDma:		dc.w	dmacon,$8000
 		endc
 Cop2Lc:		dc.w	cop2lc,0	; Address of installed copper

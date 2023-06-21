@@ -81,6 +81,8 @@ Rotate_Effect:
 		jsr	Free
 		jsr	ResetFrameCounter
 
+		move.l	#$a162b2c9,RandomSeed
+
 		lea	BlankCop,a0
 		sub.l	a1,a1
 		jsr	StartEffect
@@ -396,7 +398,6 @@ SMCNext		move.l	(sp)+,a0
 		dbf	d7,SMCLoop
 		move.l	#0,(clear)+	; End clear list
 
-		jsr	WaitEOF
 		cmp.l	#ROTATE_END_FRAME,CurrFrame
 		blt	Frame
 
@@ -731,9 +732,9 @@ ZoomBase:	dc.w	1500
 DrawPoints:	dc.l	0
 
 ParticlesSpeed:
-ParticlesSpeedX: dc.w	0		;-$100
-ParticlesSpeedY: dc.w	0		;$400
-ParticlesSpeedZ: dc.w	0		;-$200
+ParticlesSpeedX: dc.w	0
+ParticlesSpeedY: dc.w	0
+ParticlesSpeedZ: dc.w	0
 
 
 Allocated:
@@ -775,10 +776,10 @@ Colors:
 		; ; pink / cyan
 		dc.w	$024,$636,$a39,$a7b,$9bd,$5ef ; https://gradient-blaster.grahambates.com/?points=123@0,a39@2,5ef@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
 		; ; bright pink / cyan
-		; dc.w $123,$737,$d0b,$c8d,$abe,$5ef ; https://gradient-blaster.grahambates.com/?points=123@0,d1b@2,5ef@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
+		;dc.w	$123,$737,$d0b,$c8d,$abe,$5ef ; https://gradient-blaster.grahambates.com/?points=123@0,d1b@2,5ef@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
 
 		; bright pink / blue
-		; dc.w	$123,$228,$40d,$84d,$b5e,$f5d ; https://gradient-blaster.grahambates.com/?points=123@0,41d@2,f5d@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
+		;dc.w	$123,$228,$40d,$84d,$b5e,$f5d ; https://gradient-blaster.grahambates.com/?points=123@0,41d@2,f5d@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
 
 		; dc.w	$000,$f00,$0f0,$00f,$0ff,$fff ; test
 		; dc.w $011,$344,$766,$ba8,$fda ; nic orange

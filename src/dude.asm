@@ -923,7 +923,7 @@ Cop:
 		dc.w	bplcon0,BPLS<<12!$200!(1<<10)
 		dc.w	bplcon2,$24
 
-		COP_WAITV 11		; Needed when not using music wait. Not sure why.
+		; COP_WAITV 11		; Needed when not using music wait. Not sure why.
 
 CopBpls:
 		; pf1
