@@ -55,7 +55,7 @@ MainInterrupt:
 ********************************************************************************
 		movem.l	d0-a6,-(sp)
 
-		tst.w	MusicStarted
+		tst.w	MusicPlaying
 		beq	.notStarted
 		lea	$dff0a0,a6	; always set a6 to dff0a0 before calling LSP tick
 		bsr	LSP_MusicPlayTick ; player music tick
@@ -160,12 +160,23 @@ StartMusic:
 		ifeq	MUSIC_USE_CIA
 		lea	CopDma+3,a2
 		bsr	LSP_MusicInit
-		move.w	#1,MusicStarted
+		move.w	#1,MusicPlaying
 		move.w	#ADKF_USE0P1,adkcon(a6)
 		else
 		sub.l	a2,a2
 		moveq	#0,d0
 		bsr	LSP_MusicDriver_CIA_Start
+		endc
+		endc
+		rts
+
+********************************************************************************
+StopMusic:
+		ifne	MUSIC_ENABLE
+		ifeq	MUSIC_USE_CIA
+		clr.w	MusicPlaying
+		else
+		bsr	LSP_MusicDriver_CIA_Stop
 		endc
 		endc
 		rts
@@ -178,7 +189,7 @@ Vars:
 VBlank		dc.l	0
 CurrFrame	dc.l	0
 VbiRoutine	dc.l	0
-MusicStarted	dc.w	0
+MusicPlaying	dc.w	0
 
 
 		include	"LightSpeedPlayer_cia.i"

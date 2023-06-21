@@ -26,3 +26,4 @@
 		xdef	ResetFrameCounter
 		xdef	BlankCop
 		xdef	BlankScreen
+		xdef	StopMusic

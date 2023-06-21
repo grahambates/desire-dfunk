@@ -67,6 +67,7 @@ Script:
 		dc.l	$680,CmdLerpPoints,LogoPoints,SpherePoints
 ; ; Zoom out
 		dc.l	$700,CmdLerpWord,1000,8,ZoomBase
+		; dc.l	$800,StopMusic
 		dc.l	$800,CmdLerpPal,16,6,Pal,PalStart
 		dc.l	0,0
 
