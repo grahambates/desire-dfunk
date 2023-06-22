@@ -131,11 +131,11 @@ Frame:
 		ble	.noCred3
 		bsr	BlitCred3
 .noCred3
-		cmp.l	#$100,CurrFrame
+		cmp.l	#$180,CurrFrame
 		ble	.noCred2
 		bsr	BlitCred2
 .noCred2
-		cmp.l	#$180,CurrFrame
+		cmp.l	#$280,CurrFrame
 		ble	.noCred1
 		bsr	BlitCred1
 .noCred1

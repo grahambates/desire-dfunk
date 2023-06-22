@@ -85,7 +85,7 @@ Image_Vbi:
 		lea	SlowCycleFunkCols(pc),a0
 		lea	SlowCycleFunk+2,a1
 		moveq	#4,d2
-		moveq	#4,d3
+		moveq	#5,d3
 		bsr	DoCycle
 
 		; highlight

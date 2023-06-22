@@ -64,10 +64,10 @@ Script:
 		dc.l	$500+LERP_POINTS_LENGTH,CmdLerpPoints,Particles,LogoPoints
 ; Hearts
 ; dc.l $700,CmdLerpPoints,LogoPoints,HeartPoints
-		dc.l	$700,CmdLerpPoints,LogoPoints,SpherePoints
+		; dc.l	$740,CmdLerpPoints,LogoPoints,SpherePoints
 ; ; Zoom out
 		dc.l	$700,CmdLerpWord,1000,7,ZoomBase
-		dc.l	$800-(1<<6)-$40,CmdLerpPal,16,6,Pal,PalStart,PalOut
+		dc.l	$700,CmdLerpPal,16,7,Pal,PalStart,PalOut
 		dc.l	0,0
 
 SetParticles:

@@ -111,8 +111,8 @@ BPLCON0V = BPLS<<(12+DPF)!DPF<<10!$200
 Script:
 		dc.l	0,CmdLerpPal,6-1,4,PalStart,Pal,PalOut
 		dc.l	$40,CmdLerpPal,6-1,6,Pal,Pal2,PalOut
-		dc.l	$40+(1<<6),CmdLerpPal,6-1,6,Pal2,Pal3,PalOut
-		dc.l	$40+(2<<6),CmdLerpPal,6-1,6,Pal3,Pal,PalOut
+		dc.l	$80,CmdLerpPal,6-1,6,Pal2,Pal3,PalOut
+		dc.l	$180,CmdLerpPal,6-1,6,Pal3,Pal,PalOut
 		dc.l	METABOBS_END_FRAME-(1<<4),CmdLerpPal,6-1,4,Pal,PalEnd,PalOut
 		dc.l	0,0
 
@@ -621,7 +621,7 @@ DrawSprites:
 
 		move.w	d0,d3
 		sub.w	#DIW_W/2,d3
-		asr	#5,d3
+		asr	#4,d3
 		neg.w	d3
 		subq	#7,d3
 
@@ -891,12 +891,11 @@ SprDat2E:
 ; Color palette:
 ; https://gradient-blaster.grahambates.com/?points=024@0,226@2,f4d@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
 Pal:
-		dc.w	$012,$125,$225,$437,$758,$969
+		dc.w	$012,$213,$214,$627,$a2b,$d2c
 Pal2:
-
-		dc.w	$012,$125,$225,$337,$458,$669
+		dc.w	$012,$213,$214,$337,$458,$669
 Pal3:
-		dc.w	$012,$125,$225,$446,$766,$986
+		dc.w	$012,$213,$214,$446,$766,$986
 PalStart
 		rept	6
 		dc.w	0
