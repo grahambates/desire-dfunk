@@ -3,6 +3,11 @@
 
 GIRL_END_FRAME = $400
 
+BAR_COUNT = 15
+BAR_DIST = $80
+BAR_H = 300
+BARS_YOFFSET = -100
+
 HEAD_W = 160
 HEAD_H = 159
 HEAD_BW = HEAD_W/8
@@ -42,8 +47,8 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 ********************************************************************************
 Script:
 		dc.l	0,CmdLerpWord,0,8,YPos
-		dc.l	0,CmdLerpPal,7-1,5,PalEnd,Pal,PalOut
-		dc.l	GIRL_END_FRAME-(1<<5),CmdLerpPal,7-1,5,Pal,PalEnd,PalOut
+		dc.l	0,CmdLerpPal,8-1,5,PalEnd,Pal,PalOut
+		dc.l	GIRL_END_FRAME-(1<<5),CmdLerpPal,8-1,5,Pal,PalEnd,PalOut
 		dc.l	GIRL_END_FRAME-(1<<3),CmdLerpWord,100,3,YPos
 		dc.l	0,0
 
@@ -72,6 +77,8 @@ Girl_Vbi:
 		move.w	(a1)+,(a0)
 		lea	4(a0),a0
 		dbf	d0,.l
+
+		bsr	DoBars
 
 		rts
 
@@ -334,6 +341,56 @@ DX = BODY_W/16-1
 		dbf	d7,.l
 		rts
 
+
+********************************************************************************
+DoBars:
+		lea	CopBars,a0
+		move.l	PalOut(pc),a1
+
+		move.w	(a1),d3		; colours
+		move.w	7*2(a1),d4
+		moveq	#0,d5
+
+		move.l	CurrFrame,d1
+		btst	#8-1,d1		; swap order when frame mod rolls over
+		beq	.odd
+		exg	d3,d4
+.odd
+		lsl	#1,d1
+		and.w	#$ff,d1		; frame%256
+		add.w	#BAR_DIST,d1	; dist
+
+		moveq	#BAR_COUNT-1,d7
+.l
+		move.w	d7,d2
+		lsl.w	#8,d2
+		add.w	d1,d2
+		move.l	#BAR_H<<8,d0	; base height
+
+		divs	d2,d0
+		add.w	#DIW_YSTRT-BARS_YOFFSET,d0
+
+		; pal fix needed?
+		cmp.w	#$ff,d0
+		ble	.ok
+		tst.w	d5		; already set
+		bne	.ok
+		move.w	#$ffdf,(a0)
+		move.w	d4,6(a0)	; set same color
+		lea	8(a0),a0
+		moveq	#1,d5
+.ok
+
+		move.b	d0,(a0)		; set wait
+		move.w	d3,6(a0)	; set color
+		exg	d3,d4		; swap colors for next row
+
+		lea	8(a0),a0	; next wait in copperlist
+
+		dbf	d7,.l
+
+		rts
+
 ********************************************************************************
 Vars:
 ********************************************************************************
@@ -345,9 +402,9 @@ CredScreen:	dc.l	0
 
 PalOut		dc.l	Pal
 
-Pal:		dc.w	$90c,$323,$eca,$666,$000,$fff,$fff
+Pal:		dc.w	$90c,$323,$eca,$666,$000,$fff,$fff,$a1d
 PalEnd:
-		rept	7
+		rept	8
 		dc.w	$024
 		endr
 
@@ -375,6 +432,13 @@ CopColors:
 		dc.w	color09,0
 		dc.w	color10,0
 		dc.w	color11,0
+
+CopBars:
+		rept	BAR_COUNT+1
+		dc.w	$4005,$fffe
+		dc.w	color00,0
+		endr
+
 		dc.l	-2
 ; Images
 Head:		incbin	data/girl-head.BPL
