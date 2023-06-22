@@ -896,11 +896,11 @@ SprDat2E:
 ; Color palette:
 ; https://gradient-blaster.grahambates.com/?points=024@0,226@2,f4d@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
 Pal:
-		dc.w	$012,$213,$214,$627,$a2b,$d2c
+		dc.w	$012,$313,$515,$627,$a2b,$d2c
 Pal2:
-		dc.w	$012,$213,$214,$337,$458,$669
+		dc.w	$012,$313,$515,$647,$57a,$2ad
 Pal3:
-		dc.w	$012,$213,$214,$446,$766,$986
+		dc.w	$012,$313,$515,$836,$c57,$f88
 PalStart
 		rept	6
 		dc.w	0
