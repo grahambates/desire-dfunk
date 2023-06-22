@@ -563,9 +563,6 @@ Update:
 		move.w	(a4,d2),d1	; y = cos(angle)
 		asr.w	#8,d1
 
-		add.w	#SCREEN_W/2-BALL_R,d0 ; center
-		add.w	#SCREEN_H/2-BALL_R,d1
-
 		move.w	(a4,d6),d3	; scale
 		ext.l	d3
 		lsl.l	#3,d3
@@ -630,6 +627,9 @@ DrawSprites:
 ; control words:
 		move.w	Ball_X(a2),d0
 		move.w	Ball_Y(a2),d1
+		; center
+		add.w	#SCREEN_W/2-BALL_R,d0
+		add.w	#SCREEN_H/2-BALL_R,d1
 
 		move.w	d0,d3
 		sub.w	#DIW_W/2,d3
@@ -700,6 +700,9 @@ DrawBobs:
 		move.w	Ball_Y(a5),d1
 		move.w	Ball_R(a5),d2
 		lea	Ball_SIZEOF(a5),a5
+		; center
+		add.w	#SCREEN_W/2-BALL_R,d0
+		add.w	#SCREEN_H/2-BALL_R,d1
 
 		neg.w	d2
 		add.w	#BALL_R,d2
