@@ -623,7 +623,7 @@ DrawSprites:
 		sub.w	#DIW_W/2,d3
 		asr	#4,d3
 		neg.w	d3
-		subq	#7,d3
+		subq	#6,d3
 
 		; muls #BALL_R,d3
 		; move.w #BALL_R-GROUP_COUNT,d4
