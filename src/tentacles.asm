@@ -51,7 +51,7 @@ Script:
 		dc.l	$200,CmdLerpWord,$4000,7,InnerScale
 		dc.l	$300,CmdLerpWord,$1000,7,InnerScale
 		dc.l	TENTACLES_END_FRAME-(1<<6),CmdLerpPal,16,6,Pal,PalEnd,PalOut
-		dc.l	TENTACLES_END_FRAME-(1<<5)-$20,CmdLerpWord,64,5,SpriteX
+		dc.l	TENTACLES_END_FRAME-(1<<5)-$20,CmdLerpWord,48,5,SpriteX
 		dc.l	0,0
 
 
@@ -86,7 +86,7 @@ Tentacles_Effect:
 		lea	CopSprPt+2,a0
 		lea	Sprite,a1
 		move.l	a1,a2
-		moveq	#4-1,d7
+		moveq	#5-1,d7
 .sprSlice:
 		move.w	(a1)+,d0
 		lea	(a2,d0.w),a3
@@ -100,19 +100,23 @@ Tentacles_Effect:
 		move.l	#NullSprite,d0
 		move.w	d0,d1
 		swap	d0
-		moveq	#8-4-1,d7
+		moveq	#8-5-1,d7
 .spr
 		move.w	d0,(a0)
 		move.w	d1,4(a0)
 		lea	8(a0),a0
 		dbf	d7,.spr
 
-		move.w	#$27c,color17(a6)
-		move.w	#$fff,color18(a6)
-		move.w	#$024,color19(a6)
-		move.w	#$27c,color21(a6)
-		move.w	#$fff,color22(a6)
-		move.w	#$024,color23(a6)
+		move.w	#$fff,color17(a6)
+		move.w	#$024,color18(a6)
+		move.w	#$27c,color19(a6)
+		move.w	#$fff,color21(a6)
+		move.w	#$024,color22(a6)
+		move.w	#$27c,color23(a6)
+
+		move.w	#$fff,color25(a6)
+		move.w	#$024,color26(a6)
+		move.w	#$27c,color27(a6)
 
 		lea	Cop,a0
 		sub.l	a1,a1
@@ -124,7 +128,7 @@ Frame:
 		move.w	SpriteX(pc),d3
 		lea	Sprite,a1
 		move.l	a1,a2
-		moveq	#4-1,d7
+		moveq	#5-1,d7
 .sprSlice:
 		move.w	(a1)+,d0	; offset
 		lea	(a2,d0.w),a3	; sprite struct
@@ -210,7 +214,7 @@ Frame:
 		add.w	(a3,d4.w),d0
 
 		ext.l	d0
-		divs	#200,d0
+		divs	#300,d0
 		add.w	#$f0,d0		; min scale
 		move.w	d0,Scale
 
@@ -410,7 +414,7 @@ DrawTentacle:
 Vars:
 *******************************************************************************
 
-SpriteX:	dc.w	64
+SpriteX:	dc.w	48
 Scale:		dc.w	$100
 Scroll:		dc.w	0
 InnerScale	dc.w	$800
@@ -469,7 +473,7 @@ CopColors:
 		dc.l	-2
 
 Sprite:
-		incbin	data/DFunk-vert.SPR
+		incbin	data/desire_flat.SPR
 
 NullSprite:
 		dc.l	0

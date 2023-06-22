@@ -128,6 +128,9 @@ data/credit-steffest.BPL : assets/credit-steffest.png
 data/DFunk-vert.SPR : assets/DFunk-vert.png
 	$(KINGCON) $< data/DFunk-vert -F=s16 -SX=128
 
+data/desire_flat.SPR : assets/desire_flat.png
+	$(KINGCON) $< data/desire_flat -F=s16 -SX=128
+
 # Static logo screen
 data/dfunk_ordered.BPL : assets/dfunk_ordered.iff
 	$(KINGCON) $< data/dfunk_ordered -F=5 -C
