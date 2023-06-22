@@ -1,4 +1,4 @@
-name=a
+name=dfunk
 program=out/a
 
 BUILD=elf
@@ -16,6 +16,7 @@ VASMFLAGS = -m68000 -opt-fconst -nowarn=62 -x -DDEBUG=$(DEBUG)
 FSUAE = /Applications/FS-UAE-3.app/Contents/MacOS/fs-uae
 FSUAEFLAGS = --hard_drive_0=./out --floppy_drive_0_sounds=off --video_sync=1 --automatic_input_grab=0
 VAMIGA = /Applications/vAmiga.app/Contents/MacOS/vAmiga
+EXE2ADF = exe2adf
 
 exe = $(name).$(BUILD).exe
 sources := $(wildcard src/*.asm)
@@ -23,10 +24,10 @@ elf_objects := $(addprefix obj/, $(patsubst %.asm,%.elf,$(notdir $(sources))))
 hunk_objects := $(addprefix obj/, $(patsubst %.asm,%.o,$(notdir $(sources))))
 deps := $(elf_objects:.elf=.d)
 
-data = obj/tables_shade1.o
-
 all: out/$(exe)
 	cp $< $(program).exe
+
+dist: dist/$(name).adf
 
 run: all
 	@echo sys:$(name).exe > out/s/startup-sequence
@@ -38,6 +39,12 @@ run-vamiga: out/$(exe)
 # BUILD=dist (shrinkled)
 out/$(name).dist.exe: out/$(name).elf.exe
 	Shrinkler -h -9 -T decrunch.txt $< $@
+
+dist/$(name).adf: out/$(name).dist.exe
+	cp $< dist/$(name)
+	$(EXE2ADF) -i dist/$(name) -a $@
+
+# TODO readme, palette
 
 # BUILD=hunk (vasm/vlink)
 out/$(name).hunk.exe: $(hunk_objects) out/$(name).hunk-debug.exe
@@ -69,6 +76,9 @@ clean:
 	@$(RM) obj/* out/*.*
 
 -include $(deps)
+
+# Additional deps
+src/tunnel.asm: obj/tables_shade1.o
 
 $(deps): obj/%.d : src/%.asm
 	$(info Building dependencies for $<)
