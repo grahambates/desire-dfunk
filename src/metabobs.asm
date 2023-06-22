@@ -160,11 +160,16 @@ Metabobs_Effect:
 		jsr	AllocChip
 		move.l	a0,Sprites
 
+		move.l	#$100*$100,d0
+		jsr	AllocPublic
+		move.l	a0,SqrtTab
+
 		bsr	InitSprites
 		bsr	InitCircles
 		bsr	InitCircleGroups
 		bsr	InitBlitter
 		bsr	InitCopQueues
+		bsr	InitSqrt
 
 		lea	Cop2Lc+2,a0
 		move.l	#CopEnd,d0
@@ -802,6 +807,18 @@ LoadPal:
 
 
 ********************************************************************************
+InitSqrt:
+		move.l	SqrtTab,a0
+		moveq	#0,d0
+.loop0:		move.w	d0,d1
+		add.w	d1,d1
+.loop1:		move.b	d0,(a0)+
+		dbf	d1,.loop1
+		addq.b	#1,d0
+		bcc.s	.loop0
+		rts
+
+********************************************************************************
 Vars:
 ********************************************************************************
 
@@ -838,6 +855,7 @@ SprPtrs:	ds.l	BALL_COUNT*2	; Pointers to sprite structs
 
 PalOut:		dc.l	PalStart
 
+SqrtTab:	dc.l	0
 
 ********************************************************************************
 Data:
