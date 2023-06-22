@@ -40,8 +40,8 @@ Demo:
 
 ;-------------------------------------------------------------------------------
 ; Effects
-		jsr	Girl_Effect
-		jsr	Tentacles_Effect
+		; jsr	Girl_Effect
+		; jsr	Tentacles_Effect
 		jsr	Image_Effect
 		jsr	Tunnel_Effect
 		jsr	Dude_Effect

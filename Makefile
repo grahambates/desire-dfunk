@@ -82,7 +82,7 @@ $(deps): obj/%.d : src/%.asm
 
 # Tunnel tables:
 data/tables_shade1.i: scripts/table_shade.js
-	node $^ -v 112 -u 82 --routine=false --aspect=0.75 > $@
+	node $^ -v 104 -u 82 --routine=false --aspect=0.75 > $@
 obj/tables_shade1.o: data/tables_shade1.i
 	$(VASM) -Fbin -quiet -no-opt -o $@ $^
 
