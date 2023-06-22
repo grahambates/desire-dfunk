@@ -170,6 +170,7 @@ Metabobs_Effect:
 		bsr	InitBlitter
 		bsr	InitCopQueues
 		bsr	InitSqrt
+		bsr	GenerateBalls
 
 		lea	Cop2Lc+2,a0
 		move.l	#CopEnd,d0
@@ -196,7 +197,8 @@ Frame:
 		movem.l	d0-d7,DblBuffers
 
 		bsr	Clear
-		bsr	Update
+		; bsr	Update
+		bsr	UpdateBalls
 		bsr	DrawBobs
 
 		bsr	LoadPal
@@ -821,6 +823,288 @@ InitSqrt:
 		bcc.s	.loop0
 		rts
 
+
+********************************************************************************
+GenerateBalls:
+		lea	Balls,a1
+		moveq	#BALL_COUNT-1,d1
+.l:
+; x
+		jsr	Random32
+		asr.l	#8,d0
+		move.l	d0,(a1)+
+; y
+		jsr	Random32
+		asr.l	#8,d0
+		asr.l	#1,d0
+		move.l	d0,(a1)+
+; r
+		move.l	#(BALL_R)<<16,(a1)+ ; TODO
+; vx
+		jsr	Random32
+		ext.l	d0
+		lsl.l	#2,d0
+		move.l	d0,(a1)+
+; vy
+		jsr	Random32
+		ext.l	d0
+		lsl.l	#2,d0
+		move.l	d0,(a1)+
+; ; color
+; 		move.l	d3,(a1)+
+
+; ; next radius
+; 		jsr	Random32
+; 		move.w	d0,d2
+; 		and.l	#15,d2
+; 		addq	#7,d2
+; 		swap	d2
+; ; next color
+; 		jsr	Random32
+; 		moveq	#0,d3
+; 		btst	d3,d0
+; 		beq	.no0
+; 		move.l	#SCREEN_BPL,d3
+.no0
+
+		dbf	d1,.l
+		move.l	#BALLS_END,(a1)+
+		rts
+
+UpdateBalls:
+		movem.l	d0-a6,-(sp)
+		lea	Balls,a5
+		moveq	#BALL_COUNT-1,d7
+.l:
+		movem.l	(a5),d0-d4
+		bsr	UpdateBall
+		lea	Ball_SIZEOF(a5),a5
+		dbf	d7,.l
+		movem.l	(sp)+,d0-a6
+		rts
+
+********************************************************************************
+; Update position/velocity for a single ball
+;-------------------------------------------------------------------------------
+; d0 = x
+; d1 = y
+; d2 = r
+; d3 = vx
+; d4 = vy
+;-------------------------------------------------------------------------------
+UpdateBall:
+		movem.l	d0-a6,-(sp)	; Only back up what we need
+
+; Add velocity to position
+		add.l	d3,d0
+		add.l	d4,d1
+		bsr	CheckBoundsRect
+; Update props
+		movem.l	d0-d4,(a5)
+
+		bsr	CheckCollisions
+		movem.l	(sp)+,d0-a6
+		rts
+
+
+
+********************************************************************************
+; Check bounds: rectangle
+;-------------------------------------------------------------------------------
+CheckBoundsRect:
+		move.l	#(DIW_W/2)<<16,d5 ; d5 = maxX = width/2-r
+		sub.l	d2,d5
+
+		cmp.l	d5,d0		; Check maxX
+		ble	.xmaxOk
+		move.l	d5,d0
+		neg.l	d3
+.xmaxOk
+		neg.l	d5
+		cmp.l	d5,d0		; Check minX (r)
+		bge	.xminOk
+		move.l	d5,d0
+		neg.l	d3
+.xminOk
+
+		move.l	#(DIW_H/2)<<16,d5 ; d5 = maxX = width/2-r
+		sub.l	d2,d5
+
+		cmp.l	d5,d1		; Check max Y
+		ble	.ymaxOk
+		move.l	d5,d1
+		neg.l	d4
+.ymaxOk
+		neg.l	d5
+		cmp.l	d5,d1		; Check min Y (r)
+		bge	.yminOk
+		move.l	d5,d1
+		neg.l	d4
+.yminOk
+		rts
+
+
+; Floating point accuracy for various operations
+; tweak these for balance between inaccuracy and overflow
+TRANSFORM_ACC = 5
+COL_OVERLAP_ACC = 5
+COL_NORM_ACC = 5
+BOUNDS_NORM_ACC = 2
+BOUNDS_REFLECT_ACC = 4
+
+; Radius for circluar bounds check
+BOUNDS_R = DIW_H/2
+
+; Rectangular bounds
+BOUNDS_X = DIW_W/2
+BOUNDS_Y = DIW_H/2
+
+BALLS_END = $7fffffff			; Magic number for end of array
+
+
+********************************************************************************
+; Check collisons with other balls
+;-------------------------------------------------------------------------------
+; d0 = x
+; d1 = y
+; d2 = r
+; d3 = vx
+; d4 = vy
+; a5 = ptr to current ball
+;-------------------------------------------------------------------------------
+CheckCollisions:
+		move.l	a5,a4		; a4 = target (other ball to compare)
+		swap	d2
+		move.w	d2,d7
+		subq	#1,d7		; d7 = r
+		move.l	#BALLS_END,d6	; magic number for end of array
+.next:
+		lea	Ball_SIZEOF(a4),a4
+		move.l	Ball_X(a4),d2
+		cmp.l	d6,d2		; last item?
+		bne	.notLast
+		rts			; exit
+.notLast
+
+		move.w	Ball_R(a4),d4
+		add.w	d7,d4		; d4 = maxDist = r1+r2
+
+; Check rect bounds first:
+		sub.l	d0,d2		; d2 = dx
+		move.l	d2,a0		; a0 = dx (backup before swap)
+		swap	d2
+		cmp.w	d4,d2
+		bgt.b	.next
+		move.l	Ball_Y(a4),d5
+		sub.l	d1,d5		; d5 = dy
+		move.l	d5,a1		; a1 = dy
+		swap	d5
+		cmp.w	d4,d5
+		bgt.b	.next
+		neg.w	d4
+		cmp.w	d4,d2
+		blt.b	.next
+		cmp.w	d4,d5
+		blt.b	.next
+		neg.w	d4
+
+; Check distance^2:
+		move.w	d4,a2		; a2 = maxDist
+		mulu	d4,d4		; d4 = maxDist^2 = (r1+r2)^2
+		muls	d2,d2
+		muls	d5,d5
+		add.l	d5,d2		; d2 = dist^2 = dx^2+dy^2
+		bne.b	.notZero	; min value to protect against divide by zero
+		moveq	#1,d2
+.notZero
+; Hit if dist^2 < maxDist^2:
+		cmp.l	d4,d2
+		bge.b	.next
+; Hit!:
+; Get actual dist using sqrt lookup
+		move.l	SqrtTab,a3
+		move.b	(a3,d2.w),d2	; d2 = dist
+		and.w	#$ff,d2
+; Fix overlap:
+		move.w	a2,d5
+		sub.w	d2,d5		; d5 = (maxDist - dist) / 2 = overlap (FP)
+		swap	d5
+		clr.w	d5
+		asr.l	#1+COL_OVERLAP_ACC,d5 ; /2 and shift more to avoid signed overflow
+
+		divu	d2,d5		;  / dist
+; adjust x
+		move.l	a0,d3
+		swap	d3
+		muls	d5,d3
+		asl.l	#COL_OVERLAP_ACC,d3
+
+		sub.l	d3,Ball_X(a5)
+		add.l	d3,Ball_X(a4)
+;add.l	d3,a0					; adjust dx
+; adjust Y
+		move.l	a1,d3
+		swap	d3
+		muls	d5,d3
+		asl.l	#COL_OVERLAP_ACC,d3
+		sub.l	d3,Ball_Y(a5)
+		add.l	d3,Ball_Y(a4)
+
+; use maxDist as d
+; stops velocities spiraling upwards
+		move.l	a2,d2
+
+; Update velocities:
+; normal vector n
+		move.l	a0,d3		; d3 = nx = dx/d
+		asr.l	#COL_NORM_ACC,d3 ; >>2 to prevent overflow
+		divs	d2,d3
+		ext.l	d3
+		move.l	a1,d4		; d4 = ny = dy/d
+		asr.l	#COL_NORM_ACC,d4
+		divs	d2,d4
+		add.l	d2,d2
+; velocity vector k
+		move.l	Ball_VX(a5),d2	; d2 = kx = b1.vx-b2.vx
+		sub.l	Ball_VX(a4),d2
+		move.l	Ball_VY(a5),d5	; d2 = ky = b1.vy-b2.vy
+		sub.l	Ball_VY(a4),d5
+; p = 2 * (nx * kx + ny * ky) / (b1.m + b2.m);
+		lsl.l	#COL_NORM_ACC,d2 ; keep some extra bits for better accuracy
+		swap	d2
+		muls	d3,d2		; d2 = nx * kx
+		lsl.l	#COL_NORM_ACC,d5
+		swap	d5
+		muls	d4,d5		; d5 = ny * ky
+		add.l	d5,d2
+		add.l	d2,d2		; d2 = 2 * (nx * kx + ny * ky)
+		move.w	d7,d5		; d5 = b1.m + b2.m (use radius as mass)
+		add.w	Ball_R(a4),d5
+		divs	d5,d2		; d2 = p
+; update vx
+		move.w	d2,d5		; px = p * nx
+		muls	d3,d5
+		swap	d5
+		move.w	d5,d3
+		muls	Ball_R(a4),d3	; b1.vx -= px * b2.m;
+		lsl.l	#COL_NORM_ACC,d3 ; correct shifts in nx/ny and kx/ky
+		sub.l	d3,Ball_VX(a5)
+		muls	Ball_R(a5),d5	; b2.vx += px * b1.m;
+		lsl.l	#COL_NORM_ACC,d5
+		add.l	d5,Ball_VX(a4)
+; update vy
+		muls	d4,d2		; py = p * ny
+		swap	d2
+		move.w	d2,d4
+		muls	Ball_R(a4),d4	; b1.vy -= py * b1.m;
+		lsl.l	#COL_NORM_ACC,d4
+		sub.l	d4,Ball_VY(a5)
+		muls	Ball_R(a5),d2	; b2.vy += py * b1.m;
+		lsl.l	#COL_NORM_ACC,d2
+		add.l	d2,Ball_VY(a4)
+		bra	.next
+
+
 ********************************************************************************
 Vars:
 ********************************************************************************
@@ -913,10 +1197,10 @@ Ball_Y		rs.l	1
 Ball_R		rs.l	1
 Ball_VX		rs.l	1
 Ball_VY		rs.l	1
-Ball_Col	rs.l	1
+; Ball_Col	rs.l	1
 Ball_SIZEOF	rs.b	0
 
-Balls:		ds.b	Ball_SIZEOF*BALL_COUNT
+Balls:		ds.b	Ball_SIZEOF*BALL_COUNT+2 ; TODO: alloc
 
 SprDat:
 		incbin	"data/ball-highlight-b.SPR"
