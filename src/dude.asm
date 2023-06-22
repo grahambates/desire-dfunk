@@ -1,7 +1,7 @@
 		include	src/_main.i
 		include	dude.i
 
-DUDE_END_FRAME = $600
+DUDE_END_FRAME = $800
 
 TOP_PAD = 13
 L_PAD = 32
@@ -302,7 +302,7 @@ Frame:
 ; Draw text:
 		move.l	CurrFrame,d0
 		neg.w	d0		; d0 = x pos
-		add.w	#20,d0
+		add.w	#60,d0		; initial offset
 		move.l	DrawBufferB(pc),a0
 		lea	Greets,a1
 		lea	WordPositions,a4

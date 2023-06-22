@@ -133,15 +133,19 @@ DoLerpCol:
 *******************************************************************************
 ; a0 - from
 ; a1 - to
+; a2 - out ptr
 ; d0.w - colors
 ; d1.w - duration (pow 2)
 StartPalLerp:
-		lea	Pal(pc),a2
-		move.l	a0,(a2)+	; from
-		move.l	a1,(a2)+	; to
-		move.l	a0,(a2)+	; out
-		clr.w	(a2)+		; step
-		move.w	d0,(a2)+	; size
+		lea	Pal(pc),a3
+		move.l	a0,(a3)+	; from
+		move.l	a1,(a3)+	; to
+		move.l	a2,(a3)+	; out
+		clr.w	(a3)+		; step
+		move.w	d0,(a3)+	; size
+
+		move.l	a0,(a2)		; From pal out
+
 		move.w	#$7fff,d0
 		lea	PalStep(pc),a1
 		bra	LerpWord
@@ -150,6 +154,7 @@ StartPalLerp:
 *******************************************************************************
 LerpPalStep:
 		move.w	PalStep(pc),d0
+		move.l	PalOut(pc),a3
 		cmp.w	#$7fff,d0
 		bge	.done
 
@@ -157,10 +162,11 @@ LerpPalStep:
 		move.l	PalFrom(pc),a0
 		move.l	PalTo(pc),a1
 		lea	PalTmp(pc),a2
-		move.l	a2,PalOut
+
+		move.l	a2,(a3)
 		bra	LerpPal
 
-.done		move.l	PalTo(pc),PalOut
+.done		move.l	PalTo(pc),(a3)	; To pal out
 		rts
 
 

@@ -1,7 +1,7 @@
 		include	src/_main.i
 		include	rotate.i
 
-ROTATE_END_FRAME = $1000
+ROTATE_END_FRAME = $800
 
 DIW_W = CIRCLES_DIW_W
 DIW_H = CIRCLES_DIW_H
@@ -44,7 +44,7 @@ DIW_XSTOP = DIW_XSTRT+DIW_W
 DIW_YSTOP = DIW_YSTRT+DIW_H
 
 Script:
-		dc.l	0,CmdLerpPal,16,6,PalStart,Pal
+		dc.l	0,CmdLerpPal,16,6,PalStart,Pal,PalOut
 		dc.l	0,CmdLerpWord,200,7,ZoomBase
 ; Cube
 		dc.l	$180,CmdLerpPoints,SpherePoints,CubePoints
@@ -57,18 +57,17 @@ Script:
 		dc.l	$300+LERP_POINTS_LENGTH+1,CmdLerpWord,$400,5,ParticlesSpeedY
 		dc.l	$300+LERP_POINTS_LENGTH+1,CmdLerpWord,$400,3,ParticlesSpeedZ
 ; Stop movement
-		dc.l	$480-(1<<3),CmdLerpWord,0,3,ParticlesSpeedX
-		dc.l	$480-(1<<3),CmdLerpWord,0,3,ParticlesSpeedY
-		dc.l	$480-(1<<3),CmdLerpWord,0,3,ParticlesSpeedZ
+		dc.l	$500-(1<<3),CmdLerpWord,0,3,ParticlesSpeedX
+		dc.l	$500-(1<<3),CmdLerpWord,0,3,ParticlesSpeedY
+		dc.l	$500-(1<<3),CmdLerpWord,0,3,ParticlesSpeedZ
 ; Logo
-		dc.l	$480+LERP_POINTS_LENGTH,CmdLerpPoints,Particles,LogoPoints
+		dc.l	$500+LERP_POINTS_LENGTH,CmdLerpPoints,Particles,LogoPoints
 ; Hearts
 ; dc.l $700,CmdLerpPoints,LogoPoints,HeartPoints
-		dc.l	$680,CmdLerpPoints,LogoPoints,SpherePoints
+		dc.l	$700,CmdLerpPoints,LogoPoints,SpherePoints
 ; ; Zoom out
-		dc.l	$700,CmdLerpWord,1000,8,ZoomBase
-		; dc.l	$800,StopMusic
-		dc.l	$800,CmdLerpPal,16,6,Pal,PalStart
+		dc.l	$700,CmdLerpWord,1000,7,ZoomBase
+		dc.l	$800-(1<<6)-$40,CmdLerpPal,16,6,Pal,PalStart,PalOut
 		dc.l	0,0
 
 SetParticles:
@@ -746,6 +745,8 @@ LerpPointsTmp:	dc.l	0
 LerpPointsOut:	dc.l	0
 LerpPointsIncs:	dc.l	0
 
+PalOut:		dc.l	PalStart
+
 ********************************************************************************
 Data:
 ********************************************************************************
@@ -773,7 +774,7 @@ Colors:
 		; ; green / cyan
 		; dc.w $123,$164,$3a4,$4c8,$5dc,$5ef ; https://gradient-blaster.grahambates.com/?points=123@0,3a4@2,5ef@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
 		; ; pink / cyan
-		dc.w	$024,$636,$a39,$a7b,$9bd,$5ef ; https://gradient-blaster.grahambates.com/?points=123@0,a39@2,5ef@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
+		dc.w	$012,$636,$a39,$a7b,$9bd,$5ef ; https://gradient-blaster.grahambates.com/?points=123@0,a39@2,5ef@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
 		; ; bright pink / cyan
 		;dc.w	$123,$737,$d0b,$c8d,$abe,$5ef ; https://gradient-blaster.grahambates.com/?points=123@0,d1b@2,5ef@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
 

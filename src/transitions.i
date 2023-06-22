@@ -4,4 +4,3 @@
 		xdef	LerpWordsStep
 		xdef	StartPalLerp
 		xdef	LerpPalStep
-		xdef	PalOut

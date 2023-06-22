@@ -40,12 +40,12 @@ Demo:
 
 ;-------------------------------------------------------------------------------
 ; Effects
-		jsr	Metabobs_Effect
 		jsr	Girl_Effect
 		jsr	Tentacles_Effect
 		jsr	Image_Effect
 		jsr	Tunnel_Effect
 		jsr	Dude_Effect
+		jsr	Metabobs_Effect
 		jsr	Rotate_Effect
 		rts			; Exit demo
 
@@ -232,5 +232,5 @@ BlankCop:
 		dc.w	diwstop,$2cc1
 		dc.w	bplcon0,$200
 		dc.w	color00
-BlankBg		dc.w	$024
+BlankBg		dc.w	0
 		dc.l	-2

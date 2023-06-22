@@ -14,15 +14,15 @@ const greets = [
 	["LOGICOMA", "zosilla"], // GB
 	["FATZONE", "NameSmile"], // MZ
 	// ["TUHB", "RabbitFire"], // GB
-	// ["BITSHIFTERS", "zosilla"], // GB
+	["BITSHIFTERS", "zosilla"], // GB
 	["MELON", "RabbitFire"], // GB
 	["FOCUS DESIGN", "zosilla"], // MZ
 	["PROXIMA", "NameSmile"], // MZ
-	// ["FIVE FINGER PUNCH", "zosilla"],
-	["RESISTANCE", "zosilla"], // MZ
+	["FIVE FINGER PUNCH", "zosilla"],
+	["RESISTANCE", "NameSmile"], // MZ
 	["ABYSS", "RabbitFire"], // GB
 	["MOODS PLATEAU", "zosilla"], // MZ
-	["FFP", "NameSmile"],
+	// ["FFP", "NameSmile"],
 ];
 
 const fonts = {};

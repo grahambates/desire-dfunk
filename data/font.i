@@ -1,12 +1,12 @@
 zosillaFontTable:
  dc.l zosillaA
- dc.l 0
+ dc.l zosillaB
  dc.l zosillaC
  dc.l zosillaD
  dc.l zosillaE
  dc.l zosillaF
  dc.l zosillaG
- dc.l 0
+ dc.l zosillaH
  dc.l zosillaI
  dc.l 0
  dc.l 0
@@ -20,7 +20,7 @@ zosillaFontTable:
  dc.l zosillaS
  dc.l zosillaT
  dc.l zosillaU
- dc.l 0
+ dc.l zosillaV
  dc.l 0
  dc.l 0
  dc.l 0
@@ -46,6 +46,30 @@ zosillaA:
  dc.b 8,11
  dc.b 8,4
  dc.b 2,4
+ even
+zosillaB:
+ dc.b 14
+ dc.b 2
+ dc.b 6
+ dc.b 0,25
+ dc.b 0,0
+ dc.b 10,0
+ dc.b 6,11
+ dc.b 10,15
+ dc.b 10,25
+ dc.b 0,25
+ dc.b 4
+ dc.b 2,4
+ dc.b 2,8
+ dc.b 4,10
+ dc.b 6,4
+ dc.b 2,4
+ dc.b 4
+ dc.b 2,22
+ dc.b 8,22
+ dc.b 8,17
+ dc.b 2,12
+ dc.b 2,22
  even
 zosillaC:
  dc.b 14
@@ -128,6 +152,24 @@ zosillaG:
  dc.b 0,25
  dc.b 0,0
  dc.b 10,0
+ even
+zosillaH:
+ dc.b 14
+ dc.b 0
+ dc.b 12
+ dc.b 2,14
+ dc.b 2,25
+ dc.b 0,25
+ dc.b 0,0
+ dc.b 2,0
+ dc.b 2,11
+ dc.b 8,11
+ dc.b 8,0
+ dc.b 10,0
+ dc.b 10,25
+ dc.b 8,25
+ dc.b 8,14
+ dc.b 2,14
  even
 zosillaI:
  dc.b 14
@@ -293,10 +335,24 @@ zosillaU:
  dc.b 0,25
  dc.b 0,0
  even
+zosillaV:
+ dc.b 14
+ dc.b 0
+ dc.b 8
+ dc.b 8,22
+ dc.b 8,0
+ dc.b 10,0
+ dc.b 10,28
+ dc.b 0,19
+ dc.b 0,0
+ dc.b 2,0
+ dc.b 2,17
+ dc.b 8,22
+ even
 NameSmileFontTable:
  dc.l NameSmileA
  dc.l 0
- dc.l 0
+ dc.l NameSmileC
  dc.l 0
  dc.l NameSmileE
  dc.l NameSmileF
@@ -312,7 +368,7 @@ NameSmileFontTable:
  dc.l NameSmileP
  dc.l 0
  dc.l NameSmileR
- dc.l 0
+ dc.l NameSmileS
  dc.l NameSmileT
  dc.l 0
  dc.l 0
@@ -345,6 +401,30 @@ NameSmileA:
  dc.b 5,27
  dc.b 1,27
  dc.b 1,7
+ even
+NameSmileC:
+ dc.b 20
+ dc.b 0
+ dc.b 18
+ dc.b 13,0
+ dc.b 17,7
+ dc.b 17,12
+ dc.b 14,12
+ dc.b 11,7
+ dc.b 7,7
+ dc.b 5,10
+ dc.b 5,17
+ dc.b 7,20
+ dc.b 11,20
+ dc.b 14,15
+ dc.b 17,15
+ dc.b 17,20
+ dc.b 13,27
+ dc.b 5,27
+ dc.b 1,20
+ dc.b 1,7
+ dc.b 5,0
+ dc.b 13,0
  even
 NameSmileE:
  dc.b 20
@@ -493,6 +573,36 @@ NameSmileR:
  dc.b 17,27
  dc.b 14,27
  dc.b 8,17
+ even
+NameSmileS:
+ dc.b 20
+ dc.b 0
+ dc.b 24
+ dc.b 14,0
+ dc.b 17,5
+ dc.b 17,10
+ dc.b 14,10
+ dc.b 12,7
+ dc.b 6,7
+ dc.b 5,9
+ dc.b 6,10
+ dc.b 14,10
+ dc.b 17,16
+ dc.b 17,22
+ dc.b 14,27
+ dc.b 4,27
+ dc.b 1,22
+ dc.b 1,17
+ dc.b 4,17
+ dc.b 6,20
+ dc.b 12,20
+ dc.b 13,19
+ dc.b 12,17
+ dc.b 4,17
+ dc.b 1,12
+ dc.b 1,5
+ dc.b 4,0
+ dc.b 14,0
  even
 NameSmileT:
  dc.b 20
@@ -738,13 +848,14 @@ tRIFT: dc.b "RIFT",0
 tINSANE: dc.b "INSANE",0
 tLOGICOMA: dc.b "LOGICOMA",0
 tFATZONE: dc.b "FATZONE",0
+tBITSHIFTERS: dc.b "BITSHIFTERS",0
 tMELON: dc.b "MELON",0
 tFOCUSDESIGN: dc.b "FOCUS DESIGN",0
 tPROXIMA: dc.b "PROXIMA",0
+tFIVEFINGERPUNCH: dc.b "FIVE FINGER PUNCH",0
 tRESISTANCE: dc.b "RESISTANCE",0
 tABYSS: dc.b "ABYSS",0
 tMOODSPLATEAU: dc.b "MOODS PLATEAU",0
-tFFP: dc.b "FFP",0
  even
 Greets:
  dc.w 140
@@ -767,32 +878,36 @@ Greets:
  dc.w $6cf
  dc.l NameSmileFontTable-65*4
  dc.l tFATZONE
- dc.w 95
+ dc.w 154
  dc.w $d6f
+ dc.l zosillaFontTable-65*4
+ dc.l tBITSHIFTERS
+ dc.w 95
+ dc.w $e71
  dc.l RabbitFireFontTable-65*4
  dc.l tMELON
  dc.w 164
- dc.w $e71
+ dc.w $ed1
  dc.l zosillaFontTable-65*4
  dc.l tFOCUSDESIGN
  dc.w 128
- dc.w $ed1
+ dc.w $6cf
  dc.l NameSmileFontTable-65*4
  dc.l tPROXIMA
- dc.w 140
- dc.w $6cf
+ dc.w 230
+ dc.w $d6f
  dc.l zosillaFontTable-65*4
+ dc.l tFIVEFINGERPUNCH
+ dc.w 188
+ dc.w $e71
+ dc.l NameSmileFontTable-65*4
  dc.l tRESISTANCE
  dc.w 93
- dc.w $d6f
+ dc.w $ed1
  dc.l RabbitFireFontTable-65*4
  dc.l tABYSS
  dc.w 178
- dc.w $e71
+ dc.w $6cf
  dc.l zosillaFontTable-65*4
  dc.l tMOODSPLATEAU
- dc.w 60
- dc.w $ed1
- dc.l NameSmileFontTable-65*4
- dc.l tFFP
  dc.w -1

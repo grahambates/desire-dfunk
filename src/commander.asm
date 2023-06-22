@@ -119,5 +119,5 @@ CmdLerpWord:
 		jmp	LerpWord
 
 CmdLerpPal:
-		movem.l	(a5)+,d0/d1/a0/a1
+		movem.l	(a5)+,d0/d1/a0/a1/a2
 		jmp	StartPalLerp

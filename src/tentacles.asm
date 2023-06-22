@@ -45,12 +45,12 @@ DDF_STRT = ((DIW_XSTRT-17)>>1)&$00fc-SCROLL*8
 DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 
 Script:
-		dc.l	0,CmdLerpPal,16,6,PalStart,Pal
+		; dc.l	0,CmdLerpPal,16,6,PalStart,Pal,PalOut
 		dc.l	0,CmdLerpWord,$1000,8,InnerScale
 		dc.l	$60,CmdLerpWord,128,5,SpriteX
 		dc.l	$200,CmdLerpWord,$4000,7,InnerScale
 		dc.l	$300,CmdLerpWord,$1000,7,InnerScale
-		dc.l	TENTACLES_END_FRAME-(1<<6),CmdLerpPal,16,6,Pal,PalEnd
+		dc.l	TENTACLES_END_FRAME-(1<<6),CmdLerpPal,16,6,Pal,PalEnd,PalOut
 		dc.l	TENTACLES_END_FRAME-(1<<5)-$20,CmdLerpWord,64,5,SpriteX
 		dc.l	0,0
 
@@ -142,9 +142,10 @@ Frame:
 		move.l	CurrFrame,d0
 
 		move.l	PalOut,a0
-		lea	color00(a6),a1
+		lea	CopColors+2,a1
 		moveq	#16-1,d7
-.col		move.w	(a0)+,(a1)+
+.col		move.w	(a0)+,(a1)
+		lea	4(a1),a1
 		dbf	d7,.col
 
 		move.l	CurrFrame,d6
@@ -413,6 +414,7 @@ SpriteX:	dc.w	64
 Scale:		dc.w	$100
 Scroll:		dc.w	0
 InnerScale	dc.w	$800
+PalOut:		dc.l	Pal
 
 
 *******************************************************************************
@@ -423,14 +425,9 @@ Pal:
 		dc.w	$024,$f06,$f58,$f79,$f9a,$fbc,$ecd,$ded
 		dc.w	$744,$f5b,$f7c,$f9d,$fbd,$fde,$fef,$fff
 
-PalStart:
-		rept	16
-		dc.w	$90c
-		endr
-
 PalEnd:
 		rept	16
-		dc.w	$024
+		dc.w	$000
 		endr
 
 Screen:		dc.l	0
@@ -465,6 +462,10 @@ CopSprPt:
 		dc.w	spr0ptl+REPTN*4,0
 		endr
 CopScroll:	dc.w	bplcon1,0
+CopColors:
+		rept	16
+		dc.w	color00+REPTN*2,0
+		endr
 		dc.l	-2
 
 Sprite:

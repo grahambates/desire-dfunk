@@ -1,7 +1,7 @@
 		include	src/_main.i
 		include	girl.i
 
-GIRL_END_FRAME = $200
+GIRL_END_FRAME = $400
 
 HEAD_W = 160
 HEAD_H = 159
@@ -42,9 +42,10 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 ********************************************************************************
 Script:
 		dc.l	0,CmdLerpWord,0,8,YPos
+		dc.l	0,CmdLerpPal,7,5,PalEnd,Pal,PalOut
+		dc.l	GIRL_END_FRAME-(1<<5),CmdLerpPal,1,5,Pal,PalEnd,PalOut
 		dc.l	GIRL_END_FRAME-(1<<3),CmdLerpWord,100,3,YPos
 		dc.l	0,0
-
 
 ********************************************************************************
 Girl_Vbi:
@@ -63,6 +64,15 @@ Girl_Vbi:
 		move.l	a1,bpl1pt(a6)
 		add.l	#SCREEN_BW,a1
 		move.l	a1,bpl3pt(a6)
+
+		lea	CopColors+2,a0
+		move.l	PalOut,a1
+		moveq	#7-1,d0
+.l
+		move.w	(a1)+,(a0)
+		lea	4(a0),a0
+		dbf	d0,.l
+
 		rts
 
 
@@ -71,7 +81,6 @@ Girl_Effect:
 ********************************************************************************
 		jsr	ResetFrameCounter
 		jsr	Free
-
 
 		lea	Script,a0
 		jsr	Commander_Init
@@ -334,6 +343,15 @@ DrawBuffer:	dc.l	0
 ViewBuffer:	dc.l	0
 CredScreen:	dc.l	0
 
+PalOut		dc.l	Pal
+
+Pal:		dc.w	$90c,$323,$eca,$666,$000,$fff,$fff
+PalEnd:
+		rept	7
+		dc.w	$024
+		endr
+
+
 
 ********************************************************************************
 		data_c
@@ -349,13 +367,14 @@ Cop:
 		dc.w	bpl1mod,DIW_MOD
 		dc.w	bpl2mod,0
 		dc.w	bplcon0,(BPLS+2)<<12!$200!(1<<10)
-		dc.w	color00,$90c
-		dc.w	color01,$323
-		dc.w	color02,$eca
-		dc.w	color03,$666
-		dc.w	color09,$000
-		dc.w	color10,$fff
-		dc.w	color11,$fff
+CopColors:
+		dc.w	color00,0
+		dc.w	color01,0
+		dc.w	color02,0
+		dc.w	color03,0
+		dc.w	color09,0
+		dc.w	color10,0
+		dc.w	color11,0
 		dc.l	-2
 ; Images
 Head:		incbin	data/girl-head.BPL
