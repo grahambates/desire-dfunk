@@ -566,10 +566,12 @@ Update:
 		lsl.l	#3,d3
 		swap	d3
 		add.w	#2,d3
+		neg.w	d3
+		add.w	#BALL_R,d3
 
 		move.w	d0,Ball_X(a5)	; Write x and y to bob struct
 		move.w	d1,Ball_Y(a5)
-		move.w	d3,Ball_Scale(a5)
+		move.w	d3,Ball_R(a5)
 		lea	Ball_SIZEOF(a5),a5
 		add.w	#192,d2		; Increment angle
 		add.w	#192,d5
@@ -632,7 +634,7 @@ DrawSprites:
 
 		; muls #BALL_R,d3
 		; move.w #BALL_R-GROUP_COUNT,d4
-		; add.w Ball_Scale(a2),d4
+		; add.w Ball_R(a2),d4
 		; divs d4,d3
 
 		add.w	d3,d0
@@ -645,7 +647,7 @@ DrawSprites:
 
 		; muls #BALL_R,d3
 		; move.w #BALL_R-GROUP_COUNT,d4
-		; add.w Ball_Scale(a2),d4
+		; add.w Ball_R(a2),d4
 		; divs d4,d3
 
 		add.w	d3,d1
@@ -689,7 +691,13 @@ DrawBobs:
 
 		moveq	#BALL_COUNT-1,d7
 .l:
-		movem.w	(a5)+,d0-d2	; d0 = x, d1 = y, d2 = scale
+		move.w	Ball_X(a5),d0
+		move.w	Ball_Y(a5),d1
+		move.w	Ball_R(a5),d2
+		lea	Ball_SIZEOF(a5),a5
+
+		neg.w	d2
+		add.w	#BALL_R,d2
 
 ; Set src ptrs using scale as offset to select correct size
 		lsl.w	#2,d2		; *4 for longword offset
@@ -879,9 +887,12 @@ Data:
 ; 		dc.w	63,63,63,64,64,64,64,64
 
 		rsreset
-Ball_X		rs.w	1
-Ball_Y		rs.w	1
-Ball_Scale	rs.w	1
+Ball_X		rs.l	1
+Ball_Y		rs.l	1
+Ball_R		rs.l	1
+Ball_VX		rs.l	1
+Ball_VY		rs.l	1
+Ball_Col	rs.l	1
 Ball_SIZEOF	rs.b	0
 
 Balls:		ds.b	Ball_SIZEOF*BALL_COUNT
