@@ -1,8 +1,8 @@
 		include	src/_main.i
 		include	src/metabobs.i
 
-; METABOBS_END_FRAME = $200
-METABOBS_END_FRAME = $400
+METABOBS_END_FRAME = $200
+; METABOBS_END_FRAME = $400
 
 ;********************************************************************************
 ; Faux metaballs effect
@@ -130,6 +130,22 @@ Metabobs_Effect:
 		jsr	ResetFrameCounter
 		jsr	Free
 
+		move.w	#$123,d0
+		jsr	BlankScreen
+
+		move.l	#$100*$100,d0
+		jsr	AllocPublic
+		move.l	a0,SqrtTab
+		bsr	InitSqrt
+
+		move.l	#BOB_BPL*SIZE_COUNT,d0
+		jsr	AllocChip
+		move.l	a0,Circles
+
+		move.l	#GROUP_SIZE*GROUP_COUNT,d0
+		jsr	AllocChip
+		move.l	a0,Groups
+
 		move.l	#SCREEN_SIZE,d0
 		jsr	AllocChip
 		move.l	a0,DrawBuffer
@@ -150,28 +166,15 @@ Metabobs_Effect:
 		jsr	AllocChip
 		move.l	a0,ViewCopQueue
 
-		move.l	#BOB_BPL*SIZE_COUNT,d0
-		jsr	AllocChip
-		move.l	a0,Circles
-
-		move.l	#GROUP_SIZE*GROUP_COUNT,d0
-		jsr	AllocChip
-		move.l	a0,Groups
-
 		move.l	#(SprDatE-SprDat+6)*BALL_COUNT*2,d0
 		jsr	AllocChip
 		move.l	a0,Sprites
-
-		move.l	#$100*$100,d0
-		jsr	AllocPublic
-		move.l	a0,SqrtTab
 
 		bsr	InitSprites
 		bsr	InitCircles
 		bsr	InitCircleGroups
 		bsr	InitBlitter
 		bsr	InitCopQueues
-		bsr	InitSqrt
 		bsr	GenerateBalls
 
 		lea	Cop2Lc+2,a0
@@ -199,7 +202,6 @@ Frame:
 		movem.l	d0-d7,DblBuffers
 
 		bsr	Clear
-		; bsr	Update
 		bsr	UpdateBalls
 		bsr	DrawBobs
 
@@ -539,54 +541,6 @@ InitCircleGroup:
 
 
 ********************************************************************************
-; Update positions
-;-------------------------------------------------------------------------------
-Update:
-		lea	Sin,a3
-		lea	Cos,a4
-		lea	Balls,a5
-		move.l	CurrFrame,d2	; Get initial angle from frame
-		lsl	#2,d2
-		move.l	CurrFrame,d6
-		lsl	#4,d6
-
-		move.w	d2,d5
-		add.w	d5,d5
-		add.w	d5,d5
-		add.w	d2,d2		; *2 for word offset
-
-		moveq	#BALL_COUNT-1,d7
-.ball:
-		and.w	#$7ff,d2	; Clamp max angle
-		and.w	#$7ff,d5
-		and.w	#$7ff,d6
-
-		move.w	(a3,d2),d0	; x = sin(angle)
-		add.w	(a3,d5),d0
-		asr.w	#8,d0
-		move.w	(a4,d2),d1	; y = cos(angle)
-		asr.w	#8,d1
-
-		move.w	(a4,d6),d3	; scale
-		ext.l	d3
-		lsl.l	#3,d3
-		swap	d3
-		add.w	#2,d3
-		neg.w	d3
-		add.w	#BALL_R,d3
-
-		move.w	d0,Ball_X(a5)	; Write x and y to bob struct
-		move.w	d1,Ball_Y(a5)
-		move.w	d3,Ball_R(a5)
-		lea	Ball_SIZEOF(a5),a5
-		add.w	#192,d2		; Increment angle
-		add.w	#192,d5
-		add.w	#190*4,d6
-		dbf	d7,.ball
-		rts
-
-
-********************************************************************************
 ; Clear existing bobs by writing stored offsets to copper blit queue
 ;-------------------------------------------------------------------------------
 Clear:
@@ -840,11 +794,7 @@ InitSqrt:
 GenerateBalls:
 		move.l	#(MAX_R)<<16,d2
 		lea	Balls,a1
-		jsr	Random32
-		jsr	Random32
-		jsr	Random32
-		jsr	Random32	; good?
-		; jsr	Random32
+		move.l	#$162b28ba,RandomSeed
 		moveq	#BALL_COUNT-1,d1
 .l:
 ; x
@@ -1106,49 +1056,6 @@ SqrtTab:	dc.l	0
 ********************************************************************************
 Data:
 ********************************************************************************
-
-;Sin1:
-; 		dc.w	0,2,3,5,6,8,9,11
-; 		dc.w	12,14,16,17,19,20,22,23
-; 		dc.w	24,26,27,29,30,32,33,34
-; 		dc.w	36,37,38,39,41,42,43,44
-; 		dc.w	45,46,47,48,49,50,51,52
-; 		dc.w	53,54,55,56,56,57,58,59
-; 		dc.w	59,60,60,61,61,62,62,62
-; 		dc.w	63,63,63,64,64,64,64,64
-;Cos1:
-; 		dc.w	64,64,64,64,64,64,63,63
-; 		dc.w	63,62,62,62,61,61,60,60
-; 		dc.w	59,59,58,57,56,56,55,54
-; 		dc.w	53,52,51,50,49,48,47,46
-; 		dc.w	45,44,43,42,41,39,38,37
-; 		dc.w	36,34,33,32,30,29,27,26
-; 		dc.w	24,23,22,20,19,17,16,14
-; 		dc.w	12,11,9,8,6,5,3,2
-; 		dc.w	0,-2,-3,-5,-6,-8,-9,-11
-; 		dc.w	-12,-14,-16,-17,-19,-20,-22,-23
-; 		dc.w	-24,-26,-27,-29,-30,-32,-33,-34
-; 		dc.w	-36,-37,-38,-39,-41,-42,-43,-44
-; 		dc.w	-45,-46,-47,-48,-49,-50,-51,-52
-; 		dc.w	-53,-54,-55,-56,-56,-57,-58,-59
-; 		dc.w	-59,-60,-60,-61,-61,-62,-62,-62
-; 		dc.w	-63,-63,-63,-64,-64,-64,-64,-64
-; 		dc.w	-64,-64,-64,-64,-64,-64,-63,-63
-; 		dc.w	-63,-62,-62,-62,-61,-61,-60,-60
-; 		dc.w	-59,-59,-58,-57,-56,-56,-55,-54
-; 		dc.w	-53,-52,-51,-50,-49,-48,-47,-46
-; 		dc.w	-45,-44,-43,-42,-41,-39,-38,-37
-; 		dc.w	-36,-34,-33,-32,-30,-29,-27,-26
-; 		dc.w	-24,-23,-22,-20,-19,-17,-16,-14
-; 		dc.w	-12,-11,-9,-8,-6,-5,-3,-2
-; 		dc.w	0,2,3,5,6,8,9,11
-; 		dc.w	12,14,16,17,19,20,22,23
-; 		dc.w	24,26,27,29,30,32,33,34
-; 		dc.w	36,37,38,39,41,42,43,44
-; 		dc.w	45,46,47,48,49,50,51,52
-; 		dc.w	53,54,55,56,56,57,58,59
-; 		dc.w	59,60,60,61,61,62,62,62
-; 		dc.w	63,63,63,64,64,64,64,64
 
 		rsreset
 Ball_X		rs.l	1

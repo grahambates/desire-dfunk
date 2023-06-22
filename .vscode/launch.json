@@ -6,7 +6,7 @@
 			"request": "launch",
 			"name": "FS-UAE Debug",
 			"stopOnEntry": false,
-			"program": "${workspaceFolder}/out/a.hunk-debug.exe",
+			"program": "${workspaceFolder}/out/dfunk.hunk-debug.exe",
 			"remoteProgram": "SYS:a.exe",
 			"emulatorType": "fs-uae",
 			"emulatorArgs": [
