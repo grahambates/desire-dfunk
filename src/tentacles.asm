@@ -49,7 +49,7 @@ Script:
 		dc.l	0,CmdLerpWord,$1000,8,InnerScale
 		dc.l	$60,CmdLerpWord,128,5,SpriteX
 		dc.l	$200,CmdLerpWord,$4000,7,InnerScale
-		dc.l	$300,CmdLerpWord,$1000,7,InnerScale
+		dc.l	$280,CmdLerpWord,$1000,7,InnerScale
 		dc.l	TENTACLES_END_FRAME-(1<<6),CmdLerpPal,16,6,Pal,PalEnd,PalOut
 		dc.l	TENTACLES_END_FRAME-(1<<5)-$20,CmdLerpWord,48,5,SpriteX
 		dc.l	0,0
