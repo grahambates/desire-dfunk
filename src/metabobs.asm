@@ -61,7 +61,8 @@ SCREEN_H = DIW_H
 BALL_COUNT = 4
 BALL_R = 29				; Max radius for ball
 BOB_W = 64+16
-GROUP_COUNT = 5				; Number of size groups
+GROUP_COUNT = 8				; Number of size groups
+MAX_R = BALL_R-BPLS
 
 
 ;-------------------------------------------------------------------------------
@@ -706,8 +707,18 @@ DrawBobs:
 		add.w	#SCREEN_W/2-BALL_R,d0
 		add.w	#SCREEN_H/2-BALL_R,d1
 
-		neg.w	d2
-		add.w	#BALL_R,d2
+		; convert radius to offset
+		sub.w	#MAX_R,d2
+		add.w	#GROUP_COUNT-1,d2
+
+		; 0 = smallest
+		; max - group count?
+
+
+		; GROUP_COUNT-1 = largest
+		; should be BALL_R, but isn't?
+		; this is because of the outer bpls
+		; need to use this radius for bounds check, but not collisions
 
 ; Set src ptrs using scale as offset to select correct size
 		lsl.w	#2,d2		; *4 for longword offset
@@ -826,6 +837,7 @@ InitSqrt:
 
 ********************************************************************************
 GenerateBalls:
+		move.l	#(MAX_R)<<16,d2
 		lea	Balls,a1
 		moveq	#BALL_COUNT-1,d1
 .l:
@@ -839,7 +851,9 @@ GenerateBalls:
 		asr.l	#1,d0
 		move.l	d0,(a1)+
 ; r
-		move.l	#(BALL_R)<<16,(a1)+ ; TODO
+		move.l	d2,(a1)+	; TODO
+
+		sub.l	#2<<16,d2
 ; vx
 		jsr	Random32
 		ext.l	d0
@@ -912,7 +926,7 @@ UpdateBall:
 ; Check bounds: rectangle
 ;-------------------------------------------------------------------------------
 CheckBoundsRect:
-		move.l	#(DIW_W/2)<<16,d5 ; d5 = maxX = width/2-r
+		move.l	#(DIW_W/2-10)<<16,d5 ; d5 = maxX = width/2-r
 		sub.l	d2,d5
 
 		cmp.l	d5,d0		; Check maxX
@@ -927,7 +941,7 @@ CheckBoundsRect:
 		neg.l	d3
 .xminOk
 
-		move.l	#(DIW_H/2)<<16,d5 ; d5 = maxX = width/2-r
+		move.l	#(DIW_H/2-10)<<16,d5 ; d5 = maxX = width/2-r
 		sub.l	d2,d5
 
 		cmp.l	d5,d1		; Check max Y
