@@ -67,25 +67,25 @@ Image_Vbi:
 		lea	FastCycleGoldCols(pc),a0
 		lea	FastCycleGold+2,a1
 		moveq	#6,d2
-		moveq	#3,d3
+		moveq	#2,d3
 		bsr	DoCycle
 
 		lea	MediumCycleBlueCols(pc),a0
 		lea	MediumCycleBlue+2,a1
 		moveq	#7,d2
-		moveq	#4,d3
+		moveq	#3,d3
 		bsr	DoCycle
 
 		lea	MediumCyclePurpleCols(pc),a0
 		lea	MediumCyclePurple+2,a1
 		moveq	#3,d2
-		moveq	#4,d3
+		moveq	#3,d3
 		bsr	DoCycle
 
 		lea	SlowCycleFunkCols(pc),a0
 		lea	SlowCycleFunk+2,a1
 		moveq	#4,d2
-		moveq	#5,d3
+		moveq	#4,d3
 		bsr	DoCycle
 
 		; highlight

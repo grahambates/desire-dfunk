@@ -48,24 +48,6 @@ Start:		move.l	4.w,a6		;Exec library base address in a6
 		move.w	(sp)+,$96(a6)	;restore DMA
 		or.w	d2,(sp)
 		move.w	(sp)+,$9a(a6)	;restore interrupt mask
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
-		nop
 		or.w	(sp)+,d2
 		bsr	IntReqD2	;restore interrupt requests
 

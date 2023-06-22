@@ -58,15 +58,6 @@ DPF = 0					; enable dual playfield
 SCREEN_W = DIW_W
 SCREEN_H = DIW_H
 
-; Color palette:
-; https://gradient-blaster.grahambates.com/?points=024@0,226@2,f4d@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
-COL_BG = $012
-COL_MID = $125
-COL_FILL = $226
-COL_HL1 = $638
-COL_HL2 = $b4b
-COL_HL3 = $f4d
-
 BALL_COUNT = 4
 BALL_R = 29				; Max radius for ball
 BOB_W = 64+16
@@ -116,6 +107,14 @@ BPLCON0V = BPLS<<(12+DPF)!DPF<<10!$200
 ********************************************************************************
 * Entry points:
 ********************************************************************************
+
+Script:
+		dc.l	0,CmdLerpPal,6-1,4,PalStart,Pal,PalOut
+		dc.l	$40,CmdLerpPal,6-1,6,Pal,Pal2,PalOut
+		dc.l	$40+(1<<6),CmdLerpPal,6-1,6,Pal2,Pal3,PalOut
+		dc.l	$40+(2<<6),CmdLerpPal,6-1,6,Pal3,Pal,PalOut
+		dc.l	METABOBS_END_FRAME-(1<<4),CmdLerpPal,6-1,4,Pal,PalEnd,PalOut
+		dc.l	0,0
 
 
 ********************************************************************************
@@ -177,6 +176,9 @@ Metabobs_Effect:
 		lea	Metabobs_Vbi,a1
 		jsr	StartEffect
 
+		lea	Script,a0
+		jsr	Commander_Init
+
 		move.w	#DMAF_SETCLR!DMAF_BLITHOG,dmacon(a6) ; Hog the blitter
 
 Frame:
@@ -191,6 +193,8 @@ Frame:
 		bsr	Clear
 		bsr	Update
 		bsr	DrawBobs
+
+		bsr	LoadPal
 
 		jsr	WaitEOF
 		bsr	PokeCop
@@ -747,6 +751,42 @@ DrawBobs:
 		movem.l	(sp)+,d0-a6
 		rts
 
+		rsreset
+COL_BG		rs.w	1
+COL_MID		rs.w	1
+COL_FILL	rs.w	1
+COL_HL1		rs.w	1
+COL_HL2		rs.w	1
+COL_HL3		rs.w	1
+
+LoadPal:
+		move.l	PalOut,a0
+		lea	CopPal+2,a1
+		move.w	COL_BG(a0),(a1)
+		move.w	COL_FILL(a0),4(a1)
+		move.w	COL_MID(a0),8(a1)
+		move.w	COL_FILL(a0),12(a1)
+		move.w	COL_MID(a0),16(a1)
+		move.w	COL_FILL(a0),20(a1)
+		move.w	COL_FILL(a0),24(a1)
+		move.w	COL_FILL(a0),28(a1)
+		move.w	COL_MID(a0),32(a1)
+		move.w	COL_FILL(a0),36(a1)
+		move.w	COL_FILL(a0),40(a1)
+		move.w	COL_FILL(a0),44(a1)
+		move.w	COL_FILL(a0),48(a1)
+		move.w	COL_FILL(a0),52(a1)
+		move.w	COL_FILL(a0),56(a1)
+		move.w	COL_FILL(a0),60(a1)
+		moveq	#4-1,d7
+.l
+		move.w	COL_HL1(a0),68(a1)
+		move.w	COL_HL2(a0),72(a1)
+		move.w	COL_HL3(a0),76(a1)
+		lea	16(a1),a1
+		dbf	d7,.l
+		rts
+
 
 ********************************************************************************
 Vars:
@@ -782,6 +822,8 @@ GroupPtrs:
 		ds.l	GROUP_COUNT
 
 SprPtrs:	ds.l	BALL_COUNT*2	; Pointers to sprite structs
+
+PalOut:		dc.l	PalStart
 
 
 ********************************************************************************
@@ -846,6 +888,23 @@ SprDat2:
 		incbin	"data/ball-highlight-a.SPR"
 SprDat2E:
 
+; Color palette:
+; https://gradient-blaster.grahambates.com/?points=024@0,226@2,f4d@5&steps=6&blendMode=oklab&ditherMode=blueNoise&target=amigaOcs&ditherAmount=40
+Pal:
+		dc.w	$012,$125,$225,$437,$758,$969
+Pal2:
+
+		dc.w	$012,$125,$225,$337,$458,$669
+Pal3:
+		dc.w	$012,$125,$225,$446,$766,$986
+PalStart
+		rept	6
+		dc.w	0
+		endr
+PalEnd
+		rept	6
+		dc.w	$024
+		endr
 
 *******************************************************************************
 		data_c
@@ -874,39 +933,38 @@ CopBpls:
 		dc.w	bpl4ptl,0
 
 CopPal:
-		dc.w	color00,COL_BG	; 00000
-		dc.w	color01,COL_FILL ; 00001
-		dc.w	color02,COL_MID	; 00010
-		dc.w	color03,COL_FILL ; 00011
-		dc.w	color04,COL_MID	; 00100
-		dc.w	color05,COL_FILL ; 00101
-		dc.w	color06,COL_FILL ; 00110
-		dc.w	color07,COL_FILL ; 00111
-		dc.w	color08,COL_MID	; 01000
-		dc.w	color09,COL_FILL ; 01001
-		dc.w	color10,COL_FILL ; 01010
-		dc.w	color11,COL_FILL ; 01011
-		dc.w	color12,COL_FILL ; 01100
-		dc.w	color13,COL_FILL ; 01101
-		dc.w	color14,COL_FILL ; 01110
-		dc.w	color15,COL_FILL ; 01111
-
-		dc.w	color16,$000	; 10000
-		dc.w	color17,COL_HL1	; 10001
-		dc.w	color18,COL_HL2	; 10010
-		dc.w	color19,COL_HL3	; 10011
-		dc.w	color20,$000	; 10100
-		dc.w	color21,COL_HL1	; 10101
-		dc.w	color22,COL_HL2	; 10110
-		dc.w	color23,COL_HL3	; 10111
-		dc.w	color24,$000	; 11000
-		dc.w	color25,COL_HL1	; 11001
-		dc.w	color26,COL_HL2	; 11010
-		dc.w	color27,COL_HL3	; 11011
-		dc.w	color28,$000	; 11000
-		dc.w	color29,COL_HL1	; 11001
-		dc.w	color30,COL_HL2	; 11010
-		dc.w	color31,COL_HL3	; 11011
+		dc.w	color00,0
+		dc.w	color01,0
+		dc.w	color02,0
+		dc.w	color03,0
+		dc.w	color04,0
+		dc.w	color05,0
+		dc.w	color06,0
+		dc.w	color07,0
+		dc.w	color08,0
+		dc.w	color09,0
+		dc.w	color10,0
+		dc.w	color11,0
+		dc.w	color12,0
+		dc.w	color13,0
+		dc.w	color14,0
+		dc.w	color15,0
+		dc.w	color16,0
+		dc.w	color17,0
+		dc.w	color18,0
+		dc.w	color19,0
+		dc.w	color20,0
+		dc.w	color21,0
+		dc.w	color22,0
+		dc.w	color23,0
+		dc.w	color24,0
+		dc.w	color25,0
+		dc.w	color26,0
+		dc.w	color27,0
+		dc.w	color28,0
+		dc.w	color29,0
+		dc.w	color30,0
+		dc.w	color31,0
 
 Cop2Lc		dc.w	cop2lch,0
 		dc.w	cop2lcl,0

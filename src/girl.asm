@@ -42,8 +42,8 @@ DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 ********************************************************************************
 Script:
 		dc.l	0,CmdLerpWord,0,8,YPos
-		dc.l	0,CmdLerpPal,7,5,PalEnd,Pal,PalOut
-		dc.l	GIRL_END_FRAME-(1<<5),CmdLerpPal,1,5,Pal,PalEnd,PalOut
+		dc.l	0,CmdLerpPal,7-1,5,PalEnd,Pal,PalOut
+		dc.l	GIRL_END_FRAME-(1<<5),CmdLerpPal,7-1,5,Pal,PalEnd,PalOut
 		dc.l	GIRL_END_FRAME-(1<<3),CmdLerpWord,100,3,YPos
 		dc.l	0,0
 
