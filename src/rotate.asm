@@ -36,12 +36,16 @@ COLORS = 1<<BPLS
 SCREEN_BW = SCREEN_W/8
 SCREEN_BPL = SCREEN_BW*SCREEN_H
 SCREEN_SIZE = SCREEN_BW*SCREEN_H*BPLS
+DIW_MOD = SCREEN_BW-DIW_BW
 DIW_BW = DIW_W/8
-DIW_MOD = SCREEN_BW-DIW_BW-2
 DIW_XSTRT = ($242-DIW_W)/2
 DIW_YSTRT = ($158-DIW_H)/2
 DIW_XSTOP = DIW_XSTRT+DIW_W
 DIW_YSTOP = DIW_YSTRT+DIW_H
+DIW_STRT = (DIW_YSTRT<<8)!DIW_XSTRT
+DIW_STOP = ((DIW_YSTOP-256)<<8)!(DIW_XSTOP-256)
+DDF_STRT = ((DIW_XSTRT-17)>>1)&$00fc
+DDF_STOP = ((DIW_XSTRT-17+(((DIW_W>>4)-1)<<4))>>1)&$00fc
 
 Script:
 		dc.l	0,CmdLerpPal,16,6,PalStart,Pal,PalOut
@@ -144,8 +148,6 @@ Rotate_Effect:
 Frame:
 		move.l	PalOut,a0
 		bsr	LoadPalette
-
-		bsr	LerpPointsStep	; TODO: vbi?
 
 UpdateParticles:
 		move.l	Particles(pc),a0
@@ -303,6 +305,7 @@ z		equr	d7
 		endc
 		jsr	WaitEOF
 
+		bsr	PokeBpls
 		jsr	SwapBuffers
 
 		move.l	DrawClearList(pc),a0
@@ -405,15 +408,23 @@ SMCNext		move.l	(sp)+,a0
 ********************************************************************************
 Rotate_Vbi:
 ********************************************************************************
-; Set bpl ptrs
-		move.l	ViewBuffer(pc),a0
-		lea	bpl0pt+custom,a1
-		rept	BPLS
-		move.l	a0,(a1)+
-		lea	SCREEN_BPL(a0),a0
-		endr
+		bsr	LerpPointsStep
 		rts
 
+
+PokeBpls:
+		lea	CopBpls+2,a1
+		move.l	DrawBuffer(pc),a0
+		moveq	#BPLS-1,d7
+.l0:
+		move.l	a0,d2
+		swap	d2
+		move.w	d2,(a1)
+		move.w	a0,4(a1)
+		addq.w	#8,a1
+		add.l	#SCREEN_BPL,a0
+		dbf	d7,.l0
+		rts
 
 ********************************************************************************
 Rotate_Precalc:
@@ -1026,14 +1037,28 @@ LogoPointsData:
 ; Cirlces copper list:
 Cop:
 		dc.w	dmacon,DMAF_SPRITE
-		dc.w	diwstrt,DIW_YSTRT<<8!DIW_XSTRT
-		dc.w	diwstop,(DIW_YSTOP-256)<<8!(DIW_XSTOP-256)
-		dc.w	ddfstrt,(DIW_XSTRT-17)>>1&$fc
-		dc.w	ddfstop,(DIW_XSTRT-17+(SCREEN_W>>4-1)<<4)>>1&$fc
+		dc.w	diwstrt,DIW_STRT
+		dc.w	diwstop,DIW_STOP
+		dc.w	ddfstrt,DDF_STRT
+		dc.w	ddfstop,DDF_STOP
 		dc.w	bpl1mod,DIW_MOD
 		dc.w	bpl2mod,DIW_MOD
 		dc.w	bplcon0,BPLS<<12!$200
 		dc.w	bplcon1,0
 		dc.w	color,$024
+CopBpls:
+		dc.w	bpl0pt,0
+		dc.w	bpl0ptl,0
+		dc.w	bpl1pt,0
+		dc.w	bpl1ptl,0
+		dc.w	bpl2pt,0
+		dc.w	bpl2ptl,0
+		dc.w	bpl3pt,0
+		dc.w	bpl3ptl,0
+		dc.w	bpl4pt,0
+		dc.w	bpl4ptl,0
+		dc.w	bpl5pt,0
+		dc.w	bpl5ptl,0
+
 		dc.l	-2
 CopE:
