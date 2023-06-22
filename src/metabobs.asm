@@ -130,7 +130,7 @@ Metabobs_Effect:
 		jsr	ResetFrameCounter
 		jsr	Free
 
-		move.w	#$123,d0
+		move.w	#$012,d0
 		jsr	BlankScreen
 
 		move.l	#$100*$100,d0
