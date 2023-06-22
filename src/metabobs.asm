@@ -1,7 +1,8 @@
 		include	src/_main.i
 		include	src/metabobs.i
 
-METABOBS_END_FRAME = $200
+; METABOBS_END_FRAME = $200
+METABOBS_END_FRAME = $400
 
 ;********************************************************************************
 ; Faux metaballs effect
@@ -47,7 +48,7 @@ METABOBS_END_FRAME = $200
 ********************************************************************************
 
 ; Display window:
-DIW_W = 320
+DIW_W = 256
 DIW_H = 190
 BPLS = 4
 SCROLL = 0				; enable playfield scroll
@@ -59,7 +60,7 @@ SCREEN_W = DIW_W
 SCREEN_H = DIW_H
 
 BALL_COUNT = 4
-BALL_R = 29				; Max radius for ball
+BALL_R = 30				; Max radius for ball
 BOB_W = 64+16
 GROUP_COUNT = 8				; Number of size groups
 MAX_R = BALL_R-BPLS
@@ -839,6 +840,11 @@ InitSqrt:
 GenerateBalls:
 		move.l	#(MAX_R)<<16,d2
 		lea	Balls,a1
+		jsr	Random32
+		jsr	Random32
+		jsr	Random32
+		jsr	Random32	; good?
+		; jsr	Random32
 		moveq	#BALL_COUNT-1,d1
 .l:
 ; x
@@ -851,34 +857,18 @@ GenerateBalls:
 		asr.l	#1,d0
 		move.l	d0,(a1)+
 ; r
-		move.l	d2,(a1)+	; TODO
-
-		sub.l	#2<<16,d2
+		move.l	d2,(a1)+
+		sub.l	#1<<16,d2
 ; vx
 		jsr	Random32
 		ext.l	d0
-		lsl.l	#2,d0
+		lsl.l	#1,d0
 		move.l	d0,(a1)+
 ; vy
 		jsr	Random32
 		ext.l	d0
-		lsl.l	#2,d0
+		lsl.l	#1,d0
 		move.l	d0,(a1)+
-; ; color
-; 		move.l	d3,(a1)+
-
-; ; next radius
-; 		jsr	Random32
-; 		move.w	d0,d2
-; 		and.l	#15,d2
-; 		addq	#7,d2
-; 		swap	d2
-; ; next color
-; 		jsr	Random32
-; 		moveq	#0,d3
-; 		btst	d3,d0
-; 		beq	.no0
-; 		move.l	#SCREEN_BPL,d3
 .no0
 
 		dbf	d1,.l
@@ -1039,30 +1029,9 @@ CheckCollisions:
 		move.l	SqrtTab,a3
 		move.b	(a3,d2.w),d2	; d2 = dist
 		and.w	#$ff,d2
-; Fix overlap:
+; Get overlap:
 		move.w	a2,d5
 		sub.w	d2,d5		; d5 = (maxDist - dist) / 2 = overlap (FP)
-		swap	d5
-		clr.w	d5
-		asr.l	#1+COL_OVERLAP_ACC,d5 ; /2 and shift more to avoid signed overflow
-
-		divu	d2,d5		;  / dist
-; adjust x
-		move.l	a0,d3
-		swap	d3
-		muls	d5,d3
-		asl.l	#COL_OVERLAP_ACC,d3
-
-		sub.l	d3,Ball_X(a5)
-		add.l	d3,Ball_X(a4)
-;add.l	d3,a0					; adjust dx
-; adjust Y
-		move.l	a1,d3
-		swap	d3
-		muls	d5,d3
-		asl.l	#COL_OVERLAP_ACC,d3
-		sub.l	d3,Ball_Y(a5)
-		add.l	d3,Ball_Y(a4)
 
 ; use maxDist as d
 ; stops velocities spiraling upwards
@@ -1071,51 +1040,27 @@ CheckCollisions:
 ; Update velocities:
 ; normal vector n
 		move.l	a0,d3		; d3 = nx = dx/d
-		asr.l	#COL_NORM_ACC,d3 ; >>2 to prevent overflow
+		asr.l	#8,d3
 		divs	d2,d3
 		ext.l	d3
 		move.l	a1,d4		; d4 = ny = dy/d
-		asr.l	#COL_NORM_ACC,d4
+		asr.l	#8,d4
 		divs	d2,d4
-		add.l	d2,d2
-; velocity vector k
-		move.l	Ball_VX(a5),d2	; d2 = kx = b1.vx-b2.vx
-		sub.l	Ball_VX(a4),d2
-		move.l	Ball_VY(a5),d5	; d2 = ky = b1.vy-b2.vy
-		sub.l	Ball_VY(a4),d5
-; p = 2 * (nx * kx + ny * ky) / (b1.m + b2.m);
-		lsl.l	#COL_NORM_ACC,d2 ; keep some extra bits for better accuracy
-		swap	d2
-		muls	d3,d2		; d2 = nx * kx
-		lsl.l	#COL_NORM_ACC,d5
-		swap	d5
-		muls	d4,d5		; d5 = ny * ky
-		add.l	d5,d2
-		add.l	d2,d2		; d2 = 2 * (nx * kx + ny * ky)
-		move.w	d7,d5		; d5 = b1.m + b2.m (use radius as mass)
-		add.w	Ball_R(a4),d5
-		divs	d5,d2		; d2 = p
-; update vx
-		move.w	d2,d5		; px = p * nx
-		muls	d3,d5
-		swap	d5
-		move.w	d5,d3
-		muls	Ball_R(a4),d3	; b1.vx -= px * b2.m;
-		lsl.l	#COL_NORM_ACC,d3 ; correct shifts in nx/ny and kx/ky
-		sub.l	d3,Ball_VX(a5)
-		muls	Ball_R(a5),d5	; b2.vx += px * b1.m;
-		lsl.l	#COL_NORM_ACC,d5
-		add.l	d5,Ball_VX(a4)
-; update vy
-		muls	d4,d2		; py = p * ny
-		swap	d2
-		move.w	d2,d4
-		muls	Ball_R(a4),d4	; b1.vy -= py * b1.m;
-		lsl.l	#COL_NORM_ACC,d4
-		sub.l	d4,Ball_VY(a5)
-		muls	Ball_R(a5),d2	; b2.vy += py * b1.m;
-		lsl.l	#COL_NORM_ACC,d2
-		add.l	d2,Ball_VY(a4)
+
+		asr.l	#8,d3
+		asr.l	#8,d4
+
+		; muls	d5,d3
+		; muls	d5,d4
+
+		; asr.l	#4,d4
+		; asr.l	#4,d3
+
+		sub.l	d3,Ball_VX(a4)
+		add.l	d3,Ball_VX(a5)
+		sub.l	d4,Ball_VY(a4)
+		add.l	d4,Ball_VY(a5)
+
 		bra	.next
 
 
